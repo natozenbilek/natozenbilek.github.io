@@ -20,7 +20,7 @@
       --accent: #2c5f7c;
       --accent-light: #e8f1f5;
       --crisis: #8b3a3a;
-      --max: min(92vw, 980px);
+      --max: min(92vw, 880px);
       --pad-x: clamp(1.15rem, 4vw, 2.75rem);
     }
 
@@ -66,13 +66,12 @@
 
     .hero-visual {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 1.25rem;
+      justify-content: center;
     }
     .hero-photo {
       display: block;
-      width: clamp(128px, 20vw, 176px);
+      width: clamp(120px, 18vw, 160px);
       aspect-ratio: 1;
       object-fit: cover;
       border-radius: 4px;
@@ -82,7 +81,7 @@
     .hero-canvas { width: clamp(140px, 22vw, 200px); height: clamp(140px, 22vw, 200px); }
 
     /* ════════ SECTIONS ════════ */
-    section { padding: 2.5rem 0 1.5rem; border-bottom: 0.5px solid var(--rule); }
+    section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
     section:last-of-type { border-bottom: none; }
     .sec-title { font-size: 0.78rem; font-variant: small-caps; letter-spacing: 0.08em; color: var(--light); margin-bottom: 1.2rem; text-transform: lowercase; }
     .sub-heading { font-size: 0.8rem; font-variant: small-caps; letter-spacing: 0.05em; color: var(--light); margin: 1.4rem 0 0.6rem; }
@@ -230,9 +229,12 @@
         decoding="async"
         fetchpriority="high"
       />
-      <canvas class="hero-canvas" id="networkCanvas" width="200" height="200" aria-label="Animated network graph"></canvas>
     </div>
   </header>
+
+    <div style="display:flex; justify-content:center; padding:1.5rem 0 0;">
+      <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="200" height="200" aria-label="Animated network graph"></canvas>
+    </div>
 
   <!-- ═══ ABOUT ═══ -->
   <section id="about">
