@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Nezih Arhan Tözenbilek — Computer Engineering × Quantitative Finance" />
+  <meta name="description" content="Nezih Arhan Tözenbilek · Computer Engineering × Quantitative Finance" />
   <title>Nezih Arhan Tözenbilek</title>
   <style>
     @font-face { font-family:"Latin Modern"; font-style:normal; font-weight:400; font-display:swap; src:url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-regular.woff2") format("woff2"); }
@@ -64,7 +64,7 @@
     .hero-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s, color 0.2s; }
     .hero-links a:hover { border-bottom-color: var(--accent); }
 
-    /* Hero network — JS animated */
+    /* Hero network (JS canvas) */
     .hero-canvas { width: clamp(140px, 22vw, 200px); height: clamp(140px, 22vw, 200px); }
 
     /* ════════ SECTIONS ════════ */
@@ -199,7 +199,7 @@
   <header class="hero">
     <div class="hero-text fade-up">
       <h1>Nezih Arhan<br>Tözenbilek</h1>
-      <p class="tagline">Computer Engineering meets Quantitative Finance — modeling how markets break.</p>
+      <p class="tagline">Computer Engineering meets quantitative finance. I care about how markets break.</p>
       <div class="hero-links fade-up fade-up-d2">
         <a href="mailto:natozenbilek@gmail.com">Email</a>
         <a href="https://github.com/natozenbilek" rel="noopener noreferrer">GitHub</a>
@@ -213,13 +213,13 @@
   <section id="about">
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
-      I'm a Computer Engineering student at Hacettepe University in Ankara. I got pulled into quantitative finance while studying how mathematical models can explain strategic behavior — financial markets turned out to be the most interesting playground for that.
+      I'm a Computer Engineering student at Hacettepe University in Ankara. I got pulled into quantitative finance while studying how mathematical models can explain strategic behavior. Financial markets turned out to be the most interesting playground for that.
     </p>
     <p class="about-text reveal">
       Right now I'm building network-based tools to map how contagion propagates through equity markets during crises. The question I keep coming back to: when a market panics, who moves first, who follows, and can you see it in the structure before it happens?
     </p>
     <p class="about-text reveal">
-      I also build things closer to hardware — my capstone project is an ESP32-based drone flight controller with a custom Android remote. I like working across the stack, from embedded firmware to financial modeling.
+      I also build things closer to hardware. My capstone is an ESP32-based drone flight controller with a custom Android remote. I like working across the stack, from embedded firmware to financial modeling.
     </p>
   </section>
 
@@ -228,7 +228,7 @@
     <p class="sec-title reveal">ii. education</p>
     <div class="entries reveal">
       <div class="entry">
-        <span class="entry-title">Hacettepe University — Computer Engineering</span>
+        <span class="entry-title">Hacettepe University, Computer Engineering</span>
         <span class="entry-date">Expected 2027</span>
         <p class="entry-coursework">
           <strong>Coursework:</strong> Probability · Statistics · Algorithms · Data Structures · Automata Theory · Social &amp; Economic Networks · Blockchain Fundamentals
@@ -238,7 +238,7 @@
     <p class="sub-heading reveal">Certificates</p>
     <div class="entries reveal">
       <div class="entry">
-        <span class="entry-title" style="font-weight:400; font-size:0.92rem;"><a href="https://www.coursera.org/account/accomplishments/verify/5WH32X85NO7B" rel="noopener noreferrer">Financial Markets</a> — Yale University</span>
+        <span class="entry-title" style="font-weight:400; font-size:0.92rem;"><a href="https://www.coursera.org/account/accomplishments/verify/5WH32X85NO7B" rel="noopener noreferrer">Financial Markets</a>, Yale University</span>
         <span class="entry-date">Coursera, Jan 2026</span>
         <p class="entry-detail" style="font-size:0.82rem; color:var(--light);">Grade: 100%. 33 hours of coursework.</p>
       </div>
@@ -298,7 +298,7 @@
       </div>
     </div>
     <p class="reveal" style="margin-top:1rem; font-size:0.82rem; color:var(--light); font-style:italic;">
-      Also worked with: Verilog/VHDL, SQL, JavaScript, Linux — at coursework level.
+      Also worked with: Verilog/VHDL, SQL, JavaScript, Linux (coursework level).
     </p>
   </section>
 
@@ -356,7 +356,7 @@
           <circle cx="395" cy="110" r="4" fill="#666"/><circle cx="350" cy="115" r="3.5" fill="#777"/>
           <text x="387" y="145" text-anchor="middle" font-size="9" fill="#999" font-family="Latin Modern,serif" font-style="italic">Crisis: collapsed, hub-dominated</text>
         </svg>
-        <figcaption>Figure 1. Expected topology shift under market stress — sector communities dissolve as correlations converge.</figcaption>
+        <figcaption>Figure 1. Expected topology shift under market stress: sector communities dissolve as correlations converge.</figcaption>
       </figure>
 
       <p class="desc">
@@ -469,7 +469,7 @@
           <line x1="325" y1="88" x2="325" y2="75" stroke="#bbb" stroke-width="0.5"/>
           <text x="195" y="96" text-anchor="middle" font-size="6" fill="#bbb" font-family="Latin Modern,serif">validated on physical hardware + emulator</text>
         </svg>
-        <figcaption>Figure 3. System architecture — ESP32 firmware communicates with Android remote via BLE, tested in QEMU and on physical hardware.</figcaption>
+        <figcaption>Figure 3. System architecture: ESP32 firmware talks to the Android remote over BLE, tested in QEMU and on real hardware.</figcaption>
       </figure>
 
       <p class="desc">
@@ -580,7 +580,7 @@ revealEls.forEach(el => revealObserver.observe(el));
       n.y = n.baseY + Math.cos(time * n.speed * 0.7 + n.phase) * n.ampY;
     });
 
-    // Mouse interaction — push nearby nodes gently
+    // Mouse interaction: nudge nearby nodes
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
