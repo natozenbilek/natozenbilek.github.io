@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kişisel GitHub Pages sitesi" />
+  <title>natozenbilek</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Merhaba,</p>
+      <h1>Ben natozenbilek</h1>
+      <p class="lead">
+        Bu sayfa <a href="https://github.com/natozenbilek/natozenbilek.github.io">GitHub</a> üzerinden yayınlanıyor.
+        Aşağıdaki metinleri ve bağlantıları kendi bilgilerinle güncelleyebilirsin.
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="about-heading">
+      <h2 id="about-heading">Hakkımda</h2>
+      <p>
+        Kısa bir özet: ilgi alanların, okul/iş veya projelerin buraya yazılabilir.
+      </p>
+    </section>
+
+    <section class="card" aria-labelledby="links-heading">
+      <h2 id="links-heading">Bağlantılar</h2>
+      <ul class="links">
+        <li><a href="https://github.com/natozenbilek">GitHub profili</a></li>
+        <li><a href="mailto:ornek@eposta.com">E-posta</a> <span class="hint">(adresi değiştir)</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <small>© <span id="y"></span> — GitHub Pages</small>
+  </footer>
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
