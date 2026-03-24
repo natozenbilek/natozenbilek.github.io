@@ -5,40 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Kişisel GitHub Pages sitesi" />
   <title>natozenbilek</title>
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
-  <main class="wrap">
-    <header class="hero">
-      <p class="eyebrow">Merhaba,</p>
-      <h1>Ben natozenbilek</h1>
-      <p class="lead">
-        Bu sayfa <a href="https://github.com/natozenbilek/natozenbilek.github.io">GitHub</a> üzerinden yayınlanıyor.
-        Aşağıdaki metinleri ve bağlantıları kendi bilgilerinle güncelleyebilirsin.
-      </p>
+  <article class="latex-article">
+    <header class="titleblock">
+      <h1 class="doc-title">natozenbilek</h1>
+      <p class="author">Kişisel web sayfası</p>
+      <p class="doc-date" id="doc-date"></p>
     </header>
 
-    <section class="card" aria-labelledby="about-heading">
-      <h2 id="about-heading">Hakkımda</h2>
+    <div class="abstract" role="doc-abstract">
       <p>
-        Kısa bir özet: ilgi alanların, okul/iş veya projelerin buraya yazılabilir.
+        <span class="abstract-label">Özet.</span>
+        Bu sayfa <a href="https://github.com/natozenbilek/natozenbilek.github.io">GitHub</a> üzerinden yayınlanmaktadır.
+        Aşağıdaki metinleri ve bağlantıları kendi bilgilerinizle güncelleyebilirsiniz.
+      </p>
+    </div>
+
+    <section class="sec" aria-labelledby="sec-about">
+      <h2 id="sec-about">Hakkımda</h2>
+      <p>
+        Kısa bir özet: ilgi alanlarınız, okul/iş veya projeleriniz buraya yazılabilir.
       </p>
     </section>
 
-    <section class="card" aria-labelledby="links-heading">
-      <h2 id="links-heading">Bağlantılar</h2>
-      <ul class="links">
+    <section class="sec" aria-labelledby="sec-links">
+      <h2 id="sec-links">Bağlantılar</h2>
+      <p>Aşağıdaki kaynaklara başvurulabilir.</p>
+      <ul class="itemize">
         <li><a href="https://github.com/natozenbilek">GitHub profili</a></li>
-        <li><a href="mailto:ornek@eposta.com">E-posta</a> <span class="hint">(adresi değiştir)</span></li>
+        <li><a href="mailto:ornek@eposta.com">E-posta</a> <span class="hint">(adresi değiştirin)</span></li>
       </ul>
     </section>
-  </main>
+  </article>
 
   <footer class="foot">
-    <small>© <span id="y"></span> — GitHub Pages</small>
+    <p class="footline"><span class="footrule"></span></p>
+    <p class="footnote"><small>© <span id="y"></span>. GitHub Pages üzerinde barındırılmaktadır.</small></p>
   </footer>
   <script>
     document.getElementById("y").textContent = new Date().getFullYear();
+    var d = new Date();
+    var mo = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    document.getElementById("doc-date").textContent = d.getDate() + " " + mo[d.getMonth()] + " " + d.getFullYear();
   </script>
 </body>
 </html>
