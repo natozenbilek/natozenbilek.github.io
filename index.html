@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Nezih Arhan Tozenbilek — CS student exploring quant finance." />
   <title>Nezih Arhan Tozenbilek</title>
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <article class="paper">
@@ -29,10 +29,31 @@
     <section class="sec" aria-labelledby="s-projects">
       <h2 id="s-projects">Projects</h2>
       <div class="project">
-        <p class="project-title">
-          <strong>Strategic Impact Mapping in Financial Markets</strong>
-          <em class="project-status">[In Progress]</em>
-        </p>
+        <div class="project-header">
+          <p class="project-title">
+            <strong>Strategic Impact Mapping in Financial Markets</strong>
+            <em class="project-status">[In Progress]</em>
+          </p>
+          <!-- Network graph figure (TikZ-style, minimal) -->
+          <svg class="project-figure" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-label="Network graph illustration">
+            <!-- Edges -->
+            <line x1="60" y1="15" x2="25" y2="45" stroke="currentColor" stroke-width="1"/>
+            <line x1="60" y1="15" x2="95" y2="45" stroke="currentColor" stroke-width="1"/>
+            <line x1="25" y1="45" x2="45" y2="70" stroke="currentColor" stroke-width="1"/>
+            <line x1="25" y1="45" x2="60" y2="50" stroke="currentColor" stroke-width="1"/>
+            <line x1="95" y1="45" x2="75" y2="70" stroke="currentColor" stroke-width="1"/>
+            <line x1="95" y1="45" x2="60" y2="50" stroke="currentColor" stroke-width="1"/>
+            <line x1="60" y1="50" x2="45" y2="70" stroke="currentColor" stroke-width="1"/>
+            <line x1="60" y1="50" x2="75" y2="70" stroke="currentColor" stroke-width="1"/>
+            <!-- Nodes -->
+            <circle cx="60" cy="15" r="5" fill="currentColor"/>
+            <circle cx="25" cy="45" r="4" fill="currentColor"/>
+            <circle cx="95" cy="45" r="4" fill="currentColor"/>
+            <circle cx="60" cy="50" r="4" fill="currentColor"/>
+            <circle cx="45" cy="70" r="3" fill="currentColor"/>
+            <circle cx="75" cy="70" r="3" fill="currentColor"/>
+          </svg>
+        </div>
         <p>
           Analyzing how financial contagion spreads through the S&amp;P 500 using dynamic correlation networks. Combining time-varying correlation estimation with network analysis to identify which stocks drive market crises and how the market&apos;s structure shifts during panic periods.
         </p>
@@ -49,7 +70,11 @@
 
     <section class="sec" aria-labelledby="s-education">
       <h2 id="s-education">Education</h2>
-      <p>Hacettepe University — Computer Engineering</p>
+      <p><strong>Hacettepe University</strong> — Computer Engineering (Expected 2027)</p>
+      <p class="coursework">
+        <span class="label-inline">Relevant Coursework:</span>
+        Probability, Statistics, Algorithms, Data Structures, Social and Economic Networks
+      </p>
     </section>
 
     <section class="sec" aria-labelledby="s-links">
@@ -62,10 +87,6 @@
         <p>
           LinkedIn:
           <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">linkedin.com/in/neziharhantozenbilek</a>
-        </p>
-        <p>
-          Email:
-          <span class="placeholder">(placeholder)</span>
         </p>
       </div>
     </section>

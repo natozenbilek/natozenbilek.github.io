@@ -129,6 +129,28 @@ body {
   text-indent: 0;
 }
 
+/* Project header + TikZ-style figure */
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.project-header .project-title {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.project-figure {
+  width: 100px;
+  height: auto;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
 .project-title {
   margin-bottom: 0.4rem;
 }
@@ -145,6 +167,11 @@ body {
 .label-inline {
   font-weight: 700;
   margin-right: 0.35em;
+}
+
+.coursework {
+  margin-top: 0.25rem;
+  font-size: 0.95em;
 }
 
 .sec:first-of-type h2 {
@@ -189,6 +216,23 @@ a:focus-visible {
   margin: 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .project-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .project-header .project-title {
+    text-align: left;
+    width: 100%;
+  }
+
+  .project-figure {
+    width: 88px;
+  }
 }
 
 @media print {
