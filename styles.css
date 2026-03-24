@@ -45,9 +45,9 @@
   --ink: #000;
   --muted: #333;
   --rule: #999;
-  /* ~6.5–7in reading width on large screens; uses more width on laptops */
-  --max: min(92vw, 52rem);
-  --pad-x: clamp(1.1rem, 5vw, 2.5rem);
+  /* ~typical PDF column width */
+  --max: min(94vw, 700px);
+  --pad-x: clamp(1.1rem, 5vw, 2rem);
   --pad-y: clamp(1.5rem, 4vw, 2.25rem);
 }
 
@@ -123,10 +123,28 @@ body {
 }
 
 .sec p,
-.sec nav.links {
+.sec .linkblock p {
   margin: 0 0 0.65rem;
   text-align: justify;
   text-indent: 0;
+}
+
+.project-title {
+  margin-bottom: 0.4rem;
+}
+
+.project-title strong {
+  font-weight: 700;
+}
+
+.project-status {
+  font-weight: 400;
+  margin-left: 0.35em;
+}
+
+.label-inline {
+  font-weight: 700;
+  margin-right: 0.35em;
 }
 
 .sec:first-of-type h2 {
@@ -149,14 +167,12 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
-.links {
-  text-align: justify;
+.linkblock {
+  text-align: left;
 }
 
-.links .sep {
-  margin: 0 0.35em;
-  color: #666;
-  user-select: none;
+.linkblock p {
+  text-align: justify;
 }
 
 .placeholder {
