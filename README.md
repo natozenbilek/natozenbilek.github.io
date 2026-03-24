@@ -1,3 +1,3 @@
-# natozenbilek.github.io
+natozenbilek.github.io
 
 slmmmm
