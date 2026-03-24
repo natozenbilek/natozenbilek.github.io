@@ -1,55 +1,55 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Nezih Arhan Tözenbilek" />
-  <title>Nezih Arhan Tözenbilek</title>
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <meta name="description" content="Nezih Arhan Tozenbilek — CS student exploring quant finance." />
+  <title>Nezih Arhan Tozenbilek</title>
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
-  <article class="latex-article">
-    <header class="titleblock">
-      <h1 class="doc-title">Nezih Arhan Tözenbilek</h1>
-      <p class="doc-date" id="doc-date"></p>
+  <main class="page">
+    <header class="header">
+      <h1 class="name">Nezih Arhan Tozenbilek</h1>
+      <p class="tagline">CS student exploring quant finance</p>
     </header>
 
-    <!-- Geçici: eski örnek metin
-    <div class="abstract" role="doc-abstract">
-      <p>
-        <span class="abstract-label">Özet.</span>
-        Bu sayfa <a href="https://github.com/natozenbilek/natozenbilek.github.io">GitHub</a> üzerinden yayınlanmaktadır.
-        Aşağıdaki metinleri ve bağlantıları kendi bilgilerinizle güncelleyebilirsiniz.
-      </p>
-    </div>
-
-    <section class="sec" aria-labelledby="sec-about">
-      <h2 id="sec-about">Hakkımda</h2>
-      <p>
-        Kısa bir özet: ilgi alanlarınız, okul/iş veya projeleriniz buraya yazılabilir.
+    <section class="block" aria-labelledby="about-heading">
+      <h2 id="about-heading" class="label">About</h2>
+      <p class="body">
+        CS student at Hacettepe. Currently diving into quant finance and game theory — figuring out how math explains markets and decisions.
       </p>
     </section>
 
-    <section class="sec" aria-labelledby="sec-links">
-      <h2 id="sec-links">Bağlantılar</h2>
-      <p>Aşağıdaki kaynaklara başvurulabilir.</p>
-      <ul class="itemize">
-        <li><a href="https://github.com/natozenbilek">GitHub profili</a></li>
-        <li><a href="mailto:ornek@eposta.com">E-posta</a> <span class="hint">(adresi değiştirin)</span></li>
-      </ul>
+    <section class="block" aria-labelledby="interests-heading">
+      <h2 id="interests-heading" class="label">Interests</h2>
+      <p class="interests">
+        Quantitative Finance <span class="dot" aria-hidden="true">·</span> Game Theory <span class="dot" aria-hidden="true">·</span> Data Analysis
+      </p>
     </section>
-    -->
-  </article>
 
-  <footer class="foot">
-    <p class="footline"><span class="footrule"></span></p>
-    <p class="footnote"><small>© <span id="y"></span></small></p>
-  </footer>
+    <section class="block" aria-labelledby="education-heading">
+      <h2 id="education-heading" class="label">Education</h2>
+      <p class="body">Hacettepe University — Computer Engineering</p>
+    </section>
+
+    <section class="block" aria-labelledby="links-heading">
+      <h2 id="links-heading" class="label">Links</h2>
+      <nav class="links" aria-label="Social and contact">
+        <a href="https://github.com/natozenbilek" rel="noopener noreferrer">GitHub</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <span class="email-placeholder">Email <span class="hint">(placeholder)</span></span>
+      </nav>
+    </section>
+
+    <footer class="footer">
+      <p><small>© <span id="y"></span></small></p>
+    </footer>
+  </main>
   <script>
     document.getElementById("y").textContent = new Date().getFullYear();
-    var d = new Date();
-    var mo = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-    document.getElementById("doc-date").textContent = d.getDate() + " " + mo[d.getMonth()] + " " + d.getFullYear();
   </script>
 </body>
 </html>

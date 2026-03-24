@@ -1,62 +1,29 @@
-/*
-  article 11pt, geometry margin=1in, lmodern, setstretch 1.12, parindent 0 + parskip,
-  enumitem list spacing, hyperref hidelinks — web karşılığı.
-  Latin Modern woff2: LaTeX.css (MIT) https://github.com/vincentdoerig/latex-css
-*/
-
-@font-face {
-  font-family: "Latin Modern";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-regular.woff2")
-    format("woff2");
-}
-
-@font-face {
-  font-family: "Latin Modern";
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-italic.woff2")
-    format("woff2");
-}
-
-@font-face {
-  font-family: "Latin Modern";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-bold.woff2")
-    format("woff2");
-}
-
-@font-face {
-  font-family: "Latin Modern";
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-bold-italic.woff2")
-    format("woff2");
-}
+/* Minimal personal page — light + dark, responsive */
 
 :root {
-  /* \documentclass[11pt] */
-  --pt-11: 11pt;
-  /* \setstretch{1.12} — satır aralığı yaklaşık 1.12 × tipik article oranı */
-  --line-mul: 1.12;
-  --line-height: calc(1.236 * var(--line-mul));
-  --baseline: calc(1em * var(--line-height));
-  /* \setlength{\parskip}{0.35\baselineskip} */
-  --parskip: calc(0.35 * var(--baseline));
-  /* enumitem: 0.2\baselineskip */
-  --list-sep: calc(0.2 * var(--baseline));
-  /* geometry: metin genişliği ≈ 8.5in − 2in */
-  --text-width: 6.5in;
-  --ink: hsl(0, 5%, 10%);
-  --paper: hsl(210, 20%, 98%);
-  --muted: hsl(0, 0%, 35%);
-  --rule: hsl(0, 0%, 39%);
+  color-scheme: light dark;
+  --bg: #f7f7f5;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --faint: #8a8a8a;
+  --link: #2563eb;
+  --link-hover: #1d4ed8;
+  --line: rgba(0, 0, 0, 0.1);
+  --max: 34rem;
+  --pad: clamp(1.25rem, 5vw, 2rem);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --text: #ececec;
+    --muted: #a3a3a3;
+    --faint: #737373;
+    --link: #7cb3ff;
+    --link-hover: #a8ccff;
+    --line: rgba(255, 255, 255, 0.12);
+  }
 }
 
 *,
@@ -66,207 +33,130 @@
 }
 
 html {
-  font-size: var(--pt-11);
+  font-size: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Latin Modern", Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font);
   font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.page {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: var(--pad);
+  padding-bottom: calc(var(--pad) + 0.5rem);
+}
+
+.header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.name {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.98rem;
+  color: var(--muted);
   font-weight: 400;
-  line-height: var(--line-height);
-  color: var(--ink);
-  background: var(--paper);
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  overflow-x: hidden;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: "kern" 1;
-  /* \usepackage[margin=1in]{geometry} */
-  padding: 1in;
 }
 
-@media (max-width: 720px) {
-  body {
-    padding: max(1rem, env(safe-area-inset-left, 0px));
-    padding-top: max(1rem, env(safe-area-inset-top, 0px));
-    padding-right: max(1rem, env(safe-area-inset-right, 0px));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-  }
+.block {
+  margin-bottom: 1.65rem;
 }
 
-/* \usepackage[hidelinks]{hyperref} */
-a {
-  color: inherit;
+.block:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.label {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.body {
+  margin: 0;
+  color: var(--text);
+}
+
+.interests {
+  margin: 0;
+  color: var(--text);
+}
+
+.interests .dot {
+  margin: 0 0.35em;
+  color: var(--faint);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.98rem;
+}
+
+.links a {
+  color: var(--link);
   text-decoration: none;
 }
 
-a:hover {
+.links a:hover {
+  color: var(--link-hover);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 
-a:focus-visible {
-  outline: 2px solid hsl(220, 90%, 52%);
-  outline-offset: 2px;
+.links a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-.latex-article {
-  counter-reset: section;
-  max-width: var(--text-width);
-  margin: 0 auto;
-  padding: 0;
+.links .sep {
+  color: var(--faint);
+  user-select: none;
 }
 
-/* \setlength{\parindent}{0pt} — paragraflar */
-p {
-  margin: 0;
-  text-indent: 0;
-  text-align: justify;
-}
-
-p + p,
-.abstract p + p {
-  margin-top: var(--parskip);
-}
-
-.titleblock {
-  text-align: center;
-  margin-bottom: var(--baseline);
-  padding-bottom: calc(0.5 * var(--baseline));
-  border-bottom: 0.5px solid var(--rule);
-}
-
-.doc-title {
-  margin: 0 0 calc(0.35 * var(--baseline));
-  font-size: 1.45rem;
-  font-weight: 700;
-  line-height: var(--line-height);
-}
-
-.author {
-  margin: 0 0 calc(0.2 * var(--baseline));
-  font-size: 1rem;
-  font-weight: 500;
-  font-variant-caps: small-caps;
-}
-
-.doc-date {
-  margin: 0;
-  font-size: 0.95rem;
+.email-placeholder {
   color: var(--muted);
-}
-
-.abstract {
-  margin: 0 0 calc(0.9 * var(--baseline));
-  padding: 0 calc(0.5 * var(--baseline));
-}
-
-.abstract p {
-  margin: 0;
-  text-align: justify;
-}
-
-.abstract-label {
-  font-weight: 700;
-  margin-right: 0.35em;
-}
-
-.sec {
-  margin-bottom: calc(0.5 * var(--baseline));
-}
-
-.sec h2 {
-  counter-increment: section;
-  margin: calc(0.85 * var(--baseline)) 0 calc(0.35 * var(--baseline));
-  font-size: 1.12rem;
-  font-weight: 700;
-  line-height: var(--line-height);
-  text-align: left;
-}
-
-.sec h2::before {
-  content: counter(section) ". ";
-  font-weight: 700;
-}
-
-.sec > p {
-  margin: 0;
-  text-align: justify;
-}
-
-.sec h2 + p {
-  margin-top: calc(0.25 * var(--baseline));
-}
-
-.sec > p + p {
-  margin-top: var(--parskip);
-}
-
-/* \setlist[itemize]{leftmargin=*,itemsep=0.2\baselineskip,topsep=0.2\baselineskip} */
-.itemize {
-  list-style-type: disc;
-  margin: var(--list-sep) 0 0;
-  padding-left: 1em;
-}
-
-.itemize li {
-  text-align: justify;
-}
-
-.itemize li + li {
-  margin-top: var(--list-sep);
 }
 
 .hint {
-  color: var(--muted);
-  font-size: 0.95em;
+  color: var(--faint);
+  font-weight: 400;
 }
 
-/* \titlespacing*{\subsection}{0pt}{0.8\baselineskip}{0.4\baselineskip} */
-.sec h3 {
-  margin: calc(0.8 * var(--baseline)) 0 calc(0.4 * var(--baseline));
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: var(--line-height);
+.footer {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
 }
 
-.foot {
-  max-width: var(--text-width);
-  margin: calc(1.2 * var(--baseline)) auto 0;
-  padding: 0;
-  text-align: center;
-}
-
-.footline {
-  margin: 0 0 calc(0.35 * var(--baseline));
-}
-
-.footrule {
-  display: inline-block;
-  width: 20%;
-  min-width: 5rem;
-  max-width: 8rem;
-  border-top: 0.5px solid var(--rule);
-  vertical-align: middle;
-}
-
-.footnote {
+.footer p {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: var(--line-height);
 }
 
-.footnote small {
-  font-size: inherit;
-}
-
-@media print {
-  body {
-    padding: 1in;
-    background: #fff;
-  }
+.footer small {
+  font-size: 0.8rem;
+  color: var(--faint);
 }
