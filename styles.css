@@ -1,29 +1,53 @@
-/* Minimal personal page — light + dark, responsive */
+/*
+  LaTeX article / CV inspired — Latin Modern (LaTeX.css fonts, MIT)
+  https://github.com/vincentdoerig/latex-css
+*/
 
-:root {
-  color-scheme: light dark;
-  --bg: #f7f7f5;
-  --text: #1a1a1a;
-  --muted: #5c5c5c;
-  --faint: #8a8a8a;
-  --link: #2563eb;
-  --link-hover: #1d4ed8;
-  --line: rgba(0, 0, 0, 0.1);
-  --max: 34rem;
-  --pad: clamp(1.25rem, 5vw, 2rem);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+@font-face {
+  font-family: "Latin Modern";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-regular.woff2")
+    format("woff2");
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121212;
-    --text: #ececec;
-    --muted: #a3a3a3;
-    --faint: #737373;
-    --link: #7cb3ff;
-    --link-hover: #a8ccff;
-    --line: rgba(255, 255, 255, 0.12);
-  }
+@font-face {
+  font-family: "Latin Modern";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-italic.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Latin Modern";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-bold.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Latin Modern";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-bold-italic.woff2")
+    format("woff2");
+}
+
+:root {
+  color-scheme: only light;
+  --paper: #fffff8;
+  --ink: #000;
+  --muted: #333;
+  --rule: #999;
+  --max: 700px;
+  --pad-x: clamp(1.1rem, 5vw, 2rem);
+  --pad-y: clamp(1.5rem, 4vw, 2.25rem);
 }
 
 *,
@@ -40,123 +64,123 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: var(--font);
-  font-size: 1rem;
-  line-height: 1.55;
-  color: var(--text);
-  background: var(--bg);
+  font-family: "Latin Modern", "Times New Roman", Times, serif;
+  font-size: 11pt;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--paper);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  text-rendering: optimizeLegibility;
 }
 
-.page {
+.paper {
   max-width: var(--max);
   margin: 0 auto;
-  padding: var(--pad);
-  padding-bottom: calc(var(--pad) + 0.5rem);
+  padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) + 0.5rem);
+  counter-reset: section;
 }
 
-.header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--line);
+/* \maketitle */
+.titleblock {
+  text-align: center;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 0.55px solid var(--rule);
 }
 
-.name {
-  margin: 0 0 0.35rem;
-  font-size: clamp(1.35rem, 4vw, 1.65rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
   line-height: 1.25;
 }
 
-.tagline {
+.subtitle {
   margin: 0;
-  font-size: 0.98rem;
-  color: var(--muted);
+  font-size: 0.95rem;
   font-weight: 400;
-}
-
-.block {
-  margin-bottom: 1.65rem;
-}
-
-.block:last-of-type {
-  margin-bottom: 2rem;
-}
-
-.label {
-  margin: 0 0 0.4rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
-.body {
-  margin: 0;
-  color: var(--text);
+/* \section — numbered, bold */
+.sec {
+  margin-bottom: 0.25rem;
 }
 
-.interests {
-  margin: 0;
-  color: var(--text);
+.sec h2 {
+  counter-increment: section;
+  margin: 1.35rem 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-.interests .dot {
-  margin: 0 0.35em;
-  color: var(--faint);
+.sec h2::before {
+  content: counter(section) ". ";
+  font-weight: 700;
+}
+
+.sec p,
+.sec nav.links {
+  margin: 0 0 0.65rem;
+  text-align: justify;
+  text-indent: 0;
+}
+
+.sec:first-of-type h2 {
+  margin-top: 0.75rem;
+}
+
+/* \usepackage[hidelinks] — links blend with text */
+a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 0.04em solid rgba(0, 0, 0, 0.25);
+}
+
+a:hover {
+  border-bottom-color: var(--ink);
+}
+
+a:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
 }
 
 .links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.5rem;
-  font-size: 0.98rem;
-}
-
-.links a {
-  color: var(--link);
-  text-decoration: none;
-}
-
-.links a:hover {
-  color: var(--link-hover);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.links a:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 3px;
-  border-radius: 2px;
+  text-align: justify;
 }
 
 .links .sep {
-  color: var(--faint);
+  margin: 0 0.35em;
+  color: #666;
   user-select: none;
 }
 
-.email-placeholder {
+.placeholder {
   color: var(--muted);
 }
 
-.hint {
-  color: var(--faint);
-  font-weight: 400;
-}
-
 .footer {
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 0.55px solid var(--rule);
 }
 
-.footer p {
+.footer-meta {
   margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
-.footer small {
-  font-size: 0.8rem;
-  color: var(--faint);
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .paper {
+    max-width: none;
+    padding: 0;
+  }
 }
