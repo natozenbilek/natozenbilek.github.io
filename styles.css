@@ -45,8 +45,9 @@
   --ink: #000;
   --muted: #333;
   --rule: #999;
-  --max: 700px;
-  --pad-x: clamp(1.1rem, 5vw, 2rem);
+  /* ~6.5–7in reading width on large screens; uses more width on laptops */
+  --max: min(92vw, 52rem);
+  --pad-x: clamp(1.1rem, 5vw, 2.5rem);
   --pad-y: clamp(1.5rem, 4vw, 2.25rem);
 }
 
