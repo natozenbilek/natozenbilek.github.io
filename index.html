@@ -456,44 +456,61 @@ revealEls.forEach(el => revealObserver.observe(el));
   function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
   function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
 
-  // Normalized positions (0-1) — will be scaled to canvas size
+  // Positions scattered organically — no clean perimeter
   const nodes = [
-    { nx:0.12, ny:0.12, r:5 },
-    { nx:0.06, ny:0.30, r:4 },
-    { nx:0.22, ny:0.28, r:3.5 },
-    { nx:0.70, ny:0.15, r:4 },
-    { nx:0.85, ny:0.35, r:4.5 },
-    { nx:0.62, ny:0.42, r:3.5 },
-    { nx:0.40, ny:0.52, r:8, hub:true },
-    { nx:0.10, ny:0.68, r:4 },
-    { nx:0.30, ny:0.82, r:3.5 },
-    { nx:0.55, ny:0.75, r:4.5 },
-    { nx:0.82, ny:0.70, r:3.5 },
-    { nx:0.45, ny:0.20, r:3.5 },
-    { nx:0.15, ny:0.50, r:3.5 },
-    { nx:0.72, ny:0.90, r:3.5 },
-    { nx:0.92, ny:0.55, r:3 },
-    { nx:0.50, ny:0.95, r:3 },
+    { nx:0.15, ny:0.14, r:4 },
+    { nx:0.08, ny:0.33, r:3.5 },
+    { nx:0.26, ny:0.24, r:3 },
+    { nx:0.34, ny:0.08, r:3 },
+    { nx:0.72, ny:0.16, r:3.5 },
+    { nx:0.88, ny:0.30, r:4 },
+    { nx:0.64, ny:0.36, r:3.5 },
+    { nx:0.80, ny:0.50, r:3 },
+    { nx:0.42, ny:0.46, r:8, hub:true },
+    { nx:0.13, ny:0.60, r:3.5 },
+    { nx:0.24, ny:0.76, r:4 },
+    { nx:0.06, ny:0.85, r:3 },
+    { nx:0.36, ny:0.68, r:3 },
+    { nx:0.58, ny:0.70, r:4 },
+    { nx:0.76, ny:0.62, r:3.5 },
+    { nx:0.84, ny:0.78, r:3 },
+    { nx:0.66, ny:0.86, r:3.5 },
+    { nx:0.46, ny:0.22, r:3 },
+    { nx:0.18, ny:0.48, r:3 },
+    { nx:0.54, ny:0.54, r:3 },
+    { nx:0.92, ny:0.60, r:2.5 },
+    { nx:0.40, ny:0.88, r:3 },
+    { nx:0.52, ny:0.36, r:2.5 },
+    { nx:0.30, ny:0.52, r:2.5 },
   ].map(n => ({
     ...n, hub: !!n.hub, baseX: 0, baseY: 0, x: 0, y: 0, c: 0,
     ph: Math.random() * Math.PI * 2,
     sp: 0.0015 + Math.random() * 0.0025,
-    ax: 3 + Math.random() * 5,
-    ay: 2 + Math.random() * 4,
+    ax: (n.hub ? 5 : 3) + Math.random() * 5,
+    ay: (n.hub ? 4 : 2) + Math.random() * 4,
   }));
 
+  // Proximity-based edges — organic, no manual perimeter
   const adj = Array.from({length: nodes.length}, () => []);
   const edgeW = [];
   const edgeGlow = [];
-  const edgeDef = [
-    [0,1],[0,2],[1,2],
-    [3,4],[3,5],[4,5],[4,14],
-    [7,8],[8,9],[9,10],[7,12],
-    [2,6],[5,6],[6,7],[6,9],[6,12],
-    [0,11],[3,11],[11,6],
-    [4,10],[5,9],[10,14],
-    [1,12],[8,15],[9,15],[9,13],[10,13],[13,15],
-  ];
+  const edgeDef = [];
+  const maxDeg = 5;
+  const pairs = [];
+  for (let i = 0; i < nodes.length; i++)
+    for (let j = i+1; j < nodes.length; j++) {
+      const dx = nodes[i].nx - nodes[j].nx, dy = nodes[i].ny - nodes[j].ny;
+      pairs.push({ i, j, d: Math.sqrt(dx*dx + dy*dy) });
+    }
+  pairs.sort((a,b) => a.d - b.d);
+  const deg = new Array(nodes.length).fill(0);
+  for (const p of pairs) {
+    if (edgeDef.length >= 42) break;
+    if (deg[p.i] >= maxDeg && deg[p.j] >= maxDeg) continue;
+    if (p.d > 0.35) continue;
+    edgeDef.push([p.i, p.j]);
+    deg[p.i]++; deg[p.j]++;
+  }
   edgeDef.forEach(([a,b]) => {
     adj[a].push(b); adj[b].push(a);
     edgeW.push(0.4 + Math.random() * 0.6);
@@ -601,15 +618,15 @@ revealEls.forEach(el => revealObserver.observe(el));
       if (n.c > 0) n.c = Math.max(0, n.c - 0.005);
     });
 
-    // Mouse: gentle attraction + near repulsion
+    // Mouse: repel close, attract mid-range
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
       const d = Math.hypot(dx, dy);
-      if (d < 25) {
-        const f = (25-d)/25*4;
+      if (d < 30) {
+        const f = (30-d)/30 * (n.hub ? 6 : 4);
         n.x += dx/d*f; n.y += dy/d*f;
-      } else if (d < 80) {
-        const pull = (80-d)/80*0.4;
+      } else if (d < 90) {
+        const pull = (90-d)/90 * 0.5;
         n.x -= dx/d*pull; n.y -= dy/d*pull;
       }
     });
