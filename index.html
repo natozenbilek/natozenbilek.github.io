@@ -67,6 +67,15 @@
     /* Hero network (JS canvas) */
     .hero-canvas { width: clamp(132px, 19vw, 180px); height: clamp(132px, 19vw, 180px); }
 
+    /* Spotify badge */
+    .spotify-badge {
+      position: absolute; top: 1.8rem; right: 0;
+      color: #1DB954; text-decoration: none;
+      opacity: 0.7; transition: opacity 0.2s;
+    }
+    .spotify-badge:hover { opacity: 1; }
+    .spotify-badge svg { display: block; }
+
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
     section:last-of-type { border-bottom: none; }
@@ -192,14 +201,16 @@
       <div class="hero-links fade-up fade-up-d2">
         <a href="mailto:natozenbilek@gmail.com">Email</a>
         <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
-        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer">Spotify</a>
       </div>
     </div>
     <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="250" height="250" aria-label="Animated network graph"></canvas>
   </header>
 
   <!-- ═══ ABOUT ═══ -->
-  <section id="about">
+  <section id="about" style="position:relative;">
+    <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-badge reveal" title="My Spotify">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.6.4-1 .2-2.7-1.6-6-2-10-1.1-.4.1-.7-.1-.8-.5s.1-.7.5-.8c4.3-1 8-.6 11 1.2.4.2.5.6.3 1zm1.5-3.3c-.3.4-.8.5-1.2.3-3-1.9-7.7-2.4-11.3-1.3-.4.1-.9-.1-1-.6-.1-.4.1-.9.6-1 4.1-1.3 9.2-.7 12.6 1.5.3.2.5.7.3 1.1zm.1-3.4c-3.7-2.2-9.7-2.4-13.2-1.3-.5.2-1.1-.1-1.2-.6-.2-.5.1-1.1.6-1.2 4-1.2 10.6-1 14.8 1.5.5.3.6.9.4 1.4-.3.4-.9.5-1.4.2z"/></svg>
+    </a>
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
       Computer Engineering student at Hacettepe, Ankara. My interests lean toward the theoretical side: network theory, game theory, and how mathematical models can explain what happens in financial markets. Currently studying how contagion propagates through equity networks during crises.
@@ -424,27 +435,21 @@ revealEls.forEach(el => revealObserver.observe(el));
   function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
   function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
 
-  // Asymmetric layout with 3 loose clusters + hub
   const nodes = [
-    // Cluster A — upper-left (financials)
-    { x:55,  y:30,  r:4 },     // 0
-    { x:28,  y:72,  r:3.5 },   // 1
-    { x:90,  y:65,  r:3 },     // 2
-    // Cluster B — right (tech)
-    { x:195, y:38,  r:3.5 },   // 3
-    { x:225, y:88,  r:4 },     // 4
-    { x:175, y:105, r:3 },     // 5
-    // Hub — off-center
-    { x:115, y:128, r:7, hub:true }, // 6
-    // Cluster C — bottom (energy/mixed)
-    { x:48,  y:170, r:3.5 },   // 7
-    { x:105, y:200, r:3 },     // 8
-    { x:155, y:185, r:4 },     // 9
-    { x:220, y:175, r:3 },     // 10
-    // Peripheral bridges
-    { x:140, y:50,  r:3 },     // 11
-    { x:68,  y:120, r:3 },     // 12
-    { x:200, y:225, r:3 },     // 13
+    { x:55,  y:30,  r:4 },
+    { x:28,  y:72,  r:3.5 },
+    { x:90,  y:65,  r:3 },
+    { x:195, y:38,  r:3.5 },
+    { x:225, y:88,  r:4 },
+    { x:175, y:105, r:3 },
+    { x:115, y:128, r:7, hub:true },
+    { x:48,  y:170, r:3.5 },
+    { x:105, y:200, r:3 },
+    { x:155, y:185, r:4 },
+    { x:220, y:175, r:3 },
+    { x:140, y:50,  r:3 },
+    { x:68,  y:120, r:3 },
+    { x:200, y:225, r:3 },
   ].map(n => ({
     ...n, hub: !!n.hub, baseX: n.x, baseY: n.y, c: 0,
     ph: Math.random() * Math.PI * 2,
@@ -454,27 +459,49 @@ revealEls.forEach(el => revealObserver.observe(el));
   }));
 
   const adj = Array.from({length: nodes.length}, () => []);
-  const edges = [
-    // Cluster A internal
+  const edgeW = [];
+  const edgeDef = [
     [0,1],[0,2],[1,2],
-    // Cluster B internal
     [3,4],[3,5],[4,5],
-    // Cluster C internal
     [7,8],[8,9],[9,10],[7,12],
-    // Hub connections (hub=6)
     [2,6],[5,6],[6,7],[6,9],[6,12],
-    // Cross-cluster bridges
     [0,11],[3,11],[11,6],
     [4,10],[5,9],
     [1,12],[8,13],[9,13],[10,13],
   ];
-  edges.forEach(([a,b]) => { adj[a].push(b); adj[b].push(a); });
+  edgeDef.forEach(([a,b]) => {
+    adj[a].push(b); adj[b].push(a);
+    edgeW.push(0.4 + Math.random() * 0.6);
+  });
 
-  let pulses = [];
+  // Bezier control point offsets per edge (for curved lines)
+  const edgeCurve = edgeDef.map(() => ({
+    ox: (Math.random() - 0.5) * 30,
+    oy: (Math.random() - 0.5) * 30,
+  }));
+
+  // Ambient flow particles (always moving along edges)
+  const ambient = [];
+  for (let i = 0; i < 8; i++) {
+    ambient.push({
+      edge: Math.floor(Math.random() * edgeDef.length),
+      t: Math.random(),
+      speed: 0.002 + Math.random() * 0.003,
+      dir: Math.random() > 0.5 ? 1 : -1,
+    });
+  }
+
+  // Hub pulse rings
+  const hubRings = [];
+  let hubPulseT = 0;
+  const HUB_PULSE_INT = 240;
+
+  // Contagion
+  let contagionPulses = [];
   let cascadeT = 0;
-  const INTERVAL = 380;
+  const INTERVAL = 400;
+  let pendingInf = [];
 
-  let pendingInfections = [];
   function cascade() {
     const peri = nodes.map((_,i) => i).filter(i => !nodes[i].hub);
     const src = peri[Math.floor(Math.random() * peri.length)];
@@ -482,21 +509,28 @@ revealEls.forEach(el => revealObserver.observe(el));
     let frontier = [src];
     let delay = 0;
     nodes[src].c = 1;
-    pendingInfections = [];
+    pendingInf = [];
     while (frontier.length) {
-      delay += 24;
+      delay += 26;
       const nxt = [];
       for (const ni of frontier) {
         for (const nb of adj[ni]) {
           if (visited.has(nb)) continue;
           visited.add(nb);
           nxt.push(nb);
-          pendingInfections.push({ node: nb, frame: delay });
-          pulses.push({ from: ni, to: nb, birth: delay - 18, life: 24, age: -(delay - 18) });
+          pendingInf.push({ node: nb, frame: delay });
+          const ei = edgeDef.findIndex(([a,b]) => (a===ni&&b===nb)||(a===nb&&b===ni));
+          contagionPulses.push({ edge: ei, dir: edgeDef[ei][0]===ni?1:-1, birth: delay-20, life: 26, age: -(delay-20) });
         }
       }
       frontier = nxt;
     }
+  }
+
+  function bezierPt(na, nb, cv, t) {
+    const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
+    const u = 1-t;
+    return { x: u*u*na.x + 2*u*t*mx + t*t*nb.x, y: u*u*na.y + 2*u*t*my + t*t*nb.y };
   }
 
   let mouse = { x: -1e3, y: -1e3 };
@@ -513,8 +547,9 @@ revealEls.forEach(el => revealObserver.observe(el));
     ctx.clearRect(0, 0, W, H);
 
     if (++cascadeT > INTERVAL) { cascadeT = 0; cascade(); }
+    if (++hubPulseT > HUB_PULSE_INT) { hubPulseT = 0; hubRings.push({ age: 0, max: 60 }); }
 
-    pendingInfections = pendingInfections.filter(p => {
+    pendingInf = pendingInf.filter(p => {
       if (cascadeT >= p.frame) { nodes[p.node].c = 1; return false; }
       return true;
     });
@@ -528,47 +563,80 @@ revealEls.forEach(el => revealObserver.observe(el));
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
       const d = Math.hypot(dx, dy);
-      if (d < 55) { const f = (55 - d) / 55 * 3.5; n.x += dx / d * f; n.y += dy / d * f; }
+      if (d < 55) { const f = (55-d)/55*3.5; n.x += dx/d*f; n.y += dy/d*f; }
     });
 
-    edges.forEach(([a,b]) => {
+    // Draw curved edges
+    edgeDef.forEach(([a,b], i) => {
       const na = nodes[a], nb = nodes[b];
-      const d = Math.hypot(na.x - nb.x, na.y - nb.y);
-      const base = Math.max(0, 0.3 * (1 - d / 200));
+      const cv = edgeCurve[i];
+      const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
       const ci = Math.max(na.c, nb.c);
       const col = lerp3(AC, SH, ci);
+      const w = edgeW[i];
       ctx.beginPath();
       ctx.moveTo(na.x, na.y);
-      ctx.lineTo(nb.x, nb.y);
+      ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
       ctx.strokeStyle = rgb(col);
-      ctx.globalAlpha = base + ci * 0.25;
-      ctx.lineWidth = (na.hub || nb.hub ? 1.3 : 0.8) + ci * 0.5;
+      ctx.globalAlpha = (0.15 + w * 0.2) + ci * 0.3;
+      ctx.lineWidth = ((na.hub||nb.hub) ? 1.4 : 0.6 + w * 0.8) + ci * 0.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
     });
 
-    pulses = pulses.filter(p => {
+    // Ambient flow particles
+    ambient.forEach(p => {
+      p.t += p.speed * p.dir;
+      if (p.t > 1 || p.t < 0) {
+        p.edge = Math.floor(Math.random() * edgeDef.length);
+        p.t = p.dir > 0 ? 0 : 1;
+        p.dir = Math.random() > 0.5 ? 1 : -1;
+      }
+      const [a,b] = edgeDef[p.edge];
+      const pt = bezierPt(nodes[a], nodes[b], edgeCurve[p.edge], p.t);
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(AC, 0.35);
+      ctx.fill();
+    });
+
+    // Contagion pulses along curves
+    contagionPulses = contagionPulses.filter(p => {
       p.age++;
       if (p.age < 0) return true;
       if (p.age > p.life) return false;
-      const prog = p.age / p.life;
-      const na = nodes[p.from], nb = nodes[p.to];
-      const px = na.x + (nb.x - na.x) * prog;
-      const py = na.y + (nb.y - na.y) * prog;
-      const fade = prog < 0.5 ? prog * 2 : 2 - prog * 2;
+      const prog = p.dir > 0 ? p.age/p.life : 1 - p.age/p.life;
+      const [a,b] = edgeDef[p.edge];
+      const pt = bezierPt(nodes[a], nodes[b], edgeCurve[p.edge], prog);
+      const fade = (p.age/p.life) < 0.5 ? (p.age/p.life)*2 : 2 - (p.age/p.life)*2;
       ctx.beginPath();
-      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(SH, fade * 0.85);
+      ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(SH, fade * 0.9);
       ctx.fill();
       return true;
     });
 
+    // Hub pulse rings
+    const hub = nodes[6];
+    hubRings.forEach(r => r.age++);
+    hubRings.filter(r => r.age <= r.max).forEach(r => {
+      const prog = r.age / r.max;
+      const radius = hub.r + prog * 45;
+      ctx.beginPath();
+      ctx.arc(hub.x, hub.y, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(AC, 0.25 * (1 - prog));
+      ctx.lineWidth = 1.2 * (1 - prog);
+      ctx.stroke();
+    });
+    while (hubRings.length && hubRings[0].age > hubRings[0].max) hubRings.shift();
+
+    // Draw nodes
     nodes.forEach(n => {
       if (n.hub || n.c > 0.08) {
-        const gr = n.r + 5 + (n.hub ? Math.sin(t * 0.02) * 2 : n.c * 6);
+        const gr = n.r + 6 + (n.hub ? Math.sin(t * 0.02) * 2.5 : n.c * 8);
         const cc = lerp3(AC, SH, n.c);
-        const g = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, gr);
-        g.addColorStop(0, rgba(cc, 0.15 + n.c * 0.2));
+        const g = ctx.createRadialGradient(n.x, n.y, n.r * 0.5, n.x, n.y, gr);
+        g.addColorStop(0, rgba(cc, 0.18 + n.c * 0.25));
         g.addColorStop(1, rgba(cc, 0));
         ctx.beginPath();
         ctx.arc(n.x, n.y, gr, 0, Math.PI * 2);
@@ -579,7 +647,7 @@ revealEls.forEach(el => revealObserver.observe(el));
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = n.hub && n.c < 0.1 ? '#111' : rgb(cc);
-      ctx.globalAlpha = (n.hub ? 0.9 : 0.55 + Math.sin(t * 0.015 + n.ph) * 0.15) + n.c * 0.3;
+      ctx.globalAlpha = (n.hub ? 0.92 : 0.55 + Math.sin(t * 0.015 + n.ph) * 0.15) + n.c * 0.3;
       ctx.fill();
       ctx.globalAlpha = 1;
     });
