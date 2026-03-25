@@ -73,9 +73,9 @@
 
     /* Hero network canvas — full background */
     .hero-canvas {
-      position: absolute; top: 0; right: 0;
-      width: 55%; height: 100%;
-      opacity: 0.6;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.5;
       pointer-events: auto; z-index: 0;
     }
 
@@ -172,7 +172,7 @@
     /* ════════ RESPONSIVE ════════ */
     @media (max-width: 560px) {
       .hero { padding: 3.5rem 0 3rem; }
-      .hero-canvas { width: 100%; opacity: 0.35; }
+      .hero-canvas { opacity: 0.3; }
       .hero-text { text-align: center; }
       .hero-links { justify-content: center; }
       .hero-text .tagline { max-width: none; }
@@ -433,7 +433,7 @@ revealEls.forEach(el => revealObserver.observe(el));
   let W, H;
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
-    W = rect.width * 0.55;
+    W = rect.width;
     H = rect.height;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
