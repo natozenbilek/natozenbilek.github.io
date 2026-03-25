@@ -65,7 +65,7 @@
     .hero-links a:hover { border-bottom-color: var(--accent); }
 
     /* Hero network (JS canvas) */
-    .hero-canvas { width: clamp(110px, 16vw, 150px); height: clamp(110px, 16vw, 150px); }
+    .hero-canvas { width: clamp(132px, 19vw, 180px); height: clamp(132px, 19vw, 180px); }
 
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
@@ -194,7 +194,7 @@
         <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
       </div>
     </div>
-    <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="200" height="200" aria-label="Animated network graph"></canvas>
+    <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="250" height="250" aria-label="Animated network graph"></canvas>
   </header>
 
   <!-- ═══ ABOUT ═══ -->
@@ -437,117 +437,169 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach(el => revealObserver.observe(el));
 
-// ── Animated hero network (canvas) ──
+// ── Animated hero network with contagion cascade ──
 (function() {
   const canvas = document.getElementById('networkCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const W = 250, H = 250;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width = canvas.style.height = '';
   ctx.scale(dpr, dpr);
 
-  const accent = '#2c5f7c';
-  const dark = '#111';
+  const AC = [44, 95, 124];
+  const SH = [185, 62, 48];
+  function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
+  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+  function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
 
-  // Node definitions: x, y, r, baseX, baseY, phase, speed, amplitude
   const nodes = [
-    { x:100, y:22, r:5, hub:false },
-    { x:35,  y:55, r:4, hub:false },
-    { x:155, y:48, r:4, hub:false },
-    { x:100, y:80, r:7, hub:true  },
-    { x:52,  y:120,r:3.5, hub:false },
-    { x:148, y:115,r:3.5, hub:false },
-    { x:100, y:155,r:4.5, hub:false },
-    { x:25,  y:140,r:3, hub:false },
-    { x:170, y:145,r:3, hub:false },
-  ].map((n,i) => ({
-    ...n, baseX: n.x, baseY: n.y,
-    phase: Math.random() * Math.PI * 2,
-    speed: 0.003 + Math.random() * 0.004,
-    ampX: 2 + Math.random() * 4,
-    ampY: 1.5 + Math.random() * 3,
+    { x:125, y:20,  r:4 },
+    { x:40,  y:50,  r:3.5 },
+    { x:210, y:45,  r:3.5 },
+    { x:75,  y:88,  r:5 },
+    { x:175, y:82,  r:4.5 },
+    { x:125, y:125, r:7, hub:true },
+    { x:30,  y:145, r:3 },
+    { x:220, y:140, r:3 },
+    { x:70,  y:185, r:4 },
+    { x:180, y:180, r:4 },
+    { x:125, y:228, r:3.5 },
+    { x:15,  y:95,  r:3 },
+    { x:235, y:92,  r:3 },
+  ].map(n => ({
+    ...n, hub: !!n.hub, baseX: n.x, baseY: n.y, c: 0,
+    ph: Math.random() * Math.PI * 2,
+    sp: 0.002 + Math.random() * 0.003,
+    ax: 2 + Math.random() * 5,
+    ay: 1.5 + Math.random() * 4,
   }));
 
-  // Edges (index pairs)
+  const adj = Array.from({length: nodes.length}, () => []);
   const edges = [
-    [0,1],[0,2],[0,3],[1,3],[1,4],[2,3],[2,5],[3,4],[3,5],[3,6],[4,6],[4,7],[5,6],[5,8],[6,7],[6,8]
+    [0,1],[0,2],[0,3],[0,4],[0,5],
+    [1,3],[1,6],[1,11],
+    [2,4],[2,7],[2,12],
+    [3,5],[3,6],[3,11],
+    [4,5],[4,7],[4,12],
+    [5,8],[5,9],[5,10],
+    [6,8],[7,9],
+    [8,10],[9,10],
+    [6,11],[7,12],
   ];
+  edges.forEach(([a,b]) => { adj[a].push(b); adj[b].push(a); });
 
-  let mouse = { x: -1000, y: -1000 };
+  let pulses = [];
+  let cascadeT = 0;
+  const INTERVAL = 380;
+
+  function cascade() {
+    const peri = nodes.map((_,i) => i).filter(i => !nodes[i].hub);
+    const src = peri[Math.floor(Math.random() * peri.length)];
+    const visited = new Set([src]);
+    let frontier = [src];
+    let delay = 0;
+    nodes[src].c = 1;
+    while (frontier.length) {
+      delay += 22;
+      const nxt = [];
+      for (const ni of frontier) {
+        for (const nb of adj[ni]) {
+          if (visited.has(nb)) continue;
+          visited.add(nb);
+          nxt.push(nb);
+          setTimeout(() => { nodes[nb].c = 1; }, delay * 16.7);
+          pulses.push({ from: ni, to: nb, birth: delay - 16, life: 22, age: -(delay - 16) });
+        }
+      }
+      frontier = nxt;
+    }
+  }
+
+  let mouse = { x: -1e3, y: -1e3 };
   canvas.addEventListener('mousemove', e => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - rect.left) * (W / rect.width);
-    mouse.y = (e.clientY - rect.top) * (H / rect.height);
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (W / r.width);
+    mouse.y = (e.clientY - r.top) * (H / r.height);
   });
-  canvas.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; });
 
-  let time = 0;
-  function draw() {
-    time++;
+  let t = 0;
+  (function draw() {
+    t++;
     ctx.clearRect(0, 0, W, H);
 
-    // Update positions
+    if (++cascadeT > INTERVAL) { cascadeT = 0; cascade(); }
+
     nodes.forEach(n => {
-      n.x = n.baseX + Math.sin(time * n.speed + n.phase) * n.ampX;
-      n.y = n.baseY + Math.cos(time * n.speed * 0.7 + n.phase) * n.ampY;
+      n.x = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
+      n.y = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
+      if (n.c > 0) n.c = Math.max(0, n.c - 0.007);
     });
 
-    // Mouse interaction: nudge nearby nodes
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 50) {
-        const force = (50 - dist) / 50 * 3;
-        n.x += (dx / dist) * force;
-        n.y += (dy / dist) * force;
-      }
+      const d = Math.hypot(dx, dy);
+      if (d < 55) { const f = (55 - d) / 55 * 3.5; n.x += dx / d * f; n.y += dy / d * f; }
     });
 
-    // Draw edges
     edges.forEach(([a,b]) => {
       const na = nodes[a], nb = nodes[b];
-      const dist = Math.sqrt((na.x-nb.x)**2 + (na.y-nb.y)**2);
-      const maxDist = 130;
-      const alpha = Math.max(0, 0.35 * (1 - dist/maxDist));
-      const isHubEdge = na.hub || nb.hub;
+      const d = Math.hypot(na.x - nb.x, na.y - nb.y);
+      const base = Math.max(0, 0.28 * (1 - d / 170));
+      const ci = Math.max(na.c, nb.c);
+      const col = lerp3(AC, SH, ci);
       ctx.beginPath();
       ctx.moveTo(na.x, na.y);
       ctx.lineTo(nb.x, nb.y);
-      ctx.strokeStyle = accent;
-      ctx.globalAlpha = isHubEdge ? alpha * 1.8 : alpha;
-      ctx.lineWidth = isHubEdge ? 1.2 : 0.8;
+      ctx.strokeStyle = rgb(col);
+      ctx.globalAlpha = base + ci * 0.25;
+      ctx.lineWidth = (na.hub || nb.hub ? 1.3 : 0.8) + ci * 0.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
     });
 
-    // Draw nodes
+    pulses = pulses.filter(p => {
+      p.age++;
+      if (p.age < 0) return true;
+      if (p.age > p.life) return false;
+      const prog = p.age / p.life;
+      const na = nodes[p.from], nb = nodes[p.to];
+      const px = na.x + (nb.x - na.x) * prog;
+      const py = na.y + (nb.y - na.y) * prog;
+      const fade = prog < 0.5 ? prog * 2 : 2 - prog * 2;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(SH, fade * 0.85);
+      ctx.fill();
+      return true;
+    });
+
     nodes.forEach(n => {
-      // Glow for hub
-      if (n.hub) {
-        const glowR = n.r + 4 + Math.sin(time * 0.02) * 2;
-        const grad = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, glowR);
-        grad.addColorStop(0, 'rgba(44,95,124,0.15)');
-        grad.addColorStop(1, 'rgba(44,95,124,0)');
+      if (n.hub || n.c > 0.08) {
+        const gr = n.r + 5 + (n.hub ? Math.sin(t * 0.02) * 2 : n.c * 6);
+        const cc = lerp3(AC, SH, n.c);
+        const g = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, gr);
+        g.addColorStop(0, rgba(cc, 0.15 + n.c * 0.2));
+        g.addColorStop(1, rgba(cc, 0));
         ctx.beginPath();
-        ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
+        ctx.arc(n.x, n.y, gr, 0, Math.PI * 2);
+        ctx.fillStyle = g;
         ctx.fill();
       }
-
+      const cc = lerp3(AC, SH, n.c);
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = n.hub ? dark : accent;
-      ctx.globalAlpha = n.hub ? 0.9 : 0.55 + Math.sin(time * 0.015 + n.phase) * 0.15;
+      ctx.fillStyle = n.hub && n.c < 0.1 ? '#111' : rgb(cc);
+      ctx.globalAlpha = (n.hub ? 0.9 : 0.55 + Math.sin(t * 0.015 + n.ph) * 0.15) + n.c * 0.3;
       ctx.fill();
       ctx.globalAlpha = 1;
     });
 
     requestAnimationFrame(draw);
-  }
-  draw();
+  })();
 })();
 </script>
 
