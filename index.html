@@ -178,7 +178,7 @@
   <a href="#about">about</a>
   <a href="#education">education</a>
   <a href="#experience">experience</a>
-  <a href="#skills">skills</a>
+  <a href="#skills">interests</a>
   <a href="#projects">projects</a>
 </nav>
 
@@ -188,7 +188,7 @@
   <header class="hero">
     <div class="hero-text fade-up">
       <h1>Nezih Arhan<br>Tözenbilek</h1>
-      <p class="tagline">Computer Engineering meets quantitative finance. I care about how markets break.</p>
+      <p class="tagline">Networks, game theory, and why markets break.</p>
       <div class="hero-links fade-up fade-up-d2">
         <a href="mailto:natozenbilek@gmail.com">Email</a>
         <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
@@ -201,7 +201,7 @@
   <section id="about">
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
-      CS student at Hacettepe, Ankara. I spend most of my time thinking about how markets break and whether you can see it coming in the data. Right now that means building network models of financial contagion. I also build things closer to hardware — my capstone is a drone flight controller. When I'm not coding, I'm probably on <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" style="color:var(--accent);">Spotify</a>.
+      Computer Engineering student at Hacettepe, Ankara. My interests lean toward the theoretical side: network theory, game theory, and how mathematical models can explain what happens in financial markets. Currently studying how contagion propagates through equity networks during crises. When I'm not reading papers, I'm probably on <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" style="color:var(--accent);">Spotify</a>.
     </p>
   </section>
 
@@ -250,37 +250,38 @@
 
   <!-- ═══ SKILLS ═══ -->
   <section id="skills">
-    <p class="sec-title reveal">iv. skills &amp; tools</p>
+    <p class="sec-title reveal">iv. interests &amp; methods</p>
     <div class="skills-grid reveal">
       <div class="skill-group">
-        <h4>Languages</h4>
+        <h4>Research Interests</h4>
         <div class="skill-items">
-          <span class="skill-tag">C</span>
-          <span class="skill-tag">C++</span>
-          <span class="skill-tag">Java/Kotlin</span>
-          <span class="skill-tag">Python</span>
-          <span class="skill-tag">HTML/CSS</span>
+          <span class="skill-tag">Quantitative Finance</span>
+          <span class="skill-tag">Network Theory</span>
+          <span class="skill-tag">Game Theory</span>
+          <span class="skill-tag">Financial Econometrics</span>
         </div>
       </div>
       <div class="skill-group">
-        <h4>Platforms</h4>
+        <h4>Methods</h4>
         <div class="skill-items">
-          <span class="skill-tag">ESP32</span>
-          <span class="skill-tag">Android</span>
-          <span class="skill-tag">QEMU</span>
+          <span class="skill-tag">Graph Theory</span>
+          <span class="skill-tag">Statistical Modeling</span>
+          <span class="skill-tag">Time Series Analysis</span>
+          <span class="skill-tag">Correlation Networks</span>
         </div>
       </div>
       <div class="skill-group">
         <h4>Tools</h4>
         <div class="skill-items">
-          <span class="skill-tag">Git</span>
+          <span class="skill-tag">Python</span>
           <span class="skill-tag">LaTeX</span>
+          <span class="skill-tag">Git</span>
           <span class="skill-tag">Excel</span>
         </div>
       </div>
     </div>
     <p class="reveal" style="margin-top:1rem; font-size:0.82rem; color:var(--light); font-style:italic;">
-      Also worked with: Verilog/VHDL, SQL, JavaScript, Linux (coursework level).
+      Coursework exposure: C, C++, Java/Kotlin, Verilog/VHDL, SQL, Linux.
     </p>
   </section>
 
@@ -360,57 +361,13 @@
     </div>
 
     <div class="project-card reveal" style="margin-top:1.5rem;">
-      <h3>ESP32 Flight Control System <span>[In Progress]</span></h3>
-
-      <!-- Drone/controller SVG figure -->
-      <figure>
-        <svg class="topology-fig" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg" aria-label="Flight control system diagram">
-          <!-- ESP32 board -->
-          <rect x="20" y="25" width="90" height="50" rx="4" fill="none" stroke="#2c5f7c" stroke-width="1.2"/>
-          <text x="65" y="47" text-anchor="middle" font-size="9" font-weight="700" fill="#2c5f7c" font-family="Latin Modern,serif">ESP32</text>
-          <text x="65" y="60" text-anchor="middle" font-size="7" fill="#999" font-family="Latin Modern,serif">Flight Controller</text>
-          <!-- Sensors -->
-          <rect x="20" y="3" width="35" height="16" rx="2" fill="none" stroke="#bbb" stroke-width="0.6"/>
-          <text x="37" y="13" text-anchor="middle" font-size="5.5" fill="#999" font-family="Latin Modern,serif">IMU</text>
-          <line x1="37" y1="19" x2="37" y2="25" stroke="#bbb" stroke-width="0.5"/>
-          <rect x="65" y="3" width="35" height="16" rx="2" fill="none" stroke="#bbb" stroke-width="0.6"/>
-          <text x="82" y="13" text-anchor="middle" font-size="5.5" fill="#999" font-family="Latin Modern,serif">GPS</text>
-          <line x1="82" y1="19" x2="82" y2="25" stroke="#bbb" stroke-width="0.5"/>
-          <!-- BLE arrow -->
-          <line x1="110" y1="50" x2="175" y2="50" stroke="#999" stroke-width="0.8" stroke-dasharray="4,3"/>
-          <text x="142" y="43" text-anchor="middle" font-size="7" fill="#999" font-family="Latin Modern,serif">BLE</text>
-          <!-- Android phone -->
-          <rect x="175" y="22" width="60" height="56" rx="8" fill="none" stroke="#3a6b4a" stroke-width="1.2"/>
-          <rect x="182" y="30" width="46" height="34" rx="2" fill="none" stroke="#3a6b4a" stroke-width="0.5" opacity="0.4"/>
-          <text x="205" y="51" text-anchor="middle" font-size="7.5" font-weight="700" fill="#3a6b4a" font-family="Latin Modern,serif">Android</text>
-          <text x="205" y="61" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Remote</text>
-          <!-- QEMU box -->
-          <rect x="280" y="25" width="90" height="50" rx="4" fill="none" stroke="#8b3a3a" stroke-width="0.8" stroke-dasharray="4,2"/>
-          <text x="325" y="47" text-anchor="middle" font-size="8" fill="#8b3a3a" font-family="Latin Modern,serif">QEMU</text>
-          <text x="325" y="58" text-anchor="middle" font-size="6.5" fill="#999" font-family="Latin Modern,serif">Emulator Testing</text>
-          <line x1="65" y1="75" x2="65" y2="88" stroke="#bbb" stroke-width="0.5"/>
-          <line x1="65" y1="88" x2="325" y2="88" stroke="#bbb" stroke-width="0.5" stroke-dasharray="3,3"/>
-          <line x1="325" y1="88" x2="325" y2="75" stroke="#bbb" stroke-width="0.5"/>
-          <text x="195" y="96" text-anchor="middle" font-size="6" fill="#bbb" font-family="Latin Modern,serif">validated on physical hardware + emulator</text>
-        </svg>
-      </figure>
+      <h3>ESP32 Flight Control System <span>[Capstone]</span></h3>
 
       <p class="desc">
-        A complete flight control system consisting of ESP32 firmware for real-time flight stabilization and a Kotlin/Jetpack Compose Android app for remote control via Bluetooth Low Energy. Features dual-joystick Mode 2 controls, real-time telemetry feedback, and a modular architecture separating UI, domain, and link layers. Firmware tested in QEMU emulator and validated on physical hardware. Capstone design project (BBM479/480).
+        Mandatory capstone project (BBM479/480). ESP32-based drone flight controller with a Kotlin/Jetpack Compose Android remote app communicating over BLE. Firmware tested in QEMU before hardware validation.
       </p>
 
-      <div class="methods-list">
-        <span class="pill">C</span>
-        <span class="pill">Kotlin</span>
-        <span class="pill">ESP-IDF</span>
-        <span class="pill">Jetpack Compose</span>
-        <span class="pill">Android</span>
-        <span class="pill">BLE</span>
-        <span class="pill">QEMU</span>
-      </div>
-
       <p class="project-meta" style="margin-top:0.8rem;">
-        <span><strong>Course:</strong> Capstone Design Project (BBM479/480)</span>
         <span><strong>Term:</strong> 2025–2026</span>
         <span><a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer" style="color:var(--accent);">GitLab ↗</a></span>
       </p>
@@ -425,7 +382,7 @@
     <span>Ankara, Turkey</span>
   </div>
   <p class="footer-note">
-    I wrote this page by hand (HTML, CSS, a little JS). No frameworks.
+    Plain HTML, CSS, and a little JavaScript.
   </p>
 </footer>
 
