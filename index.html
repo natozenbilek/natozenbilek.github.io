@@ -144,6 +144,8 @@
     }
     .footer-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem; }
     .footer-top span { font-size: 0.8rem; color: var(--light); }
+    .footer-spotify { font-size: 0.8rem; color: var(--accent); text-decoration: none; transition: opacity 0.2s; }
+    .footer-spotify:hover { opacity: 0.7; }
     .footer-note { font-size: 0.82rem; color: var(--light); font-style: italic; line-height: 1.5; max-width: 55ch; }
 
     /* ════════ LOAD ANIM ════════ */
@@ -201,7 +203,7 @@
   <section id="about">
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
-      Computer Engineering student at Hacettepe, Ankara. My interests lean toward the theoretical side: network theory, game theory, and how mathematical models can explain what happens in financial markets. Currently studying how contagion propagates through equity networks during crises. When I'm not reading papers, I'm probably on <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" style="color:var(--accent);">Spotify</a>.
+      Computer Engineering student at Hacettepe, Ankara. My interests lean toward the theoretical side: network theory, game theory, and how mathematical models can explain what happens in financial markets. Currently studying how contagion propagates through equity networks during crises.
     </p>
   </section>
 
@@ -364,10 +366,21 @@
       <h3>ESP32 Flight Control System <span>[Capstone]</span></h3>
 
       <p class="desc">
-        Mandatory capstone project (BBM479/480). ESP32-based drone flight controller with a Kotlin/Jetpack Compose Android remote app communicating over BLE. Firmware tested in QEMU before hardware validation.
+        A flight control system consisting of ESP32 firmware for real-time stabilization and a Kotlin/Jetpack Compose Android app for remote control via Bluetooth Low Energy. Features dual-joystick Mode 2 controls, real-time telemetry, and a modular architecture. Firmware tested in QEMU emulator before hardware validation.
       </p>
 
+      <div class="methods-list">
+        <span class="pill">C</span>
+        <span class="pill">Kotlin</span>
+        <span class="pill">ESP-IDF</span>
+        <span class="pill">Jetpack Compose</span>
+        <span class="pill">Android</span>
+        <span class="pill">BLE</span>
+        <span class="pill">QEMU</span>
+      </div>
+
       <p class="project-meta" style="margin-top:0.8rem;">
+        <span><strong>Course:</strong> Capstone Design Project (BBM479/480)</span>
         <span><strong>Term:</strong> 2025–2026</span>
         <span><a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer" style="color:var(--accent);">GitLab ↗</a></span>
       </p>
@@ -380,6 +393,7 @@
   <div class="footer-top">
     <span>Last updated March 2026</span>
     <span>Ankara, Turkey</span>
+    <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="footer-spotify">♫ Spotify</a>
   </div>
   <p class="footer-note">
     I made this page myself. Plain HTML, CSS, and a little JavaScript.
