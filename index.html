@@ -106,6 +106,19 @@
     .hero-space .hero-canvas { opacity: 1; }
     .hero-space .version-label { color: #556; }
 
+    /* ── Version C: brownian hero ── */
+    .hero-brownian {
+      position: relative; overflow: hidden;
+      padding: 5rem 0 4rem;
+      border-bottom: 1.5px solid var(--ink);
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      padding-left: calc(50vw - 50%);
+      padding-right: calc(50vw - 50%);
+      background: var(--paper);
+    }
+    .hero-brownian .hero-canvas { opacity: 1; }
+
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
     section:last-of-type { border-bottom: none; }
@@ -248,6 +261,21 @@
   <header class="hero-space">
     <span class="version-label">Version B — night sky</span>
     <canvas class="hero-canvas" id="canvasB" aria-label="Animated starfield"></canvas>
+    <div class="hero-text fade-up">
+      <h1>Nezih Arhan<br>Tözenbilek</h1>
+      <p class="tagline">CS student working toward quantitative finance research.</p>
+      <div class="hero-links fade-up fade-up-d2">
+        <a href="mailto:natozenbilek@gmail.com">Email</a>
+        <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-link">♫ Spotify</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ HERO C — brownian motion ═══ -->
+  <header class="hero-brownian">
+    <span class="version-label">Version C — brownian motion</span>
+    <canvas class="hero-canvas" id="canvasC" aria-label="Brownian motion paths"></canvas>
     <div class="hero-text fade-up">
       <h1>Nezih Arhan<br>Tözenbilek</h1>
       <p class="tagline">CS student working toward quantitative finance research.</p>
@@ -773,6 +801,138 @@ revealEls.forEach(el => revealObserver.observe(el));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ════════════════════════════════════════════════════
+// VERSION C — Brownian motion sample paths
+// ════════════════════════════════════════════════════
+(function() {
+  const canvas = document.getElementById('canvasC');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  let W, H;
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#fffff8';
+    ctx.fillRect(0, 0, W, H);
+    walkers.forEach(w => {
+      w.x = w.nx * W; w.y = w.ny * H;
+      w.trail = [{ x: w.x, y: w.y }];
+    });
+  }
+
+  const PALETTE = [
+    { r: 17, g: 17, b: 17 },
+    { r: 44, g: 95, b: 124 },
+    { r: 139, g: 58, b: 58 },
+    { r: 85, g: 85, b: 85 },
+    { r: 60, g: 80, b: 100 },
+  ];
+
+  const TRAIL_LEN = 280;
+  const WALKER_COUNT = 14;
+  const walkers = [];
+
+  for (let i = 0; i < WALKER_COUNT; i++) {
+    const col = PALETTE[i % PALETTE.length];
+    walkers.push({
+      nx: 0.1 + Math.random() * 0.8,
+      ny: 0.1 + Math.random() * 0.8,
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+      trail: [],
+      col,
+      width: 0.4 + Math.random() * 0.5,
+      alpha: 0.12 + Math.random() * 0.12,
+      drift: (Math.random() - 0.5) * 0.15,
+      driftY: (Math.random() - 0.5) * 0.15,
+    });
+  }
+
+  let mouse = { x: -1e3, y: -1e3, active: false };
+
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (W / r.width);
+    mouse.y = (e.clientY - r.top) * (H / r.height);
+    mouse.active = true;
+  });
+  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; mouse.active = false; });
+
+  function gauss() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  (function draw() {
+    // Fade: krem renkli yarı-saydam dikdörtgen → eski izler yavaşça solar
+    ctx.fillStyle = 'rgba(255,255,248,0.025)';
+    ctx.fillRect(0, 0, W, H);
+
+    walkers.forEach(w => {
+      // Brownian step (Wiener process increment)
+      const sigma = 1.4;
+      let stepX = gauss() * sigma + w.drift;
+      let stepY = gauss() * sigma + w.driftY;
+
+      // Fare itkisi
+      if (mouse.active) {
+        const dx = w.x - mouse.x, dy = w.y - mouse.y;
+        const d = Math.hypot(dx, dy) + 0.01;
+        const f = 180 / (d + 30);
+        stepX += (dx / d) * f;
+        stepY += (dy / d) * f;
+      }
+
+      // Momentum ile yumuşatma
+      w.vx = w.vx * 0.7 + stepX * 0.3;
+      w.vy = w.vy * 0.7 + stepY * 0.3;
+
+      w.x += w.vx;
+      w.y += w.vy;
+
+      // Sınırda yumuşak geri çekme (mean reversion)
+      const margin = 30;
+      if (w.x < margin) w.vx += 0.5;
+      if (w.x > W - margin) w.vx -= 0.5;
+      if (w.y < margin) w.vy += 0.5;
+      if (w.y > H - margin) w.vy -= 0.5;
+
+      // Trail'e ekle
+      w.trail.push({ x: w.x, y: w.y });
+      if (w.trail.length > TRAIL_LEN) w.trail.shift();
+
+      // Son segmenti çiz (persistent canvas — sadece yeni kısım)
+      const len = w.trail.length;
+      if (len >= 2) {
+        const p0 = w.trail[len - 2], p1 = w.trail[len - 1];
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.lineTo(p1.x, p1.y);
+        ctx.strokeStyle = `rgba(${w.col.r},${w.col.g},${w.col.b},${w.alpha})`;
+        ctx.lineWidth = w.width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+
+      // Partikül ucu — küçük nokta
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.width + 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${w.col.r},${w.col.g},${w.col.b},${w.alpha * 2.2})`;
       ctx.fill();
     });
 
