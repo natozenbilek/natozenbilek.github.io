@@ -57,6 +57,10 @@
       padding: 4rem 0 3rem;
       display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;
       border-bottom: 1.5px solid var(--ink);
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      padding-left: calc(50vw - 50%);
+      padding-right: calc(50vw - 50%);
     }
     .hero-text h1 { font-size: clamp(1.8rem, 5vw, 2.1rem); font-weight: 700; line-height: 1.15; margin-bottom: 0.4rem; }
     .hero-text .tagline { font-size: 1.02rem; font-style: italic; color: var(--muted); margin-bottom: 1.2rem; max-width: 40ch; }
@@ -66,14 +70,6 @@
 
     /* Hero network (JS canvas) */
     .hero-canvas { width: clamp(132px, 19vw, 180px); height: clamp(132px, 19vw, 180px); }
-
-    /* Spotify badge */
-    .spotify-badge {
-      position: absolute; top: 1.8rem; right: 0;
-      font-size: 0.78rem; color: #1DB954; text-decoration: none;
-      opacity: 0.65; transition: opacity 0.2s;
-    }
-    .spotify-badge:hover { opacity: 1; }
 
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
@@ -200,14 +196,14 @@
       <div class="hero-links fade-up fade-up-d2">
         <a href="mailto:natozenbilek@gmail.com">Email</a>
         <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer">♫ Spotify</a>
       </div>
     </div>
     <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="250" height="250" aria-label="Animated network graph"></canvas>
   </header>
 
   <!-- ═══ ABOUT ═══ -->
-  <section id="about" style="position:relative;">
-    <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-badge reveal">♫ Spotify</a>
+  <section id="about">
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
       Computer Engineering student at Hacettepe, Ankara. My interests lean toward the theoretical side: network theory, game theory, and how mathematical models can explain what happens in financial markets. Currently studying how contagion propagates through equity networks during crises.
