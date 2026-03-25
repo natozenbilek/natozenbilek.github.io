@@ -144,6 +144,8 @@
     }
     .footer-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem; }
     .footer-top span { font-size: 0.8rem; color: var(--light); }
+    .footer-top a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+    .footer-top a:hover { border-bottom-color: var(--accent); }
     .footer-note { font-size: 0.82rem; color: var(--light); font-style: italic; line-height: 1.5; max-width: 55ch; }
 
     /* ════════ LOAD ANIM ════════ */
@@ -201,16 +203,7 @@
   <section id="about">
     <p class="sec-title reveal">i. about</p>
     <p class="about-text reveal">
-      I'm a Computer Engineering student at Hacettepe University in Ankara. I got pulled into quantitative finance while studying how mathematical models can explain strategic behavior. Financial markets turned out to be the most interesting playground for that.
-    </p>
-    <p class="about-text reveal">
-      Right now I'm building network-based tools to map how contagion propagates through equity markets during crises. The question I keep coming back to: when a market panics, who moves first, who follows, and can you see it in the structure before it happens?
-    </p>
-    <p class="about-text reveal">
-      I also build things closer to hardware. My capstone is an ESP32-based drone flight controller with a custom Android remote. I like working across the stack, from embedded firmware to financial modeling.
-    </p>
-    <p class="about-text reveal" style="margin-top:1rem; color:var(--muted); font-size:0.92rem;">
-      Outside of all that: coffee, long walks with no destination, and whatever <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" style="color:var(--accent);">Spotify</a> recommends at 2 AM.
+      CS student at Hacettepe, Ankara. I spend most of my time thinking about how markets break and whether you can see it coming in the data. Right now that means building network models of financial contagion. I also build things closer to hardware — my capstone is a drone flight controller.
     </p>
   </section>
 
@@ -432,6 +425,7 @@
   <div class="footer-top">
     <span>Last updated March 2026</span>
     <span>Ankara, Turkey</span>
+    <span><a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer">Spotify</a></span>
   </div>
   <p class="footer-note">
     I wrote this page by hand (HTML, CSS, a little JS). No frameworks.
