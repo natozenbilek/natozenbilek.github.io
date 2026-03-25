@@ -412,39 +412,49 @@ revealEls.forEach(el => revealObserver.observe(el));
   function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
   function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
 
+  // Asymmetric layout with 3 loose clusters + hub
   const nodes = [
-    { x:125, y:20,  r:4 },
-    { x:40,  y:50,  r:3.5 },
-    { x:210, y:45,  r:3.5 },
-    { x:75,  y:88,  r:5 },
-    { x:175, y:82,  r:4.5 },
-    { x:125, y:125, r:7, hub:true },
-    { x:30,  y:145, r:3 },
-    { x:220, y:140, r:3 },
-    { x:70,  y:185, r:4 },
-    { x:180, y:180, r:4 },
-    { x:125, y:228, r:3.5 },
-    { x:15,  y:95,  r:3 },
-    { x:235, y:92,  r:3 },
+    // Cluster A — upper-left (financials)
+    { x:55,  y:30,  r:4 },     // 0
+    { x:28,  y:72,  r:3.5 },   // 1
+    { x:90,  y:65,  r:3 },     // 2
+    // Cluster B — right (tech)
+    { x:195, y:38,  r:3.5 },   // 3
+    { x:225, y:88,  r:4 },     // 4
+    { x:175, y:105, r:3 },     // 5
+    // Hub — off-center
+    { x:115, y:128, r:7, hub:true }, // 6
+    // Cluster C — bottom (energy/mixed)
+    { x:48,  y:170, r:3.5 },   // 7
+    { x:105, y:200, r:3 },     // 8
+    { x:155, y:185, r:4 },     // 9
+    { x:220, y:175, r:3 },     // 10
+    // Peripheral bridges
+    { x:140, y:50,  r:3 },     // 11
+    { x:68,  y:120, r:3 },     // 12
+    { x:200, y:225, r:3 },     // 13
   ].map(n => ({
     ...n, hub: !!n.hub, baseX: n.x, baseY: n.y, c: 0,
     ph: Math.random() * Math.PI * 2,
     sp: 0.002 + Math.random() * 0.003,
-    ax: 2 + Math.random() * 5,
-    ay: 1.5 + Math.random() * 4,
+    ax: 2 + Math.random() * 4,
+    ay: 1.5 + Math.random() * 3,
   }));
 
   const adj = Array.from({length: nodes.length}, () => []);
   const edges = [
-    [0,1],[0,2],[0,3],[0,4],[0,5],
-    [1,3],[1,6],[1,11],
-    [2,4],[2,7],[2,12],
-    [3,5],[3,6],[3,11],
-    [4,5],[4,7],[4,12],
-    [5,8],[5,9],[5,10],
-    [6,8],[7,9],
-    [8,10],[9,10],
-    [6,11],[7,12],
+    // Cluster A internal
+    [0,1],[0,2],[1,2],
+    // Cluster B internal
+    [3,4],[3,5],[4,5],
+    // Cluster C internal
+    [7,8],[8,9],[9,10],[7,12],
+    // Hub connections (hub=6)
+    [2,6],[5,6],[6,7],[6,9],[6,12],
+    // Cross-cluster bridges
+    [0,11],[3,11],[11,6],
+    [4,10],[5,9],
+    [1,12],[8,13],[9,13],[10,13],
   ];
   edges.forEach(([a,b]) => { adj[a].push(b); adj[b].push(a); });
 
@@ -452,6 +462,7 @@ revealEls.forEach(el => revealObserver.observe(el));
   let cascadeT = 0;
   const INTERVAL = 380;
 
+  let pendingInfections = [];
   function cascade() {
     const peri = nodes.map((_,i) => i).filter(i => !nodes[i].hub);
     const src = peri[Math.floor(Math.random() * peri.length)];
@@ -459,16 +470,17 @@ revealEls.forEach(el => revealObserver.observe(el));
     let frontier = [src];
     let delay = 0;
     nodes[src].c = 1;
+    pendingInfections = [];
     while (frontier.length) {
-      delay += 22;
+      delay += 24;
       const nxt = [];
       for (const ni of frontier) {
         for (const nb of adj[ni]) {
           if (visited.has(nb)) continue;
           visited.add(nb);
           nxt.push(nb);
-          setTimeout(() => { nodes[nb].c = 1; }, delay * 16.7);
-          pulses.push({ from: ni, to: nb, birth: delay - 16, life: 22, age: -(delay - 16) });
+          pendingInfections.push({ node: nb, frame: delay });
+          pulses.push({ from: ni, to: nb, birth: delay - 18, life: 24, age: -(delay - 18) });
         }
       }
       frontier = nxt;
@@ -490,10 +502,15 @@ revealEls.forEach(el => revealObserver.observe(el));
 
     if (++cascadeT > INTERVAL) { cascadeT = 0; cascade(); }
 
+    pendingInfections = pendingInfections.filter(p => {
+      if (cascadeT >= p.frame) { nodes[p.node].c = 1; return false; }
+      return true;
+    });
+
     nodes.forEach(n => {
       n.x = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
       n.y = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
-      if (n.c > 0) n.c = Math.max(0, n.c - 0.007);
+      if (n.c > 0) n.c = Math.max(0, n.c - 0.006);
     });
 
     nodes.forEach(n => {
@@ -505,7 +522,7 @@ revealEls.forEach(el => revealObserver.observe(el));
     edges.forEach(([a,b]) => {
       const na = nodes[a], nb = nodes[b];
       const d = Math.hypot(na.x - nb.x, na.y - nb.y);
-      const base = Math.max(0, 0.28 * (1 - d / 170));
+      const base = Math.max(0, 0.3 * (1 - d / 200));
       const ci = Math.max(na.c, nb.c);
       const col = lerp3(AC, SH, ci);
       ctx.beginPath();
