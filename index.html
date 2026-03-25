@@ -619,16 +619,13 @@ revealEls.forEach(el => revealObserver.observe(el));
       if (n.c > 0) n.c = Math.max(0, n.c - 0.005);
     });
 
-    // Mouse: repel close, attract mid-range
+    // Mouse: repel all nearby nodes
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
       const d = Math.hypot(dx, dy);
-      if (d < 30) {
-        const f = (30-d)/30 * 4;
+      if (d < 80) {
+        const f = (80-d)/80 * 5;
         n.x += dx/d*f; n.y += dy/d*f;
-      } else if (d < 90) {
-        const pull = (90-d)/90 * 0.5;
-        n.x -= dx/d*pull; n.y -= dy/d*pull;
       }
     });
 
@@ -735,43 +732,24 @@ revealEls.forEach(el => revealObserver.observe(el));
     });
     while (shockRings.length && shockRings[0].age > shockRings[0].max) shockRings.shift();
 
-    // Draw nodes with breathing
+    // Draw nodes — flat 2D, LaTeX-style
     nodes.forEach(n => {
-      const breath = 1 + Math.sin(t * 0.025 + n.ph) * 0.08;
-      const dr = n.r * breath;
-
       if (n.c > 0.08) {
-        const gr = dr + 7 + n.c * 10;
         const cc = lerp3(AC, SH, n.c);
-        const g = ctx.createRadialGradient(n.x, n.y, dr * 0.3, n.x, n.y, gr);
-        g.addColorStop(0, rgba(cc, 0.2 + n.c * 0.3));
+        const g = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, n.r + n.c * 8);
+        g.addColorStop(0, rgba(cc, n.c * 0.25));
         g.addColorStop(1, rgba(cc, 0));
         ctx.beginPath();
-        ctx.arc(n.x, n.y, gr, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, n.r + n.c * 8, 0, Math.PI * 2);
         ctx.fillStyle = g;
         ctx.fill();
       }
-
-      // Node shadow
-      ctx.beginPath();
-      ctx.arc(n.x + 0.5, n.y + 0.5, dr + 1, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.04)';
-      ctx.fill();
-
       const cc = lerp3(AC, SH, n.c);
       ctx.beginPath();
-      ctx.arc(n.x, n.y, dr, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = rgb(cc);
-      ctx.globalAlpha = 0.55 + Math.sin(t * 0.015 + n.ph) * 0.15 + n.c * 0.3;
+      ctx.globalAlpha = 0.6 + n.c * 0.3;
       ctx.fill();
-
-      // Specular highlight
-      if (dr > 3) {
-        ctx.beginPath();
-        ctx.arc(n.x - dr*0.25, n.y - dr*0.25, dr*0.3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fill();
-      }
       ctx.globalAlpha = 1;
     });
 
