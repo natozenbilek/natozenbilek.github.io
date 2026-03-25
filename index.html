@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Nezih Arhan Tözenbilek · Computer Engineering × Quantitative Finance" />
+  <meta name="description" content="Nezih Arhan Tözenbilek" />
   <title>Nezih Arhan Tözenbilek</title>
   <style>
     @font-face { font-family:"Latin Modern"; font-style:normal; font-weight:400; font-display:swap; src:url("https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css@master/fonts/LM-regular.woff2") format("woff2"); }
@@ -54,22 +54,30 @@
 
     /* ════════ HERO ════════ */
     .hero {
-      padding: 4rem 0 3rem;
-      display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;
+      position: relative; overflow: hidden;
+      padding: 5rem 0 4rem;
       border-bottom: 1.5px solid var(--ink);
       margin-left: calc(-50vw + 50%);
       margin-right: calc(-50vw + 50%);
       padding-left: calc(50vw - 50%);
       padding-right: calc(50vw - 50%);
     }
-    .hero-text h1 { font-size: clamp(1.8rem, 5vw, 2.1rem); font-weight: 700; line-height: 1.15; margin-bottom: 0.4rem; }
-    .hero-text .tagline { font-size: 1.02rem; font-style: italic; color: var(--muted); margin-bottom: 1.2rem; max-width: 40ch; }
+    .hero-text { position: relative; z-index: 1; }
+    .hero-text h1 { font-size: clamp(2rem, 5.5vw, 2.6rem); font-weight: 700; line-height: 1.12; margin-bottom: 0.5rem; }
+    .hero-text .tagline { font-size: 1.02rem; font-style: italic; color: var(--muted); margin-bottom: 1.2rem; max-width: 44ch; }
     .hero-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; font-size: 0.85rem; }
     .hero-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s, color 0.2s; }
     .hero-links a:hover { border-bottom-color: var(--accent); }
+    .hero-links .spotify-link { color: #1DB954; }
+    .hero-links .spotify-link:hover { border-bottom-color: #1DB954; }
 
-    /* Hero network (JS canvas) */
-    .hero-canvas { width: clamp(132px, 19vw, 180px); height: clamp(132px, 19vw, 180px); }
+    /* Hero network canvas — full background */
+    .hero-canvas {
+      position: absolute; top: 0; right: 0;
+      width: 55%; height: 100%;
+      opacity: 0.6;
+      pointer-events: auto; z-index: 0;
+    }
 
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
@@ -163,8 +171,9 @@
 
     /* ════════ RESPONSIVE ════════ */
     @media (max-width: 560px) {
-      .hero { grid-template-columns: 1fr; text-align: center; gap: 1.2rem; }
-      .hero-canvas { margin: 0 auto; }
+      .hero { padding: 3.5rem 0 3rem; }
+      .hero-canvas { width: 100%; opacity: 0.35; }
+      .hero-text { text-align: center; }
       .hero-links { justify-content: center; }
       .hero-text .tagline { max-width: none; }
       .entry { grid-template-columns: 1fr; }
@@ -194,16 +203,16 @@
 
   <!-- ═══ HERO ═══ -->
   <header class="hero">
+    <canvas class="hero-canvas" id="networkCanvas" aria-label="Animated network graph"></canvas>
     <div class="hero-text fade-up">
       <h1>Nezih Arhan<br>Tözenbilek</h1>
       <p class="tagline">CS student working toward quantitative finance research.</p>
       <div class="hero-links fade-up fade-up-d2">
         <a href="mailto:natozenbilek@gmail.com">Email</a>
         <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
-        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer">♫ Spotify</a>
+        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-link">♫ Spotify</a>
       </div>
     </div>
-    <canvas class="hero-canvas fade-up fade-up-d3" id="networkCanvas" width="250" height="250" aria-label="Animated network graph"></canvas>
   </header>
 
   <!-- ═══ ABOUT ═══ -->
@@ -419,41 +428,58 @@ revealEls.forEach(el => revealObserver.observe(el));
   const canvas = document.getElementById('networkCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 250, H = 250;
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.width = canvas.style.height = '';
-  ctx.scale(dpr, dpr);
+
+  let W, H;
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width * 0.55;
+    H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    nodes.forEach(n => {
+      n.baseX = n.nx * W;
+      n.baseY = n.ny * H;
+    });
+    dots.length = 0;
+    for (let gx = 12; gx < W; gx += 22) {
+      for (let gy = 12; gy < H; gy += 22) {
+        dots.push({ x: gx + (Math.random()-0.5)*5, y: gy + (Math.random()-0.5)*5 });
+      }
+    }
+  }
 
   const AC = [44, 95, 124];
   const SH = [185, 62, 48];
-  const REC = [60, 140, 90];
   function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
   function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
   function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
 
+  // Normalized positions (0-1) — will be scaled to canvas size
   const nodes = [
-    { x:55,  y:30,  r:4 },
-    { x:28,  y:72,  r:3.5 },
-    { x:90,  y:65,  r:3 },
-    { x:195, y:38,  r:3.5 },
-    { x:225, y:88,  r:4 },
-    { x:175, y:105, r:3 },
-    { x:115, y:128, r:7, hub:true },
-    { x:48,  y:170, r:3.5 },
-    { x:105, y:200, r:3 },
-    { x:155, y:185, r:4 },
-    { x:220, y:175, r:3 },
-    { x:140, y:50,  r:3 },
-    { x:68,  y:120, r:3 },
-    { x:200, y:225, r:3 },
+    { nx:0.12, ny:0.12, r:5 },
+    { nx:0.06, ny:0.30, r:4 },
+    { nx:0.22, ny:0.28, r:3.5 },
+    { nx:0.70, ny:0.15, r:4 },
+    { nx:0.85, ny:0.35, r:4.5 },
+    { nx:0.62, ny:0.42, r:3.5 },
+    { nx:0.40, ny:0.52, r:8, hub:true },
+    { nx:0.10, ny:0.68, r:4 },
+    { nx:0.30, ny:0.82, r:3.5 },
+    { nx:0.55, ny:0.75, r:4.5 },
+    { nx:0.82, ny:0.70, r:3.5 },
+    { nx:0.45, ny:0.20, r:3.5 },
+    { nx:0.15, ny:0.50, r:3.5 },
+    { nx:0.72, ny:0.90, r:3.5 },
+    { nx:0.92, ny:0.55, r:3 },
+    { nx:0.50, ny:0.95, r:3 },
   ].map(n => ({
-    ...n, hub: !!n.hub, baseX: n.x, baseY: n.y, c: 0,
+    ...n, hub: !!n.hub, baseX: 0, baseY: 0, x: 0, y: 0, c: 0,
     ph: Math.random() * Math.PI * 2,
-    sp: 0.002 + Math.random() * 0.003,
-    ax: 2 + Math.random() * 4,
-    ay: 1.5 + Math.random() * 3,
+    sp: 0.0015 + Math.random() * 0.0025,
+    ax: 3 + Math.random() * 5,
+    ay: 2 + Math.random() * 4,
   }));
 
   const adj = Array.from({length: nodes.length}, () => []);
@@ -461,12 +487,12 @@ revealEls.forEach(el => revealObserver.observe(el));
   const edgeGlow = [];
   const edgeDef = [
     [0,1],[0,2],[1,2],
-    [3,4],[3,5],[4,5],
+    [3,4],[3,5],[4,5],[4,14],
     [7,8],[8,9],[9,10],[7,12],
     [2,6],[5,6],[6,7],[6,9],[6,12],
     [0,11],[3,11],[11,6],
-    [4,10],[5,9],
-    [1,12],[8,13],[9,13],[10,13],
+    [4,10],[5,9],[10,14],
+    [1,12],[8,15],[9,15],[9,13],[10,13],[13,15],
   ];
   edgeDef.forEach(([a,b]) => {
     adj[a].push(b); adj[b].push(a);
@@ -534,15 +560,11 @@ revealEls.forEach(el => revealObserver.observe(el));
     return { x: u*u*na.x + 2*u*t*mx + t*t*nb.x, y: u*u*na.y + 2*u*t*my + t*t*nb.y };
   }
 
-  // Background dot grid
   const dots = [];
-  for (let gx = 15; gx < W; gx += 20) {
-    for (let gy = 15; gy < H; gy += 20) {
-      dots.push({ x: gx + (Math.random()-0.5)*6, y: gy + (Math.random()-0.5)*6 });
-    }
-  }
 
   let mouse = { x: -1e3, y: -1e3 };
+  resize();
+  window.addEventListener('resize', resize);
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (W / r.width);
