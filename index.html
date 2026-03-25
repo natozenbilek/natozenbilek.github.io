@@ -124,17 +124,7 @@
     .project-meta { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.3rem 1.5rem; }
     .project-meta strong { color: var(--ink); }
 
-    .project-detail { max-height: 0; overflow: hidden; transition: max-height 0.5s ease, opacity 0.4s ease; opacity: 0; }
-    .project-detail.open { max-height: 1200px; opacity: 1; }
-
-    .toggle-detail {
-      display: inline-block; margin-top: 0.8rem; font-size: 0.85rem;
-      color: var(--accent); cursor: pointer; border: none; background: none;
-      font-family: inherit; padding: 0; border-bottom: 1px dashed var(--accent); transition: color 0.2s;
-    }
-    .toggle-detail:hover { color: var(--ink); }
-
-    .pipeline-fig, .topology-fig { width: 80%; margin: 1rem auto; display: block; }
+    .topology-fig { width: 80%; margin: 1rem auto; display: block; }
     figcaption { font-size: 0.8rem; font-style: italic; color: var(--light); margin-top: 0.3rem; }
     figure { margin: 1rem 0; }
 
@@ -178,7 +168,6 @@
       nav.topnav { display: none; }
       body { background: #fff; }
       main { max-width: none; }
-      .project-detail { max-height: none !important; opacity: 1 !important; }
       .hero-canvas { display: none; }
     }
   </style>
@@ -361,62 +350,6 @@
         An end-to-end pipeline that transforms raw S&amp;P 500 price data into a directed strategic map of financial contagion. The framework combines asymmetric correlation modeling (A-DCC GARCH) with precision-matrix filtering and lead-follower direction assignment to identify which stocks drive market crises, through which channels, and how the network's hierarchy reorganizes under stress. Applied across ten temporal snapshots covering the 2008 GFC and 2020 COVID-19 crisis episodes.
       </p>
 
-      <button class="toggle-detail" onclick="toggleDetail(this)" aria-expanded="false">
-        ▸ Pipeline details &amp; methodology
-      </button>
-
-      <div class="project-detail" id="pipeline-detail">
-        <figure>
-          <svg class="pipeline-fig" viewBox="0 0 500 210" xmlns="http://www.w3.org/2000/svg" aria-label="Four-stage pipeline">
-            <defs><marker id="parr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#555" stroke-width="0.8"/></marker></defs>
-            <rect x="8" y="20" width="105" height="42" rx="2" fill="none" stroke="#111" stroke-width="1"/>
-            <text x="60" y="37" text-anchor="middle" font-size="9" font-weight="700" fill="#111" font-family="Latin Modern,serif">Stage 1</text>
-            <text x="60" y="50" text-anchor="middle" font-size="7.5" fill="#555" font-family="Latin Modern,serif">A-DCC GARCH</text>
-            <text x="60" y="15" text-anchor="middle" font-size="6.5" fill="#999" font-family="Latin Modern,serif">log-return panel</text>
-            <line x1="113" y1="41" x2="143" y2="41" stroke="#555" stroke-width="0.8" marker-end="url(#parr)"/>
-            <text x="128" y="36" text-anchor="middle" font-size="5.5" fill="#999" font-family="Latin Modern,serif">{Rt}</text>
-            <rect x="143" y="20" width="105" height="42" rx="2" fill="none" stroke="#111" stroke-width="1"/>
-            <text x="195" y="37" text-anchor="middle" font-size="9" font-weight="700" fill="#111" font-family="Latin Modern,serif">Stage 2</text>
-            <text x="195" y="50" text-anchor="middle" font-size="7.5" fill="#555" font-family="Latin Modern,serif">Precision Matrix</text>
-            <line x1="248" y1="41" x2="278" y2="41" stroke="#555" stroke-width="0.8" marker-end="url(#parr)"/>
-            <text x="263" y="36" text-anchor="middle" font-size="5.5" fill="#999" font-family="Latin Modern,serif">sparse</text>
-            <rect x="278" y="20" width="105" height="42" rx="2" fill="none" stroke="#111" stroke-width="1"/>
-            <text x="330" y="37" text-anchor="middle" font-size="9" font-weight="700" fill="#111" font-family="Latin Modern,serif">Stage 3</text>
-            <text x="330" y="50" text-anchor="middle" font-size="7.5" fill="#555" font-family="Latin Modern,serif">Lead–Follower</text>
-            <line x1="383" y1="41" x2="408" y2="41" stroke="#555" stroke-width="0.8" marker-end="url(#parr)"/>
-            <text x="396" y="36" text-anchor="middle" font-size="5.5" fill="#999" font-family="Latin Modern,serif">directed</text>
-            <rect x="408" y="20" width="82" height="42" rx="2" fill="none" stroke="#111" stroke-width="1.2"/>
-            <text x="449" y="37" text-anchor="middle" font-size="9" font-weight="700" fill="#111" font-family="Latin Modern,serif">Stage 4</text>
-            <text x="449" y="50" text-anchor="middle" font-size="7.5" fill="#555" font-family="Latin Modern,serif">Network Analysis</text>
-            <line x1="449" y1="62" x2="449" y2="78" stroke="#bbb" stroke-width="0.5"/>
-            <line x1="355" y1="78" x2="490" y2="78" stroke="#bbb" stroke-width="0.5"/>
-            <line x1="370" y1="78" x2="370" y2="85" stroke="#bbb" stroke-width="0.5"/>
-            <rect x="340" y="85" width="60" height="22" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.5"/>
-            <text x="370" y="97" text-anchor="middle" font-size="6.5" fill="#555" font-family="Latin Modern,serif">Erdos–Renyi</text>
-            <line x1="420" y1="78" x2="420" y2="85" stroke="#bbb" stroke-width="0.5"/>
-            <rect x="399" y="85" width="42" height="22" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.5"/>
-            <text x="420" y="97" text-anchor="middle" font-size="6.5" fill="#555" font-family="Latin Modern,serif">PageRank</text>
-            <line x1="468" y1="78" x2="468" y2="85" stroke="#bbb" stroke-width="0.5"/>
-            <rect x="447" y="85" width="42" height="22" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.5"/>
-            <text x="468" y="97" text-anchor="middle" font-size="6.5" fill="#555" font-family="Latin Modern,serif">Louvain</text>
-            <!-- Timeline -->
-            <text x="8" y="140" font-size="7" fill="#999" font-family="Latin Modern,serif" font-style="italic">10 temporal snapshots:</text>
-            <line x1="8" y1="152" x2="490" y2="152" stroke="#ccc" stroke-width="0.8"/>
-            <circle cx="30" cy="152" r="3" fill="#2c5f7c" opacity="0.7"/><text x="30" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">05–07</text>
-            <circle cx="110" cy="152" r="3" fill="#8b3a3a" opacity="0.7"/><text x="110" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Jun 08</text>
-            <circle cx="160" cy="152" r="4" fill="#8b3a3a" opacity="0.9"/><text x="160" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Oct 08</text>
-            <circle cx="210" cy="152" r="3" fill="#8b3a3a" opacity="0.6"/><text x="210" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Mar 09</text>
-            <circle cx="260" cy="152" r="3" fill="#2c5f7c" opacity="0.7"/><text x="260" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">2015</text>
-            <circle cx="315" cy="152" r="3" fill="#8b3a3a" opacity="0.6"/><text x="315" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Jan 20</text>
-            <circle cx="360" cy="152" r="4" fill="#8b3a3a" opacity="0.9"/><text x="360" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Mar 20</text>
-            <circle cx="400" cy="152" r="3" fill="#8b3a3a" opacity="0.6"/><text x="400" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">Jun 20</text>
-            <circle cx="440" cy="152" r="3" fill="#2c5f7c" opacity="0.7"/><text x="440" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">2022</text>
-            <circle cx="475" cy="152" r="3" fill="#2c5f7c" opacity="0.7"/><text x="475" y="167" text-anchor="middle" font-size="6" fill="#999" font-family="Latin Modern,serif">2025</text>
-            <text x="8" y="190" font-size="6" fill="#999" font-family="Latin Modern,serif"><tspan fill="#2c5f7c">●</tspan> baseline <tspan dx="10" fill="#8b3a3a">●</tspan> crisis</text>
-          </svg>
-        </figure>
-      </div>
-
       <div class="methods-list">
         <span class="pill">A-DCC GARCH</span>
         <span class="pill">GLASSO</span>
@@ -503,14 +436,6 @@
 </footer>
 
 <script>
-// ── Toggle project detail ──
-function toggleDetail(btn) {
-  const detail = document.getElementById('pipeline-detail');
-  const isOpen = detail.classList.toggle('open');
-  btn.setAttribute('aria-expanded', isOpen);
-  btn.textContent = isOpen ? '\u25BE Hide pipeline details' : '\u25B8 Pipeline details & methodology';
-}
-
 // ── Scroll reveal ──
 const revealEls = document.querySelectorAll('.reveal');
 const revealObserver = new IntersectionObserver((entries) => {
