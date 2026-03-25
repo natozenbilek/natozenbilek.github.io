@@ -424,7 +424,7 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach(el => revealObserver.observe(el));
 
-// ── Animated hero network with contagion cascade ──
+// ── Tikz-style network — minimal, flat, academic ──
 (function() {
   const canvas = document.getElementById('networkCanvas');
   if (!canvas) return;
@@ -434,126 +434,90 @@ revealEls.forEach(el => revealObserver.observe(el));
   let W, H;
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
-    W = rect.width;
-    H = rect.height;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
+    W = rect.width; H = rect.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    nodes.forEach(n => {
-      n.baseX = n.nx * W;
-      n.baseY = n.ny * H;
-    });
-    dots.length = 0;
-    for (let gx = 12; gx < W; gx += 22) {
-      for (let gy = 12; gy < H; gy += 22) {
-        dots.push({ x: gx + (Math.random()-0.5)*5, y: gy + (Math.random()-0.5)*5 });
-      }
-    }
+    nodes.forEach(n => { n.baseX = n.nx * W; n.baseY = n.ny * H; });
   }
 
-  const AC = [44, 95, 124];
-  const SH = [185, 62, 48];
-  function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
-  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
-  function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
+  const INK = '#111';
+  const ACCENT = '#2c5f7c';
+  const CRISIS = '#8b3a3a';
 
-  // All nodes pulled inward — no perimeter possible
+  function lerpColor(a, b, t) {
+    const pa = [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
+    const pb = [parseInt(b.slice(1,3),16), parseInt(b.slice(3,5),16), parseInt(b.slice(5,7),16)];
+    const r = Math.round(pa[0]+(pb[0]-pa[0])*t), g = Math.round(pa[1]+(pb[1]-pa[1])*t), bl = Math.round(pa[2]+(pb[2]-pa[2])*t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  const R = 2.8;
   const nodes = [
-    { nx:0.20, ny:0.15, r:4 },
-    { nx:0.14, ny:0.35, r:3.5 },
-    { nx:0.30, ny:0.26, r:3 },
-    { nx:0.38, ny:0.12, r:3 },
-    { nx:0.65, ny:0.18, r:3.5 },
-    { nx:0.78, ny:0.28, r:4 },
-    { nx:0.58, ny:0.35, r:3.5 },
-    { nx:0.72, ny:0.48, r:3 },
-    { nx:0.40, ny:0.45, r:4 },
-    { nx:0.18, ny:0.58, r:3.5 },
-    { nx:0.28, ny:0.72, r:4 },
-    { nx:0.15, ny:0.82, r:3 },
-    { nx:0.38, ny:0.64, r:3 },
-    { nx:0.55, ny:0.68, r:4 },
-    { nx:0.70, ny:0.60, r:3.5 },
-    { nx:0.78, ny:0.74, r:3 },
-    { nx:0.62, ny:0.82, r:3.5 },
-    { nx:0.48, ny:0.24, r:3 },
-    { nx:0.22, ny:0.48, r:3 },
-    { nx:0.52, ny:0.52, r:3 },
-    { nx:0.82, ny:0.55, r:2.5 },
-    { nx:0.42, ny:0.84, r:3 },
-    { nx:0.50, ny:0.38, r:2.5 },
-    { nx:0.32, ny:0.50, r:2.5 },
+    { nx:0.12, ny:0.18 }, { nx:0.08, ny:0.42 }, { nx:0.18, ny:0.32 },
+    { nx:0.28, ny:0.14 }, { nx:0.26, ny:0.28 }, { nx:0.22, ny:0.50 },
+    { nx:0.34, ny:0.40 }, { nx:0.15, ny:0.65 }, { nx:0.26, ny:0.72 },
+    { nx:0.10, ny:0.80 }, { nx:0.36, ny:0.60 }, { nx:0.30, ny:0.84 },
+    { nx:0.44, ny:0.22 }, { nx:0.50, ny:0.10 }, { nx:0.56, ny:0.28 },
+    { nx:0.48, ny:0.42 }, { nx:0.42, ny:0.56 }, { nx:0.52, ny:0.62 },
+    { nx:0.44, ny:0.78 }, { nx:0.56, ny:0.82 }, { nx:0.50, ny:0.50 },
+    { nx:0.64, ny:0.16 }, { nx:0.72, ny:0.24 }, { nx:0.68, ny:0.38 },
+    { nx:0.62, ny:0.48 }, { nx:0.76, ny:0.52 }, { nx:0.82, ny:0.34 },
+    { nx:0.66, ny:0.64 }, { nx:0.74, ny:0.72 }, { nx:0.62, ny:0.78 },
+    { nx:0.80, ny:0.60 }, { nx:0.86, ny:0.78 }, { nx:0.70, ny:0.86 },
   ].map(n => ({
-    ...n, baseX: 0, baseY: 0, x: 0, y: 0, c: 0,
+    ...n, baseX: 0, baseY: 0, x: 0, y: 0,
+    inf: 0,
     ph: Math.random() * Math.PI * 2,
-    sp: 0.0015 + Math.random() * 0.0025,
-    ax: 3 + Math.random() * 5,
-    ay: 2 + Math.random() * 4,
+    sp: 0.0008 + Math.random() * 0.0012,
+    ax: 1.5 + Math.random() * 2.5,
+    ay: 1 + Math.random() * 2,
   }));
 
-  // Proximity edges — skip if both nodes are on the outer ring
-  function isOuter(n) { return n.nx < 0.18 || n.nx > 0.80 || n.ny < 0.15 || n.ny > 0.80; }
-  const adj = Array.from({length: nodes.length}, () => []);
-  const edgeW = [];
-  const edgeGlow = [];
+  const adj = Array.from({ length: nodes.length }, () => []);
   const edgeDef = [];
   const maxDeg = 4;
   const pairs = [];
   for (let i = 0; i < nodes.length; i++)
-    for (let j = i+1; j < nodes.length; j++) {
+    for (let j = i + 1; j < nodes.length; j++) {
       const dx = nodes[i].nx - nodes[j].nx, dy = nodes[i].ny - nodes[j].ny;
-      pairs.push({ i, j, d: Math.sqrt(dx*dx + dy*dy) });
+      pairs.push({ i, j, d: Math.sqrt(dx * dx + dy * dy) });
     }
-  pairs.sort((a,b) => a.d - b.d);
+  pairs.sort((a, b) => a.d - b.d);
   const deg = new Array(nodes.length).fill(0);
   for (const p of pairs) {
-    if (edgeDef.length >= 38) break;
+    if (edgeDef.length >= 52) break;
     if (deg[p.i] >= maxDeg && deg[p.j] >= maxDeg) continue;
-    if (p.d > 0.28) continue;
-    if (isOuter(nodes[p.i]) && isOuter(nodes[p.j])) continue;
+    if (p.d > 0.24) continue;
     edgeDef.push([p.i, p.j]);
     deg[p.i]++; deg[p.j]++;
+    adj[p.i].push(p.j); adj[p.j].push(p.i);
   }
-  edgeDef.forEach(([a,b]) => {
-    adj[a].push(b); adj[b].push(a);
-    edgeW.push(0.4 + Math.random() * 0.6);
-    edgeGlow.push(0);
+
+  let mouse = { x: -1e3, y: -1e3, active: false };
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (W / r.width);
+    mouse.y = (e.clientY - r.top) * (H / r.height);
+    mouse.active = true;
   });
+  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; mouse.active = false; });
 
-  const edgeCurve = edgeDef.map(() => ({
-    ox: (Math.random() - 0.5) * 28,
-    oy: (Math.random() - 0.5) * 28,
-  }));
-
-  const ambient = [];
-  for (let i = 0; i < 10; i++) {
-    ambient.push({
-      edge: Math.floor(Math.random() * edgeDef.length),
-      t: Math.random(),
-      speed: 0.0015 + Math.random() * 0.003,
-      dir: Math.random() > 0.5 ? 1 : -1,
-      size: 0.8 + Math.random() * 0.8,
-    });
-  }
-
-  const shockRings = [];
-
-  let contagionPulses = [];
-  let cascadeT = 0;
-  const INTERVAL = 380;
+  // BFS contagion — sadece renk değişimi, efekt yok
+  let cascadeTimer = 0;
+  const CASCADE_INTERVAL = 480;
   let pendingInf = [];
 
-  function cascade() {
-    const peri = nodes.map((_,i) => i);
-    const src = peri[Math.floor(Math.random() * peri.length)];
-    shockRings.push({ node: src, age: 0, max: 70 });
+  function startCascade() {
+    const src = Math.floor(Math.random() * nodes.length);
     const visited = new Set([src]);
     let frontier = [src];
     let delay = 0;
-    nodes[src].c = 1;
+    nodes[src].inf = 1;
     pendingInf = [];
     while (frontier.length) {
-      delay += 26;
+      delay += 35;
       const nxt = [];
       for (const ni of frontier) {
         for (const nb of adj[ni]) {
@@ -561,195 +525,68 @@ revealEls.forEach(el => revealObserver.observe(el));
           visited.add(nb);
           nxt.push(nb);
           pendingInf.push({ node: nb, frame: delay });
-          const ei = edgeDef.findIndex(([a,b]) => (a===ni&&b===nb)||(a===nb&&b===ni));
-          contagionPulses.push({
-            edge: ei, dir: edgeDef[ei][0]===ni?1:-1,
-            birth: delay-20, life: 28, age: -(delay-20),
-            trail: [],
-          });
         }
       }
       frontier = nxt;
     }
   }
 
-  function bezPt(na, nb, cv, t) {
-    const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
-    const u = 1-t;
-    return { x: u*u*na.x + 2*u*t*mx + t*t*nb.x, y: u*u*na.y + 2*u*t*my + t*t*nb.y };
-  }
-
-  const dots = [];
-
-  let mouse = { x: -1e3, y: -1e3 };
-  resize();
-  window.addEventListener('resize', resize);
-  canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - r.left) * (W / r.width);
-    mouse.y = (e.clientY - r.top) * (H / r.height);
-  });
-  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; });
-
   let t = 0;
   (function draw() {
     t++;
     ctx.clearRect(0, 0, W, H);
 
-    // Background dots
-    dots.forEach(d => {
-      const dm = Math.hypot(d.x - mouse.x, d.y - mouse.y);
-      const boost = dm < 60 ? 0.06 * (1 - dm/60) : 0;
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, 0.6, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(AC, 0.06 + boost);
-      ctx.fill();
-    });
-
-    if (++cascadeT > INTERVAL) { cascadeT = 0; cascade(); }
+    if (++cascadeTimer > CASCADE_INTERVAL) { cascadeTimer = 0; startCascade(); }
 
     pendingInf = pendingInf.filter(p => {
-      if (cascadeT >= p.frame) { nodes[p.node].c = 1; return false; }
+      if (cascadeTimer >= p.frame) { nodes[p.node].inf = 1; return false; }
       return true;
     });
 
+    // Pozisyon güncelle — çok yavaş salınım
     nodes.forEach(n => {
       n.x = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
       n.y = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
-      if (n.c > 0) n.c = Math.max(0, n.c - 0.005);
+      if (n.inf > 0) n.inf = Math.max(0, n.inf - 0.004);
     });
 
-    // Mouse: repel all nearby nodes
-    nodes.forEach(n => {
-      const dx = n.x - mouse.x, dy = n.y - mouse.y;
-      const d = Math.hypot(dx, dy);
-      if (d < 80) {
-        const f = (80-d)/80 * 5;
-        n.x += dx/d*f; n.y += dy/d*f;
-      }
-    });
+    // Fare — tüm düğümler kaçar
+    if (mouse.active) {
+      nodes.forEach(n => {
+        const dx = n.x - mouse.x, dy = n.y - mouse.y;
+        const d = Math.hypot(dx, dy) + 0.01;
+        const f = 280 / (d + 40);
+        n.x += (dx / d) * f;
+        n.y += (dy / d) * f;
+      });
+    }
 
-    // Decay edge glow
-    edgeGlow.forEach((_, i) => { if (edgeGlow[i] > 0) edgeGlow[i] = Math.max(0, edgeGlow[i] - 0.015); });
-
-    // Draw curved edges
-    edgeDef.forEach(([a,b], i) => {
+    // Kenarlar — düz, ince, \draw stili
+    edgeDef.forEach(([a, b]) => {
       const na = nodes[a], nb = nodes[b];
-      const cv = edgeCurve[i];
-      const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
-      const ci = Math.max(na.c, nb.c);
-      const eg = edgeGlow[i];
-      const col = lerp3(AC, SH, Math.max(ci, eg));
-      const w = edgeW[i];
-
-      // Edge glow layer
-      if (eg > 0.05) {
-        ctx.beginPath();
-        ctx.moveTo(na.x, na.y);
-        ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
-        ctx.strokeStyle = rgba(SH, eg * 0.2);
-        ctx.lineWidth = 4 + eg * 3;
-        ctx.stroke();
-      }
-
+      const inf = Math.max(na.inf, nb.inf);
       ctx.beginPath();
       ctx.moveTo(na.x, na.y);
-      ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
-      ctx.strokeStyle = rgb(col);
-      ctx.globalAlpha = (0.15 + w * 0.2) + Math.max(ci, eg) * 0.35;
-      ctx.lineWidth = (0.6 + w * 0.8) + Math.max(ci, eg) * 0.6;
+      ctx.lineTo(nb.x, nb.y);
+      ctx.strokeStyle = lerpColor(INK, CRISIS, inf);
+      ctx.globalAlpha = 0.10 + inf * 0.12;
+      ctx.lineWidth = 0.6;
       ctx.stroke();
       ctx.globalAlpha = 1;
     });
 
-    // Ambient flow particles
-    ambient.forEach(p => {
-      p.t += p.speed * p.dir;
-      if (p.t > 1 || p.t < 0) {
-        p.edge = Math.floor(Math.random() * edgeDef.length);
-        p.t = p.dir > 0 ? 0 : 1;
-        p.dir = Math.random() > 0.5 ? 1 : -1;
-      }
-      const [a,b] = edgeDef[p.edge];
-      const pt = bezPt(nodes[a], nodes[b], edgeCurve[p.edge], p.t);
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(AC, 0.3);
-      ctx.fill();
-    });
-
-    // Contagion pulses with trail
-    contagionPulses = contagionPulses.filter(p => {
-      p.age++;
-      if (p.age < 0) return true;
-      if (p.age > p.life) return false;
-      const prog = p.dir > 0 ? p.age/p.life : 1 - p.age/p.life;
-      const [a,b] = edgeDef[p.edge];
-      const pt = bezPt(nodes[a], nodes[b], edgeCurve[p.edge], prog);
-      const fade = (p.age/p.life) < 0.5 ? (p.age/p.life)*2 : 2 - (p.age/p.life)*2;
-
-      // Light up edge
-      edgeGlow[p.edge] = Math.max(edgeGlow[p.edge], fade);
-
-      // Trail
-      p.trail.push({ x: pt.x, y: pt.y, a: fade });
-      if (p.trail.length > 8) p.trail.shift();
-      p.trail.forEach((tp, ti) => {
-        const ta = tp.a * (ti / p.trail.length) * 0.4;
-        ctx.beginPath();
-        ctx.arc(tp.x, tp.y, 1.5 + ti * 0.15, 0, Math.PI * 2);
-        ctx.fillStyle = rgba(SH, ta);
-        ctx.fill();
-      });
-
-      // Main pulse dot
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(SH, fade * 0.9);
-      ctx.fill();
-      // Pulse glow
-      const pg = ctx.createRadialGradient(pt.x, pt.y, 1, pt.x, pt.y, 8);
-      pg.addColorStop(0, rgba(SH, fade * 0.3));
-      pg.addColorStop(1, rgba(SH, 0));
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
-      ctx.fillStyle = pg;
-      ctx.fill();
-      return true;
-    });
-
-    // Shock origin rings
-    shockRings.forEach(r => r.age++);
-    shockRings.filter(r => r.age <= r.max).forEach(r => {
-      const n = nodes[r.node];
-      const prog = r.age / r.max;
-      const radius = n.r + prog * 50;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = rgba(SH, 0.25 * (1 - prog));
-      ctx.lineWidth = 1.5 * (1 - prog * 0.7);
-      ctx.stroke();
-    });
-    while (shockRings.length && shockRings[0].age > shockRings[0].max) shockRings.shift();
-
-    // Draw nodes — flat 2D, LaTeX-style
+    // Düğümler — \node[circle, fill, draw] stili
     nodes.forEach(n => {
-      if (n.c > 0.08) {
-        const cc = lerp3(AC, SH, n.c);
-        const g = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, n.r + n.c * 8);
-        g.addColorStop(0, rgba(cc, n.c * 0.25));
-        g.addColorStop(1, rgba(cc, 0));
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r + n.c * 8, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-      }
-      const cc = lerp3(AC, SH, n.c);
+      const col = lerpColor(INK, CRISIS, n.inf);
       ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = rgb(cc);
-      ctx.globalAlpha = 0.6 + n.c * 0.3;
+      ctx.arc(n.x, n.y, R, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.globalAlpha = 0.35 + n.inf * 0.35;
       ctx.fill();
+      ctx.globalAlpha = 0.25 + n.inf * 0.30;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
       ctx.globalAlpha = 1;
     });
 
