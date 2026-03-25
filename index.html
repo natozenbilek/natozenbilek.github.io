@@ -75,49 +75,8 @@
     .hero-canvas {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      opacity: 0.5;
       pointer-events: auto; z-index: 0;
     }
-
-    /* ── Version label ── */
-    .version-label {
-      position: absolute; top: 0.6rem; right: 1.2rem; z-index: 10;
-      font-size: 0.7rem; font-variant: small-caps; letter-spacing: 0.08em;
-      color: var(--light); opacity: 0.7;
-    }
-
-    /* ── Version B: space hero ── */
-    .hero-space {
-      position: relative; overflow: hidden;
-      padding: 5rem 0 4rem;
-      border-bottom: 1.5px solid #222;
-      margin-left: calc(-50vw + 50%);
-      margin-right: calc(-50vw + 50%);
-      padding-left: calc(50vw - 50%);
-      padding-right: calc(50vw - 50%);
-      background: #0b0e17;
-    }
-    .hero-space .hero-text h1 { color: #eee; }
-    .hero-space .hero-text .tagline { color: #8a8fa0; }
-    .hero-space .hero-links a { color: #7aabca; }
-    .hero-space .hero-links a:hover { border-bottom-color: #7aabca; }
-    .hero-space .hero-links .spotify-link { color: #1DB954; }
-    .hero-space .hero-links .spotify-link:hover { border-bottom-color: #1DB954; }
-    .hero-space .hero-canvas { opacity: 1; }
-    .hero-space .version-label { color: #556; }
-
-    /* ── Version C: brownian hero ── */
-    .hero-brownian {
-      position: relative; overflow: hidden;
-      padding: 5rem 0 4rem;
-      border-bottom: 1.5px solid var(--ink);
-      margin-left: calc(-50vw + 50%);
-      margin-right: calc(-50vw + 50%);
-      padding-left: calc(50vw - 50%);
-      padding-right: calc(50vw - 50%);
-      background: var(--paper);
-    }
-    .hero-brownian .hero-canvas { opacity: 1; }
 
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
@@ -242,42 +201,9 @@
 
 <main>
 
-  <!--
-  ═══ HERO A — tikz graph ═══
+  <!-- ═══ HERO ═══ -->
   <header class="hero">
-    <span class="version-label">Version A — tikz graph</span>
-    <canvas class="hero-canvas" id="canvasA" aria-label="Animated network graph"></canvas>
-    <div class="hero-text fade-up">
-      <h1>Nezih Arhan<br>Tözenbilek</h1>
-      <p class="tagline">CS student working toward quantitative finance research.</p>
-      <div class="hero-links fade-up fade-up-d2">
-        <a href="mailto:natozenbilek@gmail.com">Email</a>
-        <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
-        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-link">♫ Spotify</a>
-      </div>
-    </div>
-  </header>
-
-  ═══ HERO B — space / night sky ═══
-  <header class="hero-space">
-    <span class="version-label">Version B — night sky</span>
-    <canvas class="hero-canvas" id="canvasB" aria-label="Animated starfield"></canvas>
-    <div class="hero-text fade-up">
-      <h1>Nezih Arhan<br>Tözenbilek</h1>
-      <p class="tagline">CS student working toward quantitative finance research.</p>
-      <div class="hero-links fade-up fade-up-d2">
-        <a href="mailto:natozenbilek@gmail.com">Email</a>
-        <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
-        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer" class="spotify-link">♫ Spotify</a>
-      </div>
-    </div>
-  </header>
-  -->
-
-  <!-- ═══ HERO C — brownian motion ═══ -->
-  <header class="hero-brownian">
-    <span class="version-label">Version C — brownian motion</span>
-    <canvas class="hero-canvas" id="canvasC" aria-label="Brownian motion paths"></canvas>
+    <canvas class="hero-canvas" id="networkCanvas" aria-label="Animated correlation network"></canvas>
     <div class="hero-text fade-up">
       <h1>Nezih Arhan<br>Tözenbilek</h1>
       <p class="tagline">CS student working toward quantitative finance research.</p>
@@ -497,17 +423,95 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach(el => revealObserver.observe(el));
 
-/* ── VERSION A & B commented out ──
-// ════════════════════════════════════════════════════
-// VERSION A — tikz-style graph on paper
-// ════════════════════════════════════════════════════
+// ── Correlation network: normal ↔ crisis breathing cycle ──
 (function() {
-  const canvas = document.getElementById('canvasA');
+  const canvas = document.getElementById('networkCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
 
   let W, H;
+
+  // Sektör renkleri (SVG figürdeki palette ile uyumlu)
+  const SECTORS = [
+    { color: [44, 95, 124],  cx: 0.18, cy: 0.30 },  // mavi — finans
+    { color: [139, 58, 58],  cx: 0.50, cy: 0.25 },   // kırmızı — enerji
+    { color: [58, 107, 74],  cx: 0.80, cy: 0.35 },   // yeşil — teknoloji
+    { color: [100, 80, 120], cx: 0.35, cy: 0.72 },   // mor — sağlık
+    { color: [85, 85, 85],   cx: 0.68, cy: 0.75 },   // gri — sanayi
+  ];
+  const CRISIS_COL = [60, 40, 40];
+
+  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerp3(a, b, t) { return [lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]; }
+
+  // Düğümler — sektör kümeleri etrafında dağılım
+  const nodes = [];
+  const NODES_PER_SECTOR = 7;
+  SECTORS.forEach((sec, si) => {
+    for (let j = 0; j < NODES_PER_SECTOR; j++) {
+      const angle = (j / NODES_PER_SECTOR) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = 0.06 + Math.random() * 0.08;
+      nodes.push({
+        sector: si,
+        nx: sec.cx + Math.cos(angle) * dist,
+        ny: sec.cy + Math.sin(angle) * dist * 0.7,
+        baseX: 0, baseY: 0, x: 0, y: 0,
+        r: 2.5 + Math.random() * 1.5,
+        ph: Math.random() * Math.PI * 2,
+        sp: 0.0004 + Math.random() * 0.0008,
+        ax: 1.0 + Math.random() * 1.5,
+        ay: 0.8 + Math.random() * 1.2,
+        highlight: 0,
+      });
+    }
+  });
+
+  // Kenarlar: intra-cluster (güçlü) + inter-cluster (zayıf)
+  const edges = [];
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].nx - nodes[j].nx, dy = nodes[i].ny - nodes[j].ny;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      const sameSector = nodes[i].sector === nodes[j].sector;
+      if (sameSector && d < 0.20) {
+        edges.push({ a: i, b: j, intra: true, baseW: 0.6 + Math.random() * 0.4 });
+      } else if (!sameSector && d < 0.22 && Math.random() < 0.15) {
+        edges.push({ a: i, b: j, intra: false, baseW: 0.3 + Math.random() * 0.3 });
+      }
+    }
+  }
+  // Adjacency
+  const adj = Array.from({ length: nodes.length }, () => []);
+  edges.forEach((e, i) => { adj[e.a].push({ node: e.b, edge: i }); adj[e.b].push({ node: e.a, edge: i }); });
+
+  // Kriz döngüsü
+  let crisisPhase = 0;  // 0 = normal, ramps up to 1 during crisis
+  let crisisTimer = 0;
+  const NORMAL_DUR = 480;   // ~8s normal
+  const RAMP_UP = 180;      // ~3s kriz geliyor
+  const PEAK_DUR = 120;     // ~2s kriz tepesi
+  const RAMP_DOWN = 240;    // ~4s normale dönüş
+  const CYCLE = NORMAL_DUR + RAMP_UP + PEAK_DUR + RAMP_DOWN;
+  let hubNode = -1;
+
+  // Şok dalgası
+  let shockOrigin = { x: 0, y: 0 };
+  let shockAge = -1;
+  const SHOCK_SPEED = 3.5;
+  const SHOCK_MAX = 600;
+
+  function pickHub() {
+    hubNode = Math.floor(Math.random() * nodes.length);
+    shockOrigin = { x: nodes[hubNode].x, y: nodes[hubNode].y };
+    shockAge = 0;
+  }
+
+  // Fare
+  let mouse = { x: -1e3, y: -1e3 };
+  let nearestNode = -1;
+
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
     W = rect.width; H = rect.height;
@@ -516,426 +520,143 @@ revealEls.forEach(el => revealObserver.observe(el));
     nodes.forEach(n => { n.baseX = n.nx * W; n.baseY = n.ny * H; });
   }
 
-  const INK = '#111';
-  const CRISIS = '#8b3a3a';
-
-  function lerpHex(a, b, t) {
-    const pa = [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
-    const pb = [parseInt(b.slice(1,3),16), parseInt(b.slice(3,5),16), parseInt(b.slice(5,7),16)];
-    return `rgb(${Math.round(pa[0]+(pb[0]-pa[0])*t)},${Math.round(pa[1]+(pb[1]-pa[1])*t)},${Math.round(pa[2]+(pb[2]-pa[2])*t)})`;
-  }
-
-  const R = 3.2;
-  const nodes = [
-    { nx:0.12, ny:0.18 }, { nx:0.08, ny:0.42 }, { nx:0.18, ny:0.32 },
-    { nx:0.28, ny:0.14 }, { nx:0.26, ny:0.28 }, { nx:0.22, ny:0.50 },
-    { nx:0.34, ny:0.40 }, { nx:0.15, ny:0.65 }, { nx:0.26, ny:0.72 },
-    { nx:0.10, ny:0.80 }, { nx:0.36, ny:0.60 }, { nx:0.30, ny:0.84 },
-    { nx:0.44, ny:0.22 }, { nx:0.50, ny:0.10 }, { nx:0.56, ny:0.28 },
-    { nx:0.48, ny:0.42 }, { nx:0.42, ny:0.56 }, { nx:0.52, ny:0.62 },
-    { nx:0.44, ny:0.78 }, { nx:0.56, ny:0.82 }, { nx:0.50, ny:0.50 },
-    { nx:0.64, ny:0.16 }, { nx:0.72, ny:0.24 }, { nx:0.68, ny:0.38 },
-    { nx:0.62, ny:0.48 }, { nx:0.76, ny:0.52 }, { nx:0.82, ny:0.34 },
-    { nx:0.66, ny:0.64 }, { nx:0.74, ny:0.72 }, { nx:0.62, ny:0.78 },
-    { nx:0.80, ny:0.60 }, { nx:0.86, ny:0.78 }, { nx:0.70, ny:0.86 },
-  ].map(n => ({
-    ...n, baseX: 0, baseY: 0, x: 0, y: 0, inf: 0,
-    ph: Math.random() * Math.PI * 2,
-    sp: 0.0006 + Math.random() * 0.001,
-    ax: 1.2 + Math.random() * 2, ay: 0.8 + Math.random() * 1.5,
-  }));
-
-  const adj = Array.from({ length: nodes.length }, () => []);
-  const edgeDef = [];
-  const pairs = [];
-  for (let i = 0; i < nodes.length; i++)
-    for (let j = i + 1; j < nodes.length; j++) {
-      const dx = nodes[i].nx - nodes[j].nx, dy = nodes[i].ny - nodes[j].ny;
-      pairs.push({ i, j, d: Math.sqrt(dx*dx + dy*dy) });
-    }
-  pairs.sort((a,b) => a.d - b.d);
-  const deg = new Array(nodes.length).fill(0);
-  for (const p of pairs) {
-    if (edgeDef.length >= 52) break;
-    if (deg[p.i] >= 4 && deg[p.j] >= 4) continue;
-    if (p.d > 0.24) continue;
-    edgeDef.push([p.i, p.j]);
-    deg[p.i]++; deg[p.j]++;
-    adj[p.i].push(p.j); adj[p.j].push(p.i);
-  }
-
-  let mouse = { x: -1e3, y: -1e3, active: false };
   resize();
   window.addEventListener('resize', resize);
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (W / r.width);
     mouse.y = (e.clientY - r.top) * (H / r.height);
-    mouse.active = true;
   });
-  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; mouse.active = false; });
-
-  let cascadeTimer = 0, pendingInf = [];
-  function startCascade() {
-    const src = Math.floor(Math.random() * nodes.length);
-    const visited = new Set([src]);
-    let frontier = [src], delay = 0;
-    nodes[src].inf = 1; pendingInf = [];
-    while (frontier.length) {
-      delay += 40;
-      const nxt = [];
-      for (const ni of frontier)
-        for (const nb of adj[ni]) {
-          if (visited.has(nb)) continue;
-          visited.add(nb); nxt.push(nb);
-          pendingInf.push({ node: nb, frame: delay });
-        }
-      frontier = nxt;
-    }
-  }
+  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; });
 
   let t = 0;
   (function draw() {
     t++;
     ctx.clearRect(0, 0, W, H);
-    if (++cascadeTimer > 520) { cascadeTimer = 0; startCascade(); }
-    pendingInf = pendingInf.filter(p => {
-      if (cascadeTimer >= p.frame) { nodes[p.node].inf = 1; return false; }
-      return true;
+
+    // Kriz döngüsü fazı
+    crisisTimer = (crisisTimer + 1) % CYCLE;
+    if (crisisTimer < NORMAL_DUR) {
+      crisisPhase = Math.max(0, crisisPhase - 0.006);
+    } else if (crisisTimer === NORMAL_DUR) {
+      pickHub();
+    }
+    if (crisisTimer >= NORMAL_DUR && crisisTimer < NORMAL_DUR + RAMP_UP) {
+      crisisPhase = Math.min(1, crisisPhase + 1 / RAMP_UP);
+    } else if (crisisTimer >= NORMAL_DUR + RAMP_UP && crisisTimer < NORMAL_DUR + RAMP_UP + PEAK_DUR) {
+      crisisPhase = 1;
+    } else if (crisisTimer >= NORMAL_DUR + RAMP_UP + PEAK_DUR) {
+      crisisPhase = Math.max(0, crisisPhase - 1 / RAMP_DOWN);
+    }
+    const cp = crisisPhase;
+
+    // Şok dalgası
+    if (shockAge >= 0 && shockAge < SHOCK_MAX) shockAge++;
+
+    // Pozisyonlar — kriz sırasında hafifçe merkeze çekilme
+    const centerX = W * 0.5, centerY = H * 0.5;
+    nodes.forEach((n, i) => {
+      const bx = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
+      const by = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
+      const pullX = lerp(bx, centerX, cp * 0.12);
+      const pullY = lerp(by, centerY, cp * 0.12);
+      n.x = pullX;
+      n.y = pullY;
+      n.highlight = Math.max(0, n.highlight - 0.03);
     });
 
-    nodes.forEach(n => {
-      n.x = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
-      n.y = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
-      if (n.inf > 0) n.inf = Math.max(0, n.inf - 0.004);
+    // En yakın düğümü bul (ego-network highlight için)
+    nearestNode = -1;
+    let minD = 70;
+    nodes.forEach((n, i) => {
+      const d = Math.hypot(n.x - mouse.x, n.y - mouse.y);
+      if (d < minD) { minD = d; nearestNode = i; }
     });
-
-    if (mouse.active) {
-      nodes.forEach(n => {
-        const dx = n.x - mouse.x, dy = n.y - mouse.y;
-        const d = Math.hypot(dx, dy) + 0.01;
-        n.x += (dx / d) * 280 / (d + 40);
-        n.y += (dy / d) * 280 / (d + 40);
-      });
+    if (nearestNode >= 0) {
+      nodes[nearestNode].highlight = 1;
+      adj[nearestNode].forEach(a => { nodes[a.node].highlight = Math.max(nodes[a.node].highlight, 0.6); });
     }
 
-    edgeDef.forEach(([a, b]) => {
-      const na = nodes[a], nb = nodes[b];
-      const inf = Math.max(na.inf, nb.inf);
+    // ── Kenarlar ──
+    edges.forEach((e, ei) => {
+      const na = nodes[e.a], nb = nodes[e.b];
+      const secA = SECTORS[na.sector], secB = SECTORS[nb.sector];
+
+      // Hover highlight
+      let hov = 0;
+      if (nearestNode >= 0 && (e.a === nearestNode || e.b === nearestNode)) hov = 1;
+
+      let alpha, width, col;
+
+      if (e.intra) {
+        const baseCol = secA.color;
+        col = lerp3(baseCol, CRISIS_COL, cp * 0.7);
+        alpha = lerp(0.12, 0.30, cp) + hov * 0.2;
+        width = lerp(e.baseW * 0.7, e.baseW * 1.4, cp) + hov * 0.4;
+      } else {
+        col = lerp3([170, 170, 170], CRISIS_COL, cp);
+        alpha = lerp(0.0, 0.22, cp) + hov * 0.15;
+        width = lerp(0, e.baseW * 1.2, cp) + hov * 0.3;
+      }
+
+      if (alpha < 0.005) return;
+
+      // Inter-cluster: dashed in normal, solid in crisis
+      if (!e.intra && cp < 0.5) ctx.setLineDash([3, 4]);
+      else ctx.setLineDash([]);
+
       ctx.beginPath();
       ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-      ctx.strokeStyle = lerpHex(INK, CRISIS, inf);
-      ctx.globalAlpha = 0.18 + inf * 0.18;
-      ctx.lineWidth = 0.7;
+      ctx.strokeStyle = rgba(col, alpha);
+      ctx.lineWidth = width;
       ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.setLineDash([]);
     });
 
-    nodes.forEach(n => {
-      const col = lerpHex(INK, CRISIS, n.inf);
+    // ── Şok dalgası halkası ──
+    if (shockAge >= 0 && shockAge < SHOCK_MAX) {
+      const radius = shockAge * SHOCK_SPEED;
+      const fade = Math.max(0, 1 - shockAge / SHOCK_MAX);
       ctx.beginPath();
-      ctx.arc(n.x, n.y, R, 0, Math.PI * 2);
-      ctx.fillStyle = col;
-      ctx.globalAlpha = 0.5 + n.inf * 0.35;
-      ctx.fill();
-      ctx.strokeStyle = col;
-      ctx.globalAlpha = 0.35 + n.inf * 0.3;
-      ctx.lineWidth = 0.8;
+      ctx.arc(shockOrigin.x, shockOrigin.y, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(CRISIS_COL, fade * 0.12);
+      ctx.lineWidth = 1.5 * fade;
       ctx.stroke();
-      ctx.globalAlpha = 1;
-    });
-
-    requestAnimationFrame(draw);
-  })();
-})();
-
-// ════════════════════════════════════════════════════
-// VERSION B — night sky / constellation
-// ════════════════════════════════════════════════════
-(function() {
-  const canvas = document.getElementById('canvasB');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  let W, H;
-  const stars = [];
-  const constellEdges = [];
-  const adj = [];
-
-  function resize() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (stars.length === 0) populate();
-    else stars.forEach(s => { s.baseX = s.nx * W; s.baseY = s.ny * H; });
-  }
-
-  function populate() {
-    stars.length = 0; constellEdges.length = 0; adj.length = 0;
-    const count = 55;
-    for (let i = 0; i < count; i++) {
-      const bright = Math.random();
-      stars.push({
-        nx: 0.04 + Math.random() * 0.92,
-        ny: 0.04 + Math.random() * 0.92,
-        baseX: 0, baseY: 0, x: 0, y: 0,
-        r: 0.6 + bright * 1.8,
-        bright: 0.3 + bright * 0.7,
-        ph: Math.random() * Math.PI * 2,
-        twinkleSpeed: 0.008 + Math.random() * 0.015,
-        sp: 0.0003 + Math.random() * 0.0006,
-        ax: 0.5 + Math.random() * 1.2,
-        ay: 0.3 + Math.random() * 0.8,
-        inf: 0,
-      });
-      adj.push([]);
-    }
-    stars.forEach(s => { s.baseX = s.nx * W; s.baseY = s.ny * H; });
-
-    const pairs = [];
-    for (let i = 0; i < count; i++)
-      for (let j = i + 1; j < count; j++) {
-        const dx = stars[i].nx - stars[j].nx, dy = stars[i].ny - stars[j].ny;
-        pairs.push({ i, j, d: Math.sqrt(dx*dx + dy*dy) });
-      }
-    pairs.sort((a,b) => a.d - b.d);
-    const deg = new Array(count).fill(0);
-    for (const p of pairs) {
-      if (constellEdges.length >= 38) break;
-      if (deg[p.i] >= 3 && deg[p.j] >= 3) continue;
-      if (p.d > 0.20) continue;
-      constellEdges.push([p.i, p.j]);
-      deg[p.i]++; deg[p.j]++;
-      adj[p.i].push(p.j); adj[p.j].push(p.i);
-    }
-  }
-
-  let mouse = { x: -1e3, y: -1e3, active: false };
-  resize();
-  window.addEventListener('resize', resize);
-  canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - r.left) * (W / r.width);
-    mouse.y = (e.clientY - r.top) * (H / r.height);
-    mouse.active = true;
-  });
-  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; mouse.active = false; });
-
-  let cascadeTimer = 0, pendingInf = [];
-  function startCascade() {
-    const src = Math.floor(Math.random() * stars.length);
-    const visited = new Set([src]);
-    let frontier = [src], delay = 0;
-    stars[src].inf = 1; pendingInf = [];
-    while (frontier.length) {
-      delay += 30;
-      const nxt = [];
-      for (const ni of frontier)
-        for (const nb of adj[ni]) {
-          if (visited.has(nb)) continue;
-          visited.add(nb); nxt.push(nb);
-          pendingInf.push({ node: nb, frame: delay });
-        }
-      frontier = nxt;
-    }
-  }
-
-  let t = 0;
-  (function draw() {
-    t++;
-    ctx.clearRect(0, 0, W, H);
-
-    if (++cascadeTimer > 440) { cascadeTimer = 0; startCascade(); }
-    pendingInf = pendingInf.filter(p => {
-      if (cascadeTimer >= p.frame) { stars[p.node].inf = 1; return false; }
-      return true;
-    });
-
-    stars.forEach(s => {
-      s.x = s.baseX + Math.sin(t * s.sp + s.ph) * s.ax;
-      s.y = s.baseY + Math.cos(t * s.sp * 0.7 + s.ph) * s.ay;
-      if (s.inf > 0) s.inf = Math.max(0, s.inf - 0.005);
-    });
-
-    if (mouse.active) {
-      stars.forEach(s => {
-        const dx = s.x - mouse.x, dy = s.y - mouse.y;
-        const d = Math.hypot(dx, dy) + 0.01;
-        const f = 220 / (d + 50);
-        s.x += (dx / d) * f;
-        s.y += (dy / d) * f;
-      });
-    }
-
-    // Constellation lines
-    constellEdges.forEach(([a, b]) => {
-      const sa = stars[a], sb = stars[b];
-      const inf = Math.max(sa.inf, sb.inf);
-      ctx.beginPath();
-      ctx.moveTo(sa.x, sa.y); ctx.lineTo(sb.x, sb.y);
-      const warmth = inf * 0.6;
-      const rr = Math.round(120 + warmth * 135);
-      const gg = Math.round(140 + warmth * (-78));
-      const bb = Math.round(180 + warmth * (-118));
-      ctx.strokeStyle = `rgba(${rr},${gg},${bb},${0.08 + inf * 0.14})`;
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    });
-
-    // Stars
-    stars.forEach(s => {
-      const twinkle = 0.6 + 0.4 * Math.sin(t * s.twinkleSpeed + s.ph);
-      const alpha = s.bright * twinkle * (0.5 + s.inf * 0.5);
-
-      const warmth = s.inf;
-      const rr = Math.round(200 + warmth * 55);
-      const gg = Math.round(210 + warmth * (-90));
-      const bb = Math.round(235 + warmth * (-140));
-
-      if (s.r > 1.4 || s.inf > 0.3) {
+      if (radius > 20) {
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r + 3 + s.inf * 4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${rr},${gg},${bb},${alpha * 0.08})`;
-        ctx.fill();
+        ctx.arc(shockOrigin.x, shockOrigin.y, radius * 0.7, 0, Math.PI * 2);
+        ctx.strokeStyle = rgba(CRISIS_COL, fade * 0.06);
+        ctx.lineWidth = 0.8 * fade;
+        ctx.stroke();
       }
-
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${rr},${gg},${bb},${alpha})`;
-      ctx.fill();
-    });
-
-    requestAnimationFrame(draw);
-  })();
-})();
-── end VERSION A & B ── */
-
-// ════════════════════════════════════════════════════
-// VERSION C — GBM stock price paths (scrolling)
-// ════════════════════════════════════════════════════
-(function() {
-  const canvas = document.getElementById('canvasC');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  let W, H;
-  const PATH_COUNT = 8;
-  const paths = [];
-
-  const COLORS = [
-    { r:17, g:17, b:17 },
-    { r:44, g:95, b:124 },
-    { r:139, g:58, b:58 },
-    { r:85, g:85, b:85 },
-    { r:44, g:95, b:124 },
-    { r:60, g:75, b:90 },
-    { r:120, g:70, b:60 },
-    { r:17, g:17, b:17 },
-  ];
-
-  function gauss() {
-    let u = 0, v = 0;
-    while (u === 0) u = Math.random();
-    while (v === 0) v = Math.random();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-
-  function initPath(i, startX) {
-    const mu = (Math.random() - 0.5) * 0.0003;
-    const sigma = 0.008 + Math.random() * 0.014;
-    const baseY = 0.2 + (i / (PATH_COUNT - 1)) * 0.6;
-    const col = COLORS[i % COLORS.length];
-    const price = H * baseY;
-    const pts = [];
-    let p = price;
-    const step = 2;
-    for (let x = startX; x <= W + step; x += step) {
-      p = p * Math.exp((mu - 0.5 * sigma * sigma) + sigma * gauss());
-      p = Math.max(H * 0.05, Math.min(H * 0.95, p));
-      pts.push({ x, y: p });
     }
-    return {
-      pts, col, price: p, mu, sigma, baseY,
-      width: 0.5 + Math.random() * 0.6,
-      alpha: 0.16 + Math.random() * 0.14,
-    };
-  }
 
-  function resize() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    paths.length = 0;
-    for (let i = 0; i < PATH_COUNT; i++) paths.push(initPath(i, 0));
-  }
+    // ── Düğümler ──
+    nodes.forEach((n, i) => {
+      const sec = SECTORS[n.sector];
+      const col = lerp3(sec.color, CRISIS_COL, cp * 0.6);
+      const isHub = (i === hubNode && cp > 0.3);
+      const r = isHub ? lerp(n.r, n.r * 2.2, cp) : n.r;
+      const hov = n.highlight;
 
-  let mouse = { x: -1e3, y: -1e3, active: false };
-  resize();
-  window.addEventListener('resize', resize);
-  canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - r.left) * (W / r.width);
-    mouse.y = (e.clientY - r.top) * (H / r.height);
-    mouse.active = true;
-  });
-  canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; mouse.active = false; });
-
-  const scrollSpeed = 0.35;
-
-  (function draw() {
-    ctx.clearRect(0, 0, W, H);
-
-    paths.forEach(path => {
-      // Sola kaydır
-      path.pts.forEach(pt => pt.x -= scrollSpeed);
-
-      // Soldan çıkan noktaları sil
-      while (path.pts.length > 1 && path.pts[0].x < -4) path.pts.shift();
-
-      // Sağdan yeni nokta ekle
-      const last = path.pts[path.pts.length - 1];
-      if (last.x < W + 2) {
-        const newP = path.price * Math.exp(
-          (path.mu - 0.5 * path.sigma * path.sigma) + path.sigma * gauss()
-        );
-        path.price = Math.max(H * 0.05, Math.min(H * 0.95, newP));
-        path.pts.push({ x: last.x + 2, y: path.price });
-      }
-
-      // Çiz
+      // Dolgu
       ctx.beginPath();
-      let started = false;
-      path.pts.forEach((pt, idx) => {
-        let drawY = pt.y;
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(col, lerp(0.35, 0.65, cp) + hov * 0.25);
+      ctx.fill();
 
-        // Fare etkisi — yakındaki noktalar dikey olarak kaçar
-        if (mouse.active) {
-          const dx = pt.x - mouse.x, dy = pt.y - mouse.y;
-          const d = Math.hypot(dx, dy) + 0.01;
-          if (d < 120) {
-            const push = (120 - d) / 120;
-            drawY += (dy / d) * push * 35;
-          }
-        }
-
-        if (!started) { ctx.moveTo(pt.x, drawY); started = true; }
-        else ctx.lineTo(pt.x, drawY);
-      });
-      ctx.strokeStyle = `rgba(${path.col.r},${path.col.g},${path.col.b},${path.alpha})`;
-      ctx.lineWidth = path.width;
-      ctx.lineJoin = 'round';
+      // Çerçeve
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(col, lerp(0.25, 0.55, cp) + hov * 0.3);
+      ctx.lineWidth = 0.7 + hov * 0.5;
       ctx.stroke();
 
-      // Sağ uçta küçük nokta (canlı fiyat hissi)
-      const tip = path.pts[path.pts.length - 1];
-      if (tip) {
+      // Hub glow
+      if (isHub) {
         ctx.beginPath();
-        ctx.arc(tip.x, tip.y, path.width + 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${path.col.r},${path.col.g},${path.col.b},${path.alpha * 1.8})`;
+        ctx.arc(n.x, n.y, r + 6 * cp, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(CRISIS_COL, cp * 0.08);
         ctx.fill();
       }
     });
