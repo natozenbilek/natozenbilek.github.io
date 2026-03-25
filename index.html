@@ -143,8 +143,12 @@
 
     /* ════════ FOOTER ════════ */
     footer.site-footer {
-      max-width: var(--max); margin: 0 auto; padding: 1.5rem var(--pad-x) 2.5rem;
-      border-top: 1.5px solid var(--ink);
+      margin: 0 auto; padding: 1.5rem var(--pad-x) 2.5rem;
+      border-top: 1px solid var(--rule);
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      padding-left: calc(50vw - 50%);
+      padding-right: calc(50vw - 50%);
     }
     .footer-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem; }
     .footer-top span { font-size: 0.8rem; color: var(--light); }
@@ -424,6 +428,7 @@ revealEls.forEach(el => revealObserver.observe(el));
 
   const AC = [44, 95, 124];
   const SH = [185, 62, 48];
+  const REC = [60, 140, 90];
   function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
   function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
   function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t].map(Math.round); }
@@ -453,6 +458,7 @@ revealEls.forEach(el => revealObserver.observe(el));
 
   const adj = Array.from({length: nodes.length}, () => []);
   const edgeW = [];
+  const edgeGlow = [];
   const edgeDef = [
     [0,1],[0,2],[1,2],
     [3,4],[3,5],[4,5],
@@ -465,34 +471,32 @@ revealEls.forEach(el => revealObserver.observe(el));
   edgeDef.forEach(([a,b]) => {
     adj[a].push(b); adj[b].push(a);
     edgeW.push(0.4 + Math.random() * 0.6);
+    edgeGlow.push(0);
   });
 
-  // Bezier control point offsets per edge (for curved lines)
   const edgeCurve = edgeDef.map(() => ({
-    ox: (Math.random() - 0.5) * 30,
-    oy: (Math.random() - 0.5) * 30,
+    ox: (Math.random() - 0.5) * 28,
+    oy: (Math.random() - 0.5) * 28,
   }));
 
-  // Ambient flow particles (always moving along edges)
   const ambient = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 10; i++) {
     ambient.push({
       edge: Math.floor(Math.random() * edgeDef.length),
       t: Math.random(),
-      speed: 0.002 + Math.random() * 0.003,
+      speed: 0.0015 + Math.random() * 0.003,
       dir: Math.random() > 0.5 ? 1 : -1,
+      size: 0.8 + Math.random() * 0.8,
     });
   }
 
-  // Hub pulse rings
   const hubRings = [];
   let hubPulseT = 0;
-  const HUB_PULSE_INT = 240;
+  const HUB_PULSE_INT = 220;
 
-  // Contagion
   let contagionPulses = [];
   let cascadeT = 0;
-  const INTERVAL = 400;
+  const INTERVAL = 380;
   let pendingInf = [];
 
   function cascade() {
@@ -513,17 +517,29 @@ revealEls.forEach(el => revealObserver.observe(el));
           nxt.push(nb);
           pendingInf.push({ node: nb, frame: delay });
           const ei = edgeDef.findIndex(([a,b]) => (a===ni&&b===nb)||(a===nb&&b===ni));
-          contagionPulses.push({ edge: ei, dir: edgeDef[ei][0]===ni?1:-1, birth: delay-20, life: 26, age: -(delay-20) });
+          contagionPulses.push({
+            edge: ei, dir: edgeDef[ei][0]===ni?1:-1,
+            birth: delay-20, life: 28, age: -(delay-20),
+            trail: [],
+          });
         }
       }
       frontier = nxt;
     }
   }
 
-  function bezierPt(na, nb, cv, t) {
+  function bezPt(na, nb, cv, t) {
     const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
     const u = 1-t;
     return { x: u*u*na.x + 2*u*t*mx + t*t*nb.x, y: u*u*na.y + 2*u*t*my + t*t*nb.y };
+  }
+
+  // Background dot grid
+  const dots = [];
+  for (let gx = 15; gx < W; gx += 20) {
+    for (let gy = 15; gy < H; gy += 20) {
+      dots.push({ x: gx + (Math.random()-0.5)*6, y: gy + (Math.random()-0.5)*6 });
+    }
   }
 
   let mouse = { x: -1e3, y: -1e3 };
@@ -539,8 +555,18 @@ revealEls.forEach(el => revealObserver.observe(el));
     t++;
     ctx.clearRect(0, 0, W, H);
 
+    // Background dots
+    dots.forEach(d => {
+      const dm = Math.hypot(d.x - mouse.x, d.y - mouse.y);
+      const boost = dm < 60 ? 0.06 * (1 - dm/60) : 0;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(AC, 0.06 + boost);
+      ctx.fill();
+    });
+
     if (++cascadeT > INTERVAL) { cascadeT = 0; cascade(); }
-    if (++hubPulseT > HUB_PULSE_INT) { hubPulseT = 0; hubRings.push({ age: 0, max: 60 }); }
+    if (++hubPulseT > HUB_PULSE_INT) { hubPulseT = 0; hubRings.push({ age: 0, max: 70 }); }
 
     pendingInf = pendingInf.filter(p => {
       if (cascadeT >= p.frame) { nodes[p.node].c = 1; return false; }
@@ -550,14 +576,24 @@ revealEls.forEach(el => revealObserver.observe(el));
     nodes.forEach(n => {
       n.x = n.baseX + Math.sin(t * n.sp + n.ph) * n.ax;
       n.y = n.baseY + Math.cos(t * n.sp * 0.7 + n.ph) * n.ay;
-      if (n.c > 0) n.c = Math.max(0, n.c - 0.006);
+      if (n.c > 0) n.c = Math.max(0, n.c - 0.005);
     });
 
+    // Mouse: gentle attraction + near repulsion
     nodes.forEach(n => {
       const dx = n.x - mouse.x, dy = n.y - mouse.y;
       const d = Math.hypot(dx, dy);
-      if (d < 55) { const f = (55-d)/55*3.5; n.x += dx/d*f; n.y += dy/d*f; }
+      if (d < 25) {
+        const f = (25-d)/25*4;
+        n.x += dx/d*f; n.y += dy/d*f;
+      } else if (d < 80) {
+        const pull = (80-d)/80*0.4;
+        n.x -= dx/d*pull; n.y -= dy/d*pull;
+      }
     });
+
+    // Decay edge glow
+    edgeGlow.forEach((_, i) => { if (edgeGlow[i] > 0) edgeGlow[i] = Math.max(0, edgeGlow[i] - 0.015); });
 
     // Draw curved edges
     edgeDef.forEach(([a,b], i) => {
@@ -565,14 +601,26 @@ revealEls.forEach(el => revealObserver.observe(el));
       const cv = edgeCurve[i];
       const mx = (na.x+nb.x)/2 + cv.ox, my = (na.y+nb.y)/2 + cv.oy;
       const ci = Math.max(na.c, nb.c);
-      const col = lerp3(AC, SH, ci);
+      const eg = edgeGlow[i];
+      const col = lerp3(AC, SH, Math.max(ci, eg));
       const w = edgeW[i];
+
+      // Edge glow layer
+      if (eg > 0.05) {
+        ctx.beginPath();
+        ctx.moveTo(na.x, na.y);
+        ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
+        ctx.strokeStyle = rgba(SH, eg * 0.2);
+        ctx.lineWidth = 4 + eg * 3;
+        ctx.stroke();
+      }
+
       ctx.beginPath();
       ctx.moveTo(na.x, na.y);
       ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
       ctx.strokeStyle = rgb(col);
-      ctx.globalAlpha = (0.15 + w * 0.2) + ci * 0.3;
-      ctx.lineWidth = ((na.hub||nb.hub) ? 1.4 : 0.6 + w * 0.8) + ci * 0.5;
+      ctx.globalAlpha = (0.15 + w * 0.2) + Math.max(ci, eg) * 0.35;
+      ctx.lineWidth = ((na.hub||nb.hub) ? 1.4 : 0.6 + w * 0.8) + Math.max(ci, eg) * 0.6;
       ctx.stroke();
       ctx.globalAlpha = 1;
     });
@@ -586,25 +634,49 @@ revealEls.forEach(el => revealObserver.observe(el));
         p.dir = Math.random() > 0.5 ? 1 : -1;
       }
       const [a,b] = edgeDef[p.edge];
-      const pt = bezierPt(nodes[a], nodes[b], edgeCurve[p.edge], p.t);
+      const pt = bezPt(nodes[a], nodes[b], edgeCurve[p.edge], p.t);
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(AC, 0.35);
+      ctx.arc(pt.x, pt.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(AC, 0.3);
       ctx.fill();
     });
 
-    // Contagion pulses along curves
+    // Contagion pulses with trail
     contagionPulses = contagionPulses.filter(p => {
       p.age++;
       if (p.age < 0) return true;
       if (p.age > p.life) return false;
       const prog = p.dir > 0 ? p.age/p.life : 1 - p.age/p.life;
       const [a,b] = edgeDef[p.edge];
-      const pt = bezierPt(nodes[a], nodes[b], edgeCurve[p.edge], prog);
+      const pt = bezPt(nodes[a], nodes[b], edgeCurve[p.edge], prog);
       const fade = (p.age/p.life) < 0.5 ? (p.age/p.life)*2 : 2 - (p.age/p.life)*2;
+
+      // Light up edge
+      edgeGlow[p.edge] = Math.max(edgeGlow[p.edge], fade);
+
+      // Trail
+      p.trail.push({ x: pt.x, y: pt.y, a: fade });
+      if (p.trail.length > 8) p.trail.shift();
+      p.trail.forEach((tp, ti) => {
+        const ta = tp.a * (ti / p.trail.length) * 0.4;
+        ctx.beginPath();
+        ctx.arc(tp.x, tp.y, 1.5 + ti * 0.15, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(SH, ta);
+        ctx.fill();
+      });
+
+      // Main pulse dot
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+      ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
       ctx.fillStyle = rgba(SH, fade * 0.9);
+      ctx.fill();
+      // Pulse glow
+      const pg = ctx.createRadialGradient(pt.x, pt.y, 1, pt.x, pt.y, 8);
+      pg.addColorStop(0, rgba(SH, fade * 0.3));
+      pg.addColorStop(1, rgba(SH, 0));
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = pg;
       ctx.fill();
       return true;
     });
@@ -614,34 +686,52 @@ revealEls.forEach(el => revealObserver.observe(el));
     hubRings.forEach(r => r.age++);
     hubRings.filter(r => r.age <= r.max).forEach(r => {
       const prog = r.age / r.max;
-      const radius = hub.r + prog * 45;
+      const radius = hub.r + prog * 50;
       ctx.beginPath();
       ctx.arc(hub.x, hub.y, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = rgba(AC, 0.25 * (1 - prog));
-      ctx.lineWidth = 1.2 * (1 - prog);
+      ctx.strokeStyle = rgba(AC, 0.22 * (1 - prog));
+      ctx.lineWidth = 1.5 * (1 - prog * 0.7);
       ctx.stroke();
     });
     while (hubRings.length && hubRings[0].age > hubRings[0].max) hubRings.shift();
 
-    // Draw nodes
+    // Draw nodes with breathing
     nodes.forEach(n => {
+      const breath = 1 + Math.sin(t * 0.025 + n.ph) * 0.08;
+      const dr = n.r * breath;
+
       if (n.hub || n.c > 0.08) {
-        const gr = n.r + 6 + (n.hub ? Math.sin(t * 0.02) * 2.5 : n.c * 8);
+        const gr = dr + 7 + (n.hub ? Math.sin(t * 0.02) * 3 : n.c * 10);
         const cc = lerp3(AC, SH, n.c);
-        const g = ctx.createRadialGradient(n.x, n.y, n.r * 0.5, n.x, n.y, gr);
-        g.addColorStop(0, rgba(cc, 0.18 + n.c * 0.25));
+        const g = ctx.createRadialGradient(n.x, n.y, dr * 0.3, n.x, n.y, gr);
+        g.addColorStop(0, rgba(cc, 0.2 + n.c * 0.3));
         g.addColorStop(1, rgba(cc, 0));
         ctx.beginPath();
         ctx.arc(n.x, n.y, gr, 0, Math.PI * 2);
         ctx.fillStyle = g;
         ctx.fill();
       }
+
+      // Node shadow
+      ctx.beginPath();
+      ctx.arc(n.x + 0.5, n.y + 0.5, dr + 1, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      ctx.fill();
+
       const cc = lerp3(AC, SH, n.c);
       ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, dr, 0, Math.PI * 2);
       ctx.fillStyle = n.hub && n.c < 0.1 ? '#111' : rgb(cc);
       ctx.globalAlpha = (n.hub ? 0.92 : 0.55 + Math.sin(t * 0.015 + n.ph) * 0.15) + n.c * 0.3;
       ctx.fill();
+
+      // Specular highlight
+      if (dr > 3) {
+        ctx.beginPath();
+        ctx.arc(n.x - dr*0.25, n.y - dr*0.25, dr*0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fill();
+      }
       ctx.globalAlpha = 1;
     });
 
