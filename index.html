@@ -25,7 +25,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 100%; scroll-behavior: smooth; }
+    html { font-size: 100%; scroll-behavior: smooth; overflow-x: hidden; }
 
     body {
       font-family: "Latin Modern", "Palatino Linotype", Palatino, serif;
@@ -35,6 +35,7 @@
       background: var(--paper);
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
     /* ════════ NAV ════════ */
@@ -54,7 +55,7 @@
 
     /* ════════ HERO ════════ */
     .hero {
-      position: relative; overflow: hidden;
+      position: relative; overflow: hidden; overflow-x: clip;
       padding: 5rem 0 4rem;
       border-bottom: 1.5px solid var(--ink);
       margin-left: calc(-50vw + 50%);
@@ -384,10 +385,16 @@ revealEls.forEach(el => revealObserver.observe(el));
   });
   canvas.addEventListener('mouseleave', () => { mouse.x = mouse.y = -1e3; });
 
+  const NET_SCALE = 0.9;
+
   let t = 0;
   (function draw() {
     t++;
     ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.translate(W * 0.5, H * 0.5);
+    ctx.scale(NET_SCALE, NET_SCALE);
+    ctx.translate(-W * 0.5, -H * 0.5);
 
     // Kriz döngüsü fazı
     crisisTimer = (crisisTimer + 1) % CYCLE;
@@ -516,6 +523,7 @@ revealEls.forEach(el => revealObserver.observe(el));
       }
     });
 
+    ctx.restore();
     requestAnimationFrame(draw);
   })();
 })();
