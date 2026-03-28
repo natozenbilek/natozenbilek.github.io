@@ -102,6 +102,11 @@
     .entry-detail { grid-column: 1 / -1; font-size: 0.92rem; color: var(--muted); line-height: 1.5; margin-top: 0.1rem; }
     .entry-coursework { grid-column: 1 / -1; font-size: 0.88rem; color: var(--muted); margin-top: 0.15rem; }
     .entry-coursework strong { color: var(--ink); font-size: 0.86rem; }
+    .entry figure { grid-column: 1 / -1; margin: 0.5rem 0 0.4rem; }
+    .entry .entry-note { grid-column: 1 / -1; font-size: 0.82rem; color: var(--light); margin-top: 0.2rem; }
+    .entry .entry-note strong { color: var(--ink); font-size: 0.86rem; }
+    .entry .entry-note a { color: var(--accent); text-decoration: none; border-bottom: 0.04em solid transparent; }
+    .entry .entry-note a:hover { border-bottom-color: var(--accent); }
 
     /* ════════ SKILLS ════════ */
     .skills-grid {
@@ -123,30 +128,8 @@
     }
     .skill-tag:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ════════ PROJECT ════════ */
-    .project-card {
-      background: var(--paper); border: 1px solid var(--rule); border-radius: 3px;
-      padding: 1.2rem 1.35rem; transition: border-color 0.3s;
-    }
-    .project-card:hover { border-color: var(--accent); }
-    .project-card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 0.15rem; }
-    .project-card h3 span { font-weight: 400; font-style: italic; color: var(--muted); font-size: 0.85rem; margin-left: 0.3em; }
-    .project-card .desc { font-size: 0.92rem; line-height: 1.55; margin: 0.7rem 0; text-align: justify; }
-    .project-meta { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.3rem 1.5rem; }
-    .project-meta strong { color: var(--ink); }
-
-    .topology-fig { width: 80%; margin: 1rem auto; display: block; }
+    .topology-fig { width: 100%; max-width: 500px; margin: 0 auto; display: block; }
     figcaption { font-size: 0.8rem; font-style: italic; color: var(--light); margin-top: 0.3rem; }
-    figure { margin: 1rem 0; }
-
-    .methods-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; }
-    .pill {
-      font-size: 0.78rem; padding: 0.2rem 0.55rem;
-      border: 0.5px solid var(--rule); border-radius: 2px;
-      color: var(--muted); white-space: nowrap;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .pill:hover { border-color: var(--accent); color: var(--accent); }
 
     /* ════════ FOOTER ════════ */
     footer.site-footer {
@@ -307,8 +290,10 @@
   <section id="projects">
     <p class="sec-title reveal">v. projects</p>
 
-    <div class="project-card reveal">
-      <h3>Strategic Impact Mapping in Financial Markets <span>[In Progress]</span></h3>
+    <div class="entries reveal">
+      <div class="entry">
+        <span class="entry-title">Strategic Impact Mapping in Financial Markets <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:0.85rem;">[In progress]</span></span>
+        <span class="entry-date">Spring 2026</span>
 
       <figure>
         <svg class="topology-fig" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg" aria-label="Network topology shift">
@@ -359,47 +344,26 @@
         </svg>
       </figure>
 
-      <p class="desc">
+      <p class="entry-detail">
         An end-to-end pipeline that transforms raw S&amp;P 500 price data into a directed strategic map of financial contagion. The framework combines asymmetric correlation modeling (A-DCC GARCH) with precision-matrix filtering and lead-follower direction assignment to identify which stocks drive market crises, through which channels, and how the network's hierarchy reorganizes under stress. Applied across ten temporal snapshots covering the 2008 GFC and 2020 COVID-19 crisis episodes.
       </p>
-
-      <div class="methods-list">
-        <span class="pill">A-DCC GARCH</span>
-        <span class="pill">GLASSO</span>
-        <span class="pill">PageRank</span>
-        <span class="pill">Louvain</span>
-        <span class="pill">Motif Analysis</span>
-        <span class="pill">Granger Causality</span>
+      <p class="entry-coursework">
+        <strong>Methods:</strong> A-DCC GARCH · GLASSO · PageRank · Louvain · Motif analysis · Granger causality
+      </p>
+      <p class="entry-note"><strong>Course:</strong> Social &amp; Economic Networks (BBM462)</p>
       </div>
 
-      <p class="project-meta" style="margin-top:0.8rem;">
-        <span><strong>Course:</strong> Social &amp; Economic Networks (BBM462)</span>
-        <span><strong>Term:</strong> Spring 2026</span>
-      </p>
-    </div>
-
-    <div class="project-card reveal" style="margin-top:1.5rem;">
-      <h3>ESP32 Flight Control System <span>[Capstone]</span></h3>
-
-      <p class="desc">
-        A flight control system consisting of ESP32 firmware for real-time stabilization and a Kotlin/Jetpack Compose Android app for remote control via Bluetooth Low Energy. Features dual-joystick Mode 2 controls, real-time telemetry, and a modular architecture. Firmware tested in QEMU emulator before hardware validation.
-      </p>
-
-      <div class="methods-list">
-        <span class="pill">C</span>
-        <span class="pill">Kotlin</span>
-        <span class="pill">ESP-IDF</span>
-        <span class="pill">Jetpack Compose</span>
-        <span class="pill">Android</span>
-        <span class="pill">BLE</span>
-        <span class="pill">QEMU</span>
+      <div class="entry">
+        <span class="entry-title">ESP32 Flight Control System <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:0.85rem;">[Capstone]</span></span>
+        <span class="entry-date">2025–2026</span>
+        <p class="entry-detail">
+          A flight control system consisting of ESP32 firmware for real-time stabilization and a Kotlin/Jetpack Compose Android app for remote control via Bluetooth Low Energy. Features dual-joystick Mode 2 controls, real-time telemetry, and a modular architecture. Firmware tested in QEMU emulator before hardware validation.
+        </p>
+        <p class="entry-coursework">
+          <strong>Stack:</strong> C · Kotlin · ESP-IDF · Jetpack Compose · Android · BLE · QEMU
+        </p>
+        <p class="entry-note"><strong>Course:</strong> Capstone Design Project (BBM479/480) · <a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer">GitLab ↗</a></p>
       </div>
-
-      <p class="project-meta" style="margin-top:0.8rem;">
-        <span><strong>Course:</strong> Capstone Design Project (BBM479/480)</span>
-        <span><strong>Term:</strong> 2025–2026</span>
-        <span><a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer" style="color:var(--accent);">GitLab ↗</a></span>
-      </p>
     </div>
   </section>
 
