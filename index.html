@@ -51,7 +51,10 @@
     nav.topnav a { color: #3a3a3a; text-decoration: none; transition: color 0.2s; font-variant: small-caps; font-weight: 600; }
     nav.topnav a:hover { color: var(--ink); }
 
-    main { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad-x); }
+    main {
+      max-width: var(--max); margin: 0 auto;
+      padding: 0 var(--pad-x) clamp(2.25rem, 5vw, 3.25rem);
+    }
 
     /* ════════ HERO ════════ */
     .hero {
@@ -85,7 +88,7 @@
 
     /* ════════ SECTIONS ════════ */
     section { padding: 1.8rem 0 1.2rem; border-bottom: 0.5px solid var(--rule); }
-    section:last-of-type { border-bottom: none; }
+    section:last-of-type { border-bottom: none; padding-bottom: 1.6rem; }
     .sec-title {
       font-size: 0.92rem; font-weight: 700; font-variant: small-caps; letter-spacing: 0.06em;
       color: var(--ink); margin-bottom: 1.2rem; text-transform: lowercase;
