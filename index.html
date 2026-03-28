@@ -112,34 +112,10 @@
     .entry-detail { grid-column: 1 / -1; font-size: 0.92rem; color: var(--muted); line-height: 1.5; margin-top: 0.1rem; }
     .entry-coursework { grid-column: 1 / -1; font-size: 0.88rem; color: var(--muted); margin-top: 0.15rem; }
     .entry-coursework strong { color: var(--ink); font-size: 0.86rem; }
-    .entry figure { grid-column: 1 / -1; margin: 0.5rem 0 0.4rem; }
     .entry .entry-note { grid-column: 1 / -1; font-size: 0.82rem; color: var(--light); margin-top: 0.2rem; }
     .entry .entry-note strong { color: var(--ink); font-size: 0.86rem; }
     .entry .entry-note a { color: var(--accent); text-decoration: none; border-bottom: 0.04em solid transparent; }
     .entry .entry-note a:hover { border-bottom-color: var(--accent); }
-
-    /* ════════ SKILLS ════════ */
-    .skills-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1rem;
-    }
-    .skill-group h4 {
-      font-size: 0.9rem; font-weight: 700; color: var(--ink);
-      margin-bottom: 0.35rem; letter-spacing: 0.02em;
-    }
-    .skill-group .skill-items {
-      display: flex; flex-wrap: wrap; gap: 0.3rem;
-    }
-    .skill-tag {
-      font-size: 0.78rem; padding: 0.18rem 0.5rem;
-      border: 0.5px solid var(--rule); border-radius: 2px;
-      color: var(--muted); white-space: nowrap;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .skill-tag:hover { border-color: var(--accent); color: var(--accent); }
-
-    .topology-fig { width: 100%; max-width: 500px; margin: 0 auto; display: block; }
-    figcaption { font-size: 0.8rem; font-style: italic; color: var(--light); margin-top: 0.3rem; }
 
     /* ════════ FOOTER ════════ */
     footer.site-footer {
@@ -172,7 +148,6 @@
       .entry { grid-template-columns: 1fr; }
       .entry-date { text-align: left; }
       nav.topnav { gap: 1rem; font-size: 0.84rem; }
-      .skills-grid { grid-template-columns: 1fr 1fr; }
     }
     @media print {
       nav.topnav { display: none; }
@@ -188,7 +163,6 @@
   <a href="#about">about</a>
   <a href="#education">education</a>
   <a href="#experience">experience</a>
-  <a href="#skills">interests</a>
   <a href="#projects">projects</a>
 </nav>
 
@@ -259,120 +233,27 @@
     </div>
   </section>
 
-  <!-- ═══ SKILLS ═══ -->
-  <section id="skills">
-    <p class="sec-title reveal">iv. interests &amp; methods</p>
-    <div class="skills-grid reveal">
-      <div class="skill-group">
-        <h4>Research Interests</h4>
-        <div class="skill-items">
-          <span class="skill-tag">Quantitative Finance</span>
-          <span class="skill-tag">Network Theory</span>
-          <span class="skill-tag">Game Theory</span>
-          <span class="skill-tag">Financial Econometrics</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <h4>Methods</h4>
-        <div class="skill-items">
-          <span class="skill-tag">Graph Theory</span>
-          <span class="skill-tag">Statistical Modeling</span>
-          <span class="skill-tag">Time Series Analysis</span>
-          <span class="skill-tag">Correlation Networks</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <h4>Tools</h4>
-        <div class="skill-items">
-          <span class="skill-tag">Python</span>
-          <span class="skill-tag">LaTeX</span>
-          <span class="skill-tag">Git</span>
-          <span class="skill-tag">Excel</span>
-        </div>
-      </div>
-    </div>
-    <p class="reveal" style="margin-top:1rem; font-size:0.82rem; color:var(--light); font-style:italic;">
-      Coursework exposure: C, C++, Java/Kotlin, Verilog/VHDL, SQL, Linux.
-    </p>
-  </section>
-
   <!-- ═══ PROJECTS ═══ -->
   <section id="projects">
-    <p class="sec-title reveal">v. projects</p>
+    <p class="sec-title reveal">iv. projects</p>
 
     <div class="entries reveal">
       <div class="entry">
         <span class="entry-title">Strategic Impact Mapping in Financial Markets <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:0.85rem;">[In progress]</span></span>
         <span class="entry-date">Spring 2026</span>
-
-      <figure>
-        <svg class="topology-fig" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg" aria-label="Network topology shift">
-          <!-- Normal period -->
-          <line x1="50" y1="35" x2="80" y2="25" stroke="#2c5f7c" stroke-width="1" opacity="0.6"/>
-          <line x1="50" y1="35" x2="60" y2="60" stroke="#2c5f7c" stroke-width="1" opacity="0.6"/>
-          <line x1="80" y1="25" x2="60" y2="60" stroke="#2c5f7c" stroke-width="1" opacity="0.6"/>
-          <line x1="140" y1="30" x2="165" y2="50" stroke="#8b3a3a" stroke-width="1" opacity="0.6"/>
-          <line x1="140" y1="30" x2="120" y2="55" stroke="#8b3a3a" stroke-width="1" opacity="0.6"/>
-          <line x1="165" y1="50" x2="120" y2="55" stroke="#8b3a3a" stroke-width="1" opacity="0.6"/>
-          <line x1="85" y1="95" x2="115" y2="105" stroke="#3a6b4a" stroke-width="1" opacity="0.6"/>
-          <line x1="85" y1="95" x2="100" y2="125" stroke="#3a6b4a" stroke-width="1" opacity="0.6"/>
-          <line x1="115" y1="105" x2="100" y2="125" stroke="#3a6b4a" stroke-width="1" opacity="0.6"/>
-          <line x1="80" y1="25" x2="140" y2="30" stroke="#bbb" stroke-width="0.5" stroke-dasharray="4,3" opacity="0.5"/>
-          <line x1="60" y1="60" x2="85" y2="95" stroke="#bbb" stroke-width="0.5" stroke-dasharray="4,3" opacity="0.5"/>
-          <line x1="120" y1="55" x2="115" y2="105" stroke="#bbb" stroke-width="0.5" stroke-dasharray="4,3" opacity="0.5"/>
-          <circle cx="50" cy="35" r="4.5" fill="#2c5f7c"/><circle cx="80" cy="25" r="4.5" fill="#2c5f7c"/><circle cx="60" cy="60" r="4" fill="#2c5f7c"/>
-          <circle cx="140" cy="30" r="4.5" fill="#8b3a3a"/><circle cx="165" cy="50" r="4" fill="#8b3a3a"/><circle cx="120" cy="55" r="4.5" fill="#8b3a3a"/>
-          <circle cx="85" cy="95" r="4.5" fill="#3a6b4a"/><circle cx="115" cy="105" r="4" fill="#3a6b4a"/><circle cx="100" cy="125" r="4" fill="#3a6b4a"/>
-          <text x="100" y="145" text-anchor="middle" font-size="9" fill="#999" font-family="Latin Modern,serif" font-style="italic">Normal: modular, sector-aligned</text>
-
-          <path d="M195,75 L265,75" stroke="#999" stroke-width="0.8" fill="none" marker-end="url(#arr)"/>
-          <text x="230" y="68" text-anchor="middle" font-size="8.5" fill="#999" font-family="Latin Modern,serif" font-style="italic">crisis</text>
-          <defs><marker id="arr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#999" stroke-width="0.8"/></marker></defs>
-
-          <!-- Crisis period -->
-          <line x1="330" y1="45" x2="380" y2="30" stroke="#333" stroke-width="1.3" opacity="0.5"/>
-          <line x1="330" y1="45" x2="365" y2="75" stroke="#333" stroke-width="1.8" opacity="0.6"/>
-          <line x1="330" y1="45" x2="410" y2="65" stroke="#333" stroke-width="0.8" opacity="0.35"/>
-          <line x1="330" y1="45" x2="395" y2="110" stroke="#333" stroke-width="0.8" opacity="0.35"/>
-          <line x1="330" y1="45" x2="445" y2="45" stroke="#333" stroke-width="0.6" opacity="0.25"/>
-          <line x1="380" y1="30" x2="365" y2="75" stroke="#333" stroke-width="1.2" opacity="0.5"/>
-          <line x1="380" y1="30" x2="445" y2="45" stroke="#333" stroke-width="1" opacity="0.4"/>
-          <line x1="380" y1="30" x2="410" y2="65" stroke="#333" stroke-width="0.8" opacity="0.35"/>
-          <line x1="365" y1="75" x2="410" y2="65" stroke="#333" stroke-width="1.3" opacity="0.5"/>
-          <line x1="365" y1="75" x2="395" y2="110" stroke="#333" stroke-width="1.1" opacity="0.45"/>
-          <line x1="365" y1="75" x2="445" y2="45" stroke="#333" stroke-width="0.7" opacity="0.3"/>
-          <line x1="365" y1="75" x2="350" y2="115" stroke="#333" stroke-width="0.9" opacity="0.4"/>
-          <line x1="410" y1="65" x2="445" y2="45" stroke="#333" stroke-width="0.8" opacity="0.35"/>
-          <line x1="410" y1="65" x2="395" y2="110" stroke="#333" stroke-width="0.8" opacity="0.35"/>
-          <line x1="445" y1="45" x2="395" y2="110" stroke="#333" stroke-width="0.6" opacity="0.25"/>
-          <line x1="350" y1="115" x2="395" y2="110" stroke="#333" stroke-width="0.7" opacity="0.3"/>
-          <circle cx="365" cy="75" r="8" fill="#111" opacity="0.85"/>
-          <circle cx="330" cy="45" r="4.5" fill="#555"/><circle cx="380" cy="30" r="5" fill="#444"/>
-          <circle cx="410" cy="65" r="4.5" fill="#555"/><circle cx="445" cy="45" r="3.5" fill="#777"/>
-          <circle cx="395" cy="110" r="4" fill="#666"/><circle cx="350" cy="115" r="3.5" fill="#777"/>
-          <text x="387" y="145" text-anchor="middle" font-size="9" fill="#999" font-family="Latin Modern,serif" font-style="italic">Crisis: collapsed, hub-dominated</text>
-        </svg>
-      </figure>
-
-      <p class="entry-detail">
-        An end-to-end pipeline that transforms raw S&amp;P 500 price data into a directed strategic map of financial contagion. The framework combines asymmetric correlation modeling (A-DCC GARCH) with precision-matrix filtering and lead-follower direction assignment to identify which stocks drive market crises, through which channels, and how the network's hierarchy reorganizes under stress. Applied across ten temporal snapshots covering the 2008 GFC and 2020 COVID-19 crisis episodes.
-      </p>
-      <p class="entry-coursework">
-        <strong>Methods:</strong> A-DCC GARCH · GLASSO · PageRank · Louvain · Motif analysis · Granger causality
-      </p>
-      <p class="entry-note"><strong>Course:</strong> Social &amp; Economic Networks (BBM462)</p>
+        <p class="entry-detail">
+          S&amp;P 500 prices to a directed contagion map across crisis snapshots (e.g. 2008, 2020): correlation dynamics, network structure, and lead–follow relationships under stress.
+        </p>
+        <p class="entry-note"><strong>Advisor:</strong> Engin Demir · <strong>Course:</strong> Social &amp; Economic Networks (BBM462) · <strong>Status:</strong> Interim report stage · In progress</p>
       </div>
 
       <div class="entry">
-        <span class="entry-title">ESP32 Flight Control System <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:0.85rem;">[Capstone]</span></span>
+        <span class="entry-title">ESP32 Flight Control System <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:0.85rem;">[In progress]</span></span>
         <span class="entry-date">2025–2026</span>
         <p class="entry-detail">
-          A flight control system consisting of ESP32 firmware for real-time stabilization and a Kotlin/Jetpack Compose Android app for remote control via Bluetooth Low Energy. Features dual-joystick Mode 2 controls, real-time telemetry, and a modular architecture. Firmware tested in QEMU emulator before hardware validation.
+          ESP32-based stabilization with an Android remote over BLE (Kotlin / Jetpack Compose); Mode 2 controls and live telemetry.
         </p>
-        <p class="entry-coursework">
-          <strong>Stack:</strong> C · Kotlin · ESP-IDF · Jetpack Compose · Android · BLE · QEMU
-        </p>
-        <p class="entry-note"><strong>Course:</strong> Capstone Design Project (BBM479/480) · <a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer">GitLab ↗</a></p>
+        <p class="entry-note"><strong>Advisor:</strong> Harun Artuner · <strong>Course:</strong> Capstone Design Project (BBM479/480) · <a href="https://gitlab.com/natozenbilek/capstone-project/" rel="noopener noreferrer">GitLab ↗</a> · <strong>Status:</strong> First term done · Implementation phase · In progress</p>
       </div>
     </div>
   </section>
