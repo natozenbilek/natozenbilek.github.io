@@ -216,8 +216,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </select>
   </div>
   <span class="pill p-rdy" id="st">READY</span>
-  <button type="button" class="b" onclick="openDocPanel('isa')" title="ISA / Rehber (F1)">ISA / Rehber</button>
-  <button type="button" class="b" onclick="openDocPanel('tutorial')" title="Rehberde öğretici bölümü (seçili örnek)">Öğretici</button>
+  <button type="button" class="b" onclick="openDocPanel()" title="ISA, mimari ve öğretici (F1)">Rehber</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -468,17 +467,12 @@ function ensureDocNav(){
   docNavBuilt=true;
   setDocSection(firstId);
 }
-function openDocPanel(which){
+function openDocPanel(){
   var ov=document.getElementById('docOv');
   ov.hidden=false;
   document.body.style.overflow='hidden';
   ensureDocNav();
-  if(which==='tutorial'){
-    var exv=document.getElementById('ex').value;
-    setDocSection(exv&&TUTORIAL_HTML[exv]?exv:'sum');
-  }else{
-    setDocSection(ISA_SECTIONS[0].id);
-  }
+  setDocSection(ISA_SECTIONS[0].id);
 }
 function closeDocPanel(){
   var ov=document.getElementById('docOv');
@@ -490,13 +484,13 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&!ov.hidden){closeDocPanel();return}
   if(e.key==='F1'){
     e.preventDefault();
-    if(ov.hidden)openDocPanel('isa');
+    if(ov.hidden)openDocPanel();
     else setDocSection(ISA_SECTIONS[0].id);
     return
   }
   if(ov.hidden&&e.key==='?'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
     var t=e.target&&e.target.tagName;
-    if(t!=='TEXTAREA'&&t!=='INPUT'&&t!=='SELECT')openDocPanel('isa');
+    if(t!=='TEXTAREA'&&t!=='INPUT'&&t!=='SELECT')openDocPanel();
   }
 });
 document.getElementById('docOv').addEventListener('click',function(e){
