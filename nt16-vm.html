@@ -168,6 +168,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .out-btn{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer}
 .out-btn.on{background:var(--bg3);color:var(--text);border-color:var(--text3)}
 .out-actions{display:flex;gap:4px;margin-bottom:6px}
+.out-in{display:flex;gap:4px;margin-bottom:6px}
+.out-in input{flex:1;font-family:var(--mono);font-size:10px;padding:3px 6px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
 .flag-help{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:5px;line-height:1.4}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
@@ -363,6 +365,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="callout">Subroutine + output</option>
         <option value="memecho">Memory echo output</option>
         <option value="sort">Bubble sort (classic)</option>
+        <option value="sortasc">Bubble sort (ascending)</option>
         <option value="factorial">Factorial (repeated add)</option>
         <option value="muladd">Multiply via repeated add</option>
         <option value="fibmulti">Fibonacci (multi output)</option>
@@ -492,6 +495,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <div class="out-actions">
         <button type="button" class="out-btn" onclick="clearOutput()">CLEAR</button>
         <button type="button" class="out-btn" onclick="copyOutput()">COPY</button>
+      </div>
+      <div class="out-in">
+        <input id="ioInText" type="text" placeholder="Input queue for 0xFE00 (ASCII)">
+        <button type="button" class="out-btn" onclick="loadInputQueue()">LOAD IN</button>
       </div>
       <div class="out-box" id="outStream">— no output —</div>
       <div class="out-meta" id="outMeta">Range: 0xFF00–0xFFFF · Mode: char + hex</div>
@@ -871,9 +878,12 @@ let outMode='char',lastDiff='—',flagWhyText='—';
 let cycleMode=false,cyclePhase=0;
 let baseMem=new Uint16Array(65536),dirtyPages=new Set();
 const IO_OUT_BASE=0xFF00;
+const IO_IN_BASE=0xFE00;
 const OUT_LOG_MAX=120;
 const SP_INIT=0x0300;
 const PAGE_WORDS=256;
+const RUN_INSTR_LIMIT=500000;
+let ioInQueue=[],ioInPos=0;
 
 function markDirty(ad){
   ad&=0xFFFF;
@@ -966,6 +976,17 @@ function pushOutput(ad,val){
   let ch=(v>=32&&v<=126)?String.fromCharCode(v):'.';
   outLog.push({ad:ad,v:v,ch:ch});
   if(outLog.length>OUT_LOG_MAX)outLog=outLog.slice(-OUT_LOG_MAX);
+}
+function loadInputQueue(){
+  let inp=document.getElementById('ioInText');
+  let txt=(inp&&inp.value)||'';
+  ioInQueue=Array.from(txt).map(ch=>ch.charCodeAt(0)&0xFF);
+  ioInPos=0;
+  sLog('Input queue loaded: '+ioInQueue.length+' byte(s).',0);
+}
+function readInputPort(){
+  if(ioInPos>=ioInQueue.length)return 0;
+  return ioInQueue[ioInPos++]&0xFF;
 }
 
 function summarizeDiff(){
@@ -1104,7 +1125,7 @@ function execOne(){
     else if(op===8){let v=(d.i8u<<8)&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'SHL8'};curDesc=`LUI: 0x${d.i8u.toString(16).toUpperCase()}\u00AB8=${f16(v)}\u2192R${rd}`}
     else if(op===9){let imm16=d.i8&0xFFFF;let res=alu('SUB',R[rd],imm16);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(res.r),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])})-${d.i8}\u2192flags`}
   }
-  else if(op===10){let ad=(R[d.rs]+d.i5)&0xFFFF;if(d.rd!==0)R[d.rd]=mem[ad];bus={s:`[${f16(ad)}]`,v:f16(mem[ad]),d:`R${d.rd}`,a:'\u2014'};curDesc=`LOAD: Mem[${f16(ad)}]=${f16(mem[ad])}\u2192R${d.rd}`}
+  else if(op===10){let ad=(R[d.rs]+d.i5)&0xFFFF;let mv=(ad===IO_IN_BASE)?readInputPort():mem[ad];if(d.rd!==0)R[d.rd]=mv;bus={s:`[${f16(ad)}]`,v:f16(mv),d:`R${d.rd}`,a:'\u2014'};curDesc=`LOAD: Mem[${f16(ad)}]=${f16(mv)}\u2192R${d.rd}`}
   else if(op===11){let ad=(R[d.rs]+d.i5)&0xFFFF;writeMem(ad,R[d.rd]);pushOutput(ad,R[d.rd]);bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'\u2014'};curDesc=`STORE: R${d.rd}\u2192Mem[${f16(ad)}]`}
   else if(op===12){R[6]=(R[6]-1)&0xFFFF;writeMem(R[6],R[d.rd]);bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP--,R${d.rd}\u2192stack`}
   else if(op===13){let v=mem[R[6]];if(d.rd!==0)R[d.rd]=v;R[6]=(R[6]+1)&0xFFFF;bus={s:'[SP]',v:f16(v),d:`R${d.rd}`,a:'POP'};curDesc=`POP: Mem[SP]\u2192R${d.rd},SP++`}
@@ -1152,10 +1173,23 @@ function getResults(){let p=[];for(let i=1;i<=7;i++)if(R[i])p.push(`R${i}=${R[i]
 let spd=10;
 function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();startR()}}
 function doToggleRun(){if(run)stopR();else startR()}
-function toggleCycleMode(){cycleMode=!cycleMode;cyclePhase=0;syncCycleBtn();renderAll()}
+function toggleCycleMode(){cycleMode=!cycleMode;cyclePhase=0;syncCycleBtn();if(cycleMode&&!localStorage.getItem('nt16_cycle_hint_seen')){sLog('Cycle mode: Step advances FETCH→DECODE→EXECUTE→WRITEBACK.',0);localStorage.setItem('nt16_cycle_hint_seen','1')}renderAll()}
 function startR(){if(!pLen){sLog('No program assembled.',1);return}if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
+  let runStartIc=ic;
   let dl=spd>=9999?1:Math.max(1,Math.floor(1000/spd)),bt=spd>=9999?200:1;
-  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)(cycleMode?execCycle():execOne());renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}},dl)}
+  tmr=setInterval(()=>{
+    for(let i=0;i<bt&&!halt&&run;i++){
+      (cycleMode?execCycle():execOne());
+      if((ic-runStartIc)>=RUN_INSTR_LIMIT){
+        stopR();
+        sLog(`Possible infinite loop: execution stopped at ${RUN_INSTR_LIMIT} instructions.`,1);
+        renderAll();
+        return;
+      }
+    }
+    renderAll();
+    if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}
+  },dl)}
 function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getElementById('runBtn').textContent='Run';document.getElementById('runBtn').className='b bg';if(!halt)sSt('READY')}
 
 // ===== RENDER =====
@@ -1402,11 +1436,12 @@ function loadHexFromExport(){
   for(let i=0;i<words.length&&i<65536;i++)mem[i]=words[i];
   baseMem.set(mem);dirtyPages.clear();cyclePhase=0;
   pLen=Math.min(words.length,65536);
+  let bad=0;for(let i=0;i<pLen;i++)if(dis(mem[i])==='ILLEGAL')bad++;
   labels={};aLines=Array.from({length:pLen},(_,i)=>({ln:i+1}));
   instrLines=new Set(aLines.map(x=>x.ln));breakpoints.clear();R[6]=SP_INIT;
   ed.value=words.slice(0,pLen).map(w=>dis(w)).join('\n');
   updLn();renderAll();
-  sLog('Loaded '+pLen+' words from hex. SP='+f16(SP_INIT)+'.',0);
+  sLog('Loaded '+pLen+' words from hex. SP='+f16(SP_INIT)+'.'+(bad?(' Warning: '+bad+' ILLEGAL opcode(s).'):''),bad?1:0);
 }
 
 // ===== EXAMPLES =====
@@ -1525,7 +1560,7 @@ memecho:`; Memory write/read then echo loaded value as output
     LUI\tR5, #255
     STORE\tR3, [R5]
     HALT`,
-sort:`; Bubble sort [5,3,1,4,2] at 0x0100
+sort:`; Bubble sort (descending) [5,3,1,4,2] at 0x0100
     LI\tR1, #5
     LI\tR2, #0
     LUI\tR2, #1
@@ -1560,6 +1595,40 @@ skip:
     CMPI\tR5, #0
     BNE\touter
     HALT`,
+sortasc:`; Bubble sort (ascending) [5,3,1,4,2] at 0x0100
+    LI\tR1, #5
+    LI\tR2, #0
+    LUI\tR2, #1
+    STORE\tR1, [R2]
+    LI\tR1, #3
+    STORE\tR1, [R2+1]
+    LI\tR1, #1
+    STORE\tR1, [R2+2]
+    LI\tR1, #4
+    STORE\tR1, [R2+3]
+    LI\tR1, #2
+    STORE\tR1, [R2+4]
+    LI\tR5, #4
+outer_a:
+    LI\tR4, #0
+    LI\tR2, #0
+    LUI\tR2, #1
+inner_a:
+    LOAD\tR1, [R2]
+    LOAD\tR3, [R2+1]
+    CMP\tR1, R3
+    BLT\tskip_a
+    STORE\tR3, [R2]
+    STORE\tR1, [R2+1]
+skip_a:
+    ADDI\tR2, #1
+    ADDI\tR4, #1
+    CMP\tR4, R5
+    BLT\tinner_a
+    ADDI\tR5, #-1
+    CMPI\tR5, #0
+    BNE\touter_a
+    HALT`,
 factorial:`; 5! via repeated addition multiply, output marker 'F'
     LI\tR1, #5
     LI\tR2, #1
@@ -1576,8 +1645,8 @@ fact_mul:
     BNE\tfact_outer
     LI\tR5, #0
     LUI\tR5, #255
-    LI\tR6, #70
-    STORE\tR6, [R5]
+    LI\tR4, #70
+    STORE\tR4, [R5]
     HALT`,
 muladd:`; 3*4 by repeated addition, output result as two digits "12"
     LI\tR1, #3
