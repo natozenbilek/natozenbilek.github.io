@@ -190,11 +190,31 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
 .tut-steps li{margin:.55rem 0;padding-left:.25rem}
 .tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
+
+.doc-dispatch{margin-top:.15rem}
+.doc-dispatch .dd-sec{margin:1.15rem 0 .5rem;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding-bottom:4px;border-bottom:1px solid var(--brd)}
+.doc-dispatch .dd-sec:first-child{margin-top:0}
+.doc-dispatch .dd-note{font-size:10.5px;color:var(--text2);margin:.5rem 0;line-height:1.55}
+.doc-dispatch .dd-router{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:10px 12px;margin:.65rem 0}
+.doc-dispatch .dd-router>h4{font-size:11px;font-weight:600;margin:0 0 .45rem;color:var(--text);text-transform:none;letter-spacing:0}
+.doc-dispatch table{font-size:10.5px;margin:.4rem 0}
+.doc-dispatch th{font-size:9.5px}
+.doc-dispatch tr.dd-hi{background:var(--blu-l)}
+.doc-dispatch .fmt{display:inline-block;padding:1px 6px;border-radius:var(--r);font-size:9px;font-weight:600;font-family:var(--mono);vertical-align:middle}
+.doc-dispatch .fmt-r{background:var(--blu-l);color:var(--blu)}
+.doc-dispatch .fmt-iw{background:var(--grn-l);color:var(--grn)}
+.doc-dispatch .fmt-is{background:#e8ecf8;color:#3d4a7a}
+.doc-dispatch .fmt-j{background:var(--amb-l);color:var(--amb)}
+.doc-dispatch .fmt-sp{background:var(--red-l);color:var(--red)}
+@media(prefers-color-scheme:dark){
+  .doc-dispatch tr.dd-hi{background:rgba(106,176,232,.14)}
+  .doc-dispatch .fmt-is{background:#252838;color:#9aa8e8}
+}
 </style>
 </head>
 <body>
 <div class="hd">
-  <a class="home-lnk" href="index.html">Ana sayfa</a>
+  <a class="home-lnk" href="index.html">Home</a>
   <div class="sep"></div>
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="sep"></div>
@@ -216,7 +236,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </select>
   </div>
   <span class="pill p-rdy" id="st">READY</span>
-  <button type="button" class="b" onclick="openDocPanel()" title="ISA, mimari ve öğretici (F1)">Rehber</button>
+  <button type="button" class="b" onclick="openDocPanel()" title="ISA, architecture and tutorial (F1)">Guide</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -231,10 +251,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="mem">Load / Store</option>
         <option value="sort">Bubble sort</option>
       </select>
-      <span class="eh-hint">Sol numara: breakpoint · mavi = sıradaki komut (PC)</span>
+      <span class="eh-hint">Left number: breakpoint · blue = next instruction (PC)</span>
     </div>
     <div class="ew">
-      <div class="ln" id="lns" aria-label="Satır numaraları"></div>
+      <div class="ln" id="lns" aria-label="Line numbers"></div>
       <div class="ed-wrap">
         <div class="ed-line-hi" id="edLineHi" aria-hidden="true"></div>
         <textarea id="ed" spellcheck="false" autocomplete="off" placeholder="; NT-16 assembly"></textarea>
@@ -268,13 +288,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 <div id="docOv" class="doc-ov" hidden role="dialog" aria-modal="true" aria-labelledby="docDlgTitle">
   <div class="doc-panel">
     <div class="doc-panel-hd">
-      <h2 id="docDlgTitle">NT-16 — ISA, mimari ve öğretici</h2>
-      <span class="doc-hint">F1 · Esc kapatır</span>
-      <button type="button" class="b" onclick="closeDocPanel()">Kapat</button>
+      <h2 id="docDlgTitle">NT-16 — ISA, architecture and tutorial</h2>
+      <span class="doc-hint">F1 · Esc closes</span>
+      <button type="button" class="b" onclick="closeDocPanel()">Close</button>
     </div>
     <div class="doc-scroll">
       <div id="wrapIsa" class="doc-isa-split">
-        <nav class="doc-isa-nav" id="docNav" role="tablist" aria-label="ISA ve öğretici bölümleri"></nav>
+        <nav class="doc-isa-nav" id="docNav" role="tablist" aria-label="ISA and tutorial sections"></nav>
         <div class="doc-isa-scroll" id="isaScrollRegion">
           <article id="paneIsaBody" class="doc-scroll-article"></article>
         </div>
@@ -284,151 +304,194 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 </div>
 
 <script>
-// ===== DOKÜMANTASYON PANELİ =====
+// ===== DOCUMENTATION PANEL =====
 const ISA_SECTIONS=[
-{id:'genel',label:'Genel',html:`<h3>Genel bakış</h3>
-<p>NT-16, Brey / Tanenbaum çizgisinde yapılandırılmış bir <strong>16 bit</strong>, <strong>sözcük adresli</strong>, <strong>yazmaç tabanlı</strong> pedagojik oyuncak bilgisayardır. Bu sayfadaki sanal makine aynı assembly sözdizimini çalıştırır; <strong>16 bit makine kodu eşlemesi</strong> &ldquo;Emülatör&rdquo; bölümündeki tabloda verilmiştir (taslak ISA PDF&rsquo;indeki opcode numaralarından farklı olabilir).</p>
-<table><tr><th>Parametre</th><th>Değer</th></tr>
-<tr><td>Sözcük</td><td>16 bit</td></tr>
-<tr><td>Bellek</td><td>2¹⁶ sözcük (65&nbsp;536 kelime)</td></tr>
-<tr><td>Komut genişliği</td><td>16 bit (sabit)</td></tr>
-<tr><td>I/O</td><td>Bellek eşlemeli (tasarım)</td></tr></table>`},
-{id:'yazmac',label:'Yazmaçlar',html:`<h3>Yazmaçlar</h3>
-<h4>Genel yazmaçlar (GPR)</h4>
-<table><tr><th>Yazmaç</th><th>Kullanım</th></tr>
-<tr><td><code>R0</code></td><td>Sabit sıfır — okuma 0, yazmalar yok sayılır</td></tr>
-<tr><td><code>R1</code>&ndash;<code>R5</code></td><td>Genel amaçlı</td></tr>
-<tr><td><code>R6</code> / <code>SP</code></td><td>Yığın göstergesi (yazılım anlaşması)</td></tr>
-<tr><td><code>R7</code> / <code>LR</code></td><td>Dönüş adresi (CALL/RET)</td></tr></table>
-<p><code>R6</code> ve <code>R7</code> donanımda diğerleriyle aynıdır; SP/LR rolleri anlaşmadır.</p>
-<h4>Özel</h4>
-<table><tr><th>Ad</th><th>Açıklama</th></tr>
-<tr><td><code>PC</code></td><td>Bir sonraki komutun adresi</td></tr>
-<tr><td><code>FLAGS</code></td><td>Z, C, N, V (sıfır, elde, işaret taşıma, işaretli taşma)</td></tr></table>
-<pre>Bit:  3   2   1   0
-    [ V ][ N ][ C ][ Z ]</pre>`},
-{id:'bicimler',label:'Biçimler',html:`<h3>Komut biçimleri (16 bit)</h3>
-<p>Üst <strong>5 bit</strong> her zaman opcode alanıdır (emülatördeki gerçek kodlama &ldquo;Emülatör&rdquo; bölümünde özetlenir).</p>
-<h4>R-türü — ALU</h4>
-<pre>15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func</pre>
-<h4>I-kısa — LOAD/STORE</h4>
-<pre>15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (işaretli, -16..+15)</pre>
-<h4>I-geniş — anında aritmetik / yükleme</h4>
-<pre>15..11 opcode | 10..8 Rd | 7..0 imm8</pre>
-<h4>J — dallanma / sıçrama</h4>
-<pre>15..11 opcode | 10..0 offset11 (PC-göreli, işaretli, yaklaşık ±1023 sözcük)</pre>
-<p>Dallanma hedefi: <code>PC ← PC + 1 + sign_ext(offset11)</code> (dal komutundan sonra PC zaten artmıştır).</p>`},
-{id:'alu',label:'ALU',html:`<h3>ALU komutları (R-türü)</h3>
-<table><tr><th>Mnemonic</th><th>İşlem</th><th>Bayraklar</th></tr>
-<tr><td>ADD Rd, Rs, Rt</td><td>Rd = Rs + Rt</td><td>Z,C,N,V</td></tr>
-<tr><td>SUB Rd, Rs, Rt</td><td>Rd = Rs - Rt</td><td>Z,C,N,V</td></tr>
-<tr><td>AND, OR, XOR</td><td>Bitwise</td><td>Z,N (+C,V uygun değil)</td></tr>
-<tr><td>NOT Rd, Rs</td><td>Rd = ~Rs</td><td>Z,N</td></tr>
-<tr><td>SHL, SHR, SRA</td><td>Kaydırma (Rt düşük 4 bit)</td><td>Z,C,N</td></tr>
-<tr><td>CMP Rs, Rt</td><td>Rs−Rt → sadece bayraklar</td><td>Z,C,N,V</td></tr></table>`},
-{id:'iimm',label:'Anında',html:`<h3>Anında komutlar (I-geniş)</h3>
-<table><tr><th>Mnemonic</th><th>İşlem</th><th>Not</th></tr>
-<tr><td>ADDI Rd, #imm</td><td>Rd += imm8</td><td>işaretli</td></tr>
-<tr><td>ANDI, ORI</td><td>Rd &= / |= imm8</td><td>sıfır genişletme (maske)</td></tr>
-<tr><td>LI Rd, #imm</td><td>Rd = imm8</td><td>işaretli</td></tr>
-<tr><td>LUI Rd, #imm</td><td>Rd = imm8 &lt;&lt; 8</td><td>üst bayt</td></tr>
-<tr><td>CMPI Rd, #imm</td><td>Rd−imm → bayraklar</td><td>işaretli</td></tr></table>
-<p>16 bit sabit için örnek: <code>LUI R1, #0x3F</code> sonra <code>ORI R1, #0x7A</code>.</p>`},
-{id:'bellek',label:'Bellek',html:`<h3>Bellek ve yığın</h3>
-<table><tr><th>Komut</th><th>Anlam</th></tr>
-<tr><td>LOAD Rd, [Rs+off]</td><td>Rd = Mem[Rs+imm5]</td></tr>
-<tr><td>STORE Rd, [Rs+off]</td><td>Mem[Rs+imm5] = Rd</td></tr>
+{id:'genel',label:'Overview',html:`<h3>Overview</h3>
+<p>NT-16 is a pedagogical processor model in the Brey / Tanenbaum tradition: <strong>16-bit</strong>, <strong>word-addressed</strong>, and <strong>register-based</strong>. This VM runs the same assembly syntax and makes the ISA side visible together with micro-address level behavior.</p>
+<table><tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Word</td><td>16-bit</td></tr>
+<tr><td>Memory</td><td>2¹⁶ words (65&nbsp;536 words)</td></tr>
+<tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
+<tr><td>I/O</td><td>Memory-mapped (design)</td></tr></table>
+<h4>Figure — high-level flow</h4>
+<pre>Assembly source
+   -> Assembler
+   -> Memory image (16-bit words)
+   -> Fetch / Decode / Execute
+   -> Register + Flags + Memory update</pre>`},
+{id:'yazmac',label:'Registers',html:`<h3>Registers</h3>
+<h4>General purpose registers (GPR)</h4>
+<table><tr><th>Register</th><th>Use</th></tr>
+<tr><td><code>R0</code></td><td>Hard-wired zero — reads as 0, writes are ignored</td></tr>
+<tr><td><code>R1</code>&ndash;<code>R5</code></td><td>General purpose</td></tr>
+<tr><td><code>R6</code> / <code>SP</code></td><td>Stack pointer (software convention)</td></tr>
+<tr><td><code>R7</code> / <code>LR</code></td><td>Link register / return address (CALL/RET)</td></tr></table>
+<p><code>R6</code> and <code>R7</code> are hardware-wise identical to others; SP/LR roles are software conventions.</p>
+<h4>Special registers / flags</h4>
+<table><tr><th>Name</th><th>Description</th></tr>
+<tr><td><code>PC</code></td><td>Address of the next instruction</td></tr>
+<tr><td><code>FLAGS</code></td><td>Z, C, N, V (zero, carry, negative, overflow)</td></tr></table>
+<h4>Figure — status word</h4>
+<pre>FLAGS bitleri: [ V ][ N ][ C ][ Z ]
+                3   2   1   0</pre>`},
+{id:'kodlama_dispatch',label:'Encoding & Dispatch',html:`<h3>Instruction encoding and dispatch</h3>
+<p>Instruction encoding is 16-bit; primary decode uses the upper <strong>5-bit opcode</strong>. In <strong>R-type</strong> instructions, a second selection uses the <code>func</code> field (IR[1:0]); therefore opcodes <code>00000</code>, <code>00001</code>, <code>00010</code> go to router micro-addresses rather than direct execute entries.</p>
+<h4>Instruction formats</h4>
+<pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
+I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (signed)
+I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
+J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
+<h4>Figure — DECODE path</h4>
+<pre>IR[15:11] opcode
+   -> dispatch LUT
+      -> R-group router? -> IR[1:0] func dispatch -> execute entry
+      -> non-R op        -> execute entry</pre>
+<div class="doc-dispatch">
+<h4 class="dd-sec">Primary dispatch (opcode → micro-address)</h4>
+<table><tr><th>Opcode</th><th>Binary</th><th>Format</th><th>Instruction</th><th>Micro addr.</th><th>Execute</th></tr>
+<tr class="dd-hi"><td><code>0x00</code></td><td><code>00000</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 0</td><td><code>0x08</code></td><td>→ func router</td></tr>
+<tr class="dd-hi"><td><code>0x01</code></td><td><code>00001</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 1</td><td><code>0x0C</code></td><td>→ func router</td></tr>
+<tr class="dd-hi"><td><code>0x02</code></td><td><code>00010</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 2</td><td><code>0x0E</code></td><td>→ func router</td></tr>
+<tr><td><code>0x08</code></td><td><code>01000</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ADDI</td><td><code>0x30</code></td><td>3</td></tr>
+<tr><td><code>0x09</code></td><td><code>01001</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ANDI</td><td><code>0x33</code></td><td>3</td></tr>
+<tr><td><code>0x0A</code></td><td><code>01010</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ORI</td><td><code>0x36</code></td><td>3</td></tr>
+<tr><td><code>0x0B</code></td><td><code>01011</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>LI</td><td><code>0x39</code></td><td>1</td></tr>
+<tr><td><code>0x0C</code></td><td><code>01100</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>LUI</td><td><code>0x3A</code></td><td>2</td></tr>
+<tr><td><code>0x0D</code></td><td><code>01101</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>CMPI</td><td><code>0x3C</code></td><td>2</td></tr>
+<tr><td><code>0x10</code></td><td><code>10000</code></td><td><span class="fmt fmt-is">I-short</span></td><td>LOAD</td><td><code>0x40</code></td><td>4</td></tr>
+<tr><td><code>0x11</code></td><td><code>10001</code></td><td><span class="fmt fmt-is">I-short</span></td><td>STORE</td><td><code>0x44</code></td><td>4</td></tr>
+<tr><td><code>0x12</code></td><td><code>10010</code></td><td><span class="fmt fmt-sp">Special</span></td><td>PUSH</td><td><code>0x48</code></td><td>4</td></tr>
+<tr><td><code>0x13</code></td><td><code>10011</code></td><td><span class="fmt fmt-sp">Special</span></td><td>POP</td><td><code>0x4C</code></td><td>4</td></tr>
+<tr><td><code>0x14</code></td><td><code>10100</code></td><td><span class="fmt fmt-sp">Special</span></td><td>RET</td><td><code>0x67</code></td><td>1</td></tr>
+<tr><td><code>0x15</code></td><td><code>10101</code></td><td><span class="fmt fmt-sp">Special</span></td><td>HALT</td><td><code>0x70</code></td><td>1</td></tr>
+<tr><td><code>0x18</code></td><td><code>11000</code></td><td><span class="fmt fmt-j">J</span></td><td>BEQ</td><td><code>0x50</code></td><td>2–5</td></tr>
+<tr><td><code>0x19</code></td><td><code>11001</code></td><td><span class="fmt fmt-j">J</span></td><td>BNE</td><td><code>0x53</code></td><td>2–5</td></tr>
+<tr><td><code>0x1A</code></td><td><code>11010</code></td><td><span class="fmt fmt-j">J</span></td><td>BLT</td><td><code>0x56</code></td><td>2–5</td></tr>
+<tr><td><code>0x1B</code></td><td><code>11011</code></td><td><span class="fmt fmt-j">J</span></td><td>BGE</td><td><code>0x59</code></td><td>2–5</td></tr>
+<tr><td><code>0x1C</code></td><td><code>11100</code></td><td><span class="fmt fmt-j">J</span></td><td>BCS</td><td><code>0x5C</code></td><td>2–5</td></tr>
+<tr><td><code>0x1D</code></td><td><code>11101</code></td><td><span class="fmt fmt-j">J</span></td><td>BCC</td><td><code>0x5F</code></td><td>2–5</td></tr>
+<tr><td><code>0x1E</code></td><td><code>11110</code></td><td><span class="fmt fmt-j">J</span></td><td>JMP</td><td><code>0x60</code></td><td>3</td></tr>
+<tr><td><code>0x1F</code></td><td><code>11111</code></td><td><span class="fmt fmt-j">J</span></td><td>CALL</td><td><code>0x63</code></td><td>4</td></tr>
+</table>
+<p class="dd-note">Unused opcodes (<code>0x03</code>&ndash;<code>0x07</code>, <code>0x0E</code>&ndash;<code>0x0F</code>, <code>0x16</code>&ndash;<code>0x17</code>) can be defined as illegal trap or NOP behavior.</p>
+<h4 class="dd-sec">R-type func router (secondary dispatch)</h4>
+<p class="dd-note">In <code>FUNC_DISPATCH</code> mode, the router microstep branches 4 ways based on IR[1:0].</p>
+<div class="dd-router"><h4>Opcode <code>00000</code> → router @ <code>0x08</code></h4>
+<table><tr><th>Func</th><th>Instruction</th><th>Micro addr.</th><th>ALU</th></tr>
+<tr><td><code>00</code></td><td>ADD</td><td><code>0x10</code></td><td><code>ADD</code></td></tr>
+<tr><td><code>01</code></td><td>SUB</td><td><code>0x13</code></td><td><code>SUB</code></td></tr>
+<tr><td><code>10</code></td><td>AND</td><td><code>0x16</code></td><td><code>AND</code></td></tr>
+<tr><td><code>11</code></td><td>OR</td><td><code>0x19</code></td><td><code>OR</code></td></tr>
+</table></div>
+</div>`},
+{id:'alu_imm',label:'ALU & Immediate',html:`<h3>ALU and immediate instructions</h3>
+<table><tr><th>Mnemonic</th><th>Operation</th><th>Flags / Note</th></tr>
+<tr><td>ADD / SUB</td><td>Addition / subtraction</td><td>Z,C,N,V</td></tr>
+<tr><td>AND / OR / XOR</td><td>Bitwise logic</td><td>Z,N</td></tr>
+<tr><td>NOT</td><td>Bit inversion</td><td>Z,N</td></tr>
+<tr><td>SHL / SHR / SRA</td><td>Shift (low 4 bits of Rt)</td><td>Z,C,N</td></tr>
+<tr><td>CMP / CMPI</td><td>Updates flags only</td><td>Z,C,N,V</td></tr>
+<tr><td>ADDI / ANDI / ORI / LI / LUI</td><td>Immediate (imm8) operations</td><td>sign/zero extension depends on instruction</td></tr></table>
+<p>16-bit constant loading pattern: <code>LUI R1,#0x3F</code> then <code>ORI R1,#0x7A</code>. <code>SUBI</code> is not a separate opcode; use <code>ADDI Rd,#-k</code>.</p>
+<h4>Figure — ALU datapath</h4>
+<pre>Rs ----.
+       +--> ALU(op) --> result --> Rd
+Rt ----'
+imm8 --(immediate path)</pre>`},
+{id:'bellek_akis',label:'Memory & Flow',html:`<h3>Memory, stack, and control flow</h3>
+<h4>Memory / stack</h4>
+<table><tr><th>Instruction</th><th>Meaning</th></tr>
+<tr><td>LOAD Rd,[Rs+off]</td><td>Rd = Mem[Rs+imm5]</td></tr>
+<tr><td>STORE Rd,[Rs+off]</td><td>Mem[Rs+imm5] = Rd</td></tr>
 <tr><td>PUSH Rd</td><td>SP--; Mem[SP]=Rd</td></tr>
 <tr><td>POP Rd</td><td>Rd=Mem[SP]; SP++</td></tr></table>
-<p>Yığın bu VM&rsquo;de aşağı doğru büyür; örnek izleme penceresi <code>0x02F8</code>&ndash;<code>0x02FF</code> civarındadır.</p>`},
-{id:'akis',label:'Akış',html:`<h3>Kontrol akışı</h3>
-<table><tr><th>Komut</th><th>Koşul / işlem</th></tr>
+<p>The stack grows downward; the example watch window is the <code>0x02F8</code>&ndash;<code>0x02FF</code> range.</p>
+<h4>Branch / call / return</h4>
+<table><tr><th>Instruction</th><th>Condition / action</th></tr>
 <tr><td>BEQ, BNE</td><td>Z=1 / Z=0</td></tr>
-<tr><td>BLT, BGE</td><td>işaretli &lt; / ≥ (N≠V / N=V)</td></tr>
-<tr><td>BCS, BCC</td><td>C=1 / C=0 (işaretsiz)</td></tr>
-<tr><td>JMP</td><td>Koşulsuz</td></tr>
-<tr><td>CALL</td><td>LR=PC+1; sıçra</td></tr>
+<tr><td>BLT, BGE</td><td>signed &lt; / ≥ (N≠V / N=V)</td></tr>
+<tr><td>BCS, BCC</td><td>C=1 / C=0 (unsigned)</td></tr>
+<tr><td>JMP</td><td>Unconditional</td></tr>
+<tr><td>CALL</td><td>LR=PC+1; jump</td></tr>
 <tr><td>RET</td><td>PC=LR</td></tr>
-<tr><td>HALT</td><td>Durdur</td></tr></table>
-<p>İç içe çağrıda genelde önce <code>PUSH LR</code>, sonra <code>CALL</code> gerekir.</p>`},
-{id:'sozde',label:'Sözde',html:`<h3>Sözde komutlar</h3>
-<table><tr><th>Sözde</th><th>Genişleme / etki</th></tr>
-<tr><td>NOP</td><td>ADD R0,R0,R0</td></tr>
-<tr><td>MOV Rd, Rs</td><td>ADD Rd, Rs, R0</td></tr>
-<tr><td>NEG Rd, Rs</td><td>SUB Rd, R0, Rs</td></tr>
-<tr><td>CLR Rd</td><td>Bu VM: ADD Rd,R0,R0 → 0 (taslakta LI #0 da önerilir)</td></tr></table>
-<p><code>SUBI</code> ayrı opcode değildir; <code>ADDI Rd, #-k</code> kullanın.</p>`},
-{id:'emul',label:'Emülatör',html:`<h3>Emülatör ve simülatör</h3>
-<div class="doc-note"><strong>Bu emülatördeki 5 bit opcode</strong> (üst bitler 15..11; makine koduyle uyumludur): R-grubu 0&ndash;2 (func ile alt seçim); <code>ADDI</code>=8 &hellip; <code>CMPI</code>=13; <code>LOAD</code>=16, <code>STORE</code>=17, <code>PUSH</code>=18, <code>POP</code>=19; <code>RET</code>=20, <code>HALT</code>=21; <code>BEQ</code>=24 &hellip; <code>CALL</code>=31. Ayrıntı için kaynak kodundaki <code>INS</code> nesnesine bakın.</div>
-<p><strong>Simülatör:</strong> Derlemeden sonra <code>PC</code>, bir <em>sonraki yürütülecek</em> komutun bellek adresini gösterir; kaynakta vurgulanan satır da buna karşılık gelir. Sol satır numarasına tıklayarak <strong>breakpoint</strong> koyabilirsiniz; <strong>Run</strong> o satırdaki komut çalıştırılmadan durur (Step ile devam).</p>`},
-{id:'tasarim',label:'Tasarım',html:`<h3>Tasarım özeti</h3>
-<table><tr><th>Karar</th><th>Seçim</th></tr>
-<tr><td>R0</td><td>Sabit sıfır → MOV/NOP/NEG kolay</td></tr>
-<tr><td>SP, LR</td><td>R6, R7 içinde; tek yazmaç dosyası</td></tr>
-<tr><td>Dallanma</td><td>PC-göreli 11 bit</td></tr>
-<tr><td>Alt yordam</td><td>CALL/RET + LR; iç içe için yığın</td></tr></table>
-<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tözenbilek, March 2026.</em> Metin bu rehbere dayanır; opcode sayıları Emülatör bölümündeki notla hizalanmıştır.</p>`}
+<tr><td>HALT</td><td>Stop</td></tr></table>
+<p>Typical nested-call pattern: <code>PUSH LR</code> → <code>CALL</code> → <code>POP LR</code> → <code>RET</code>.</p>
+<h4>Figure — shared branch-taken routine</h4>
+<pre>if (cond true) goto 0x80
+0x80: A <- PC
+0x81: A <- A + sign_ext(off11)
+0x82: PC <- A</pre>`},
+{id:'emul_tasarim',label:'Emulator & Design',html:`<h3>Emulator behavior and design notes</h3>
+<p><strong>Simulator:</strong> After assemble, <code>PC</code> points to the next instruction to execute; the highlighted source line corresponds to it. You can click a line number on the left to set a breakpoint; <strong>Run</strong> stops before executing that line.</p>
+<h4>Design choices</h4>
+<table><tr><th>Decision</th><th>Choice</th></tr>
+<tr><td>R0</td><td>Hard-wired zero → simplifies MOV/NOP/NEG</td></tr>
+<tr><td>SP, LR</td><td>Inside R6, R7; single register file</td></tr>
+<tr><td>Branching</td><td>PC-relative 11-bit offset</td></tr>
+<tr><td>Subroutine</td><td>CALL/RET + LR; stack for nesting</td></tr></table>
+<h4>Figure — control store map</h4>
+<table><tr><th>Range</th><th>Usage</th><th>~Lines</th></tr>
+<tr><td><code>0x00</code> – <code>0x03</code></td><td>Fetch</td><td>4</td></tr>
+<tr><td><code>0x08</code> – <code>0x0F</code></td><td>R-type router</td><td>~8</td></tr>
+<tr><td><code>0x10</code> – <code>0x2B</code></td><td>R-type ALU execute</td><td>~28</td></tr>
+<tr><td><code>0x30</code> – <code>0x3D</code></td><td>I-wide execute</td><td>~14</td></tr>
+<tr><td><code>0x40</code> – <code>0x4F</code></td><td>Memory ops execute</td><td>~16</td></tr>
+<tr><td><code>0x50</code> – <code>0x66</code></td><td>Branch/control execute</td><td>~23</td></tr>
+<tr><td><code>0x80</code> – <code>0x82</code></td><td>Shared branch taken</td><td>3</td></tr>
+<tr><td><code>0x83</code> – <code>0xFF</code></td><td>Expansion area</td><td>125</td></tr></table>
+<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tozenbilek, March 2026.</em> This guide is aligned with the emulator implementation for class use; the opcode mapping table’s single source of truth is in the <strong>Encoding & Dispatch</strong> tab.</p>`}
 ];
 
 const TUTORIAL_HTML={
-sum:`<h3>Sum 1..5 — toplam 15</h3><ol class="tut-steps">
-<li><code>LI R1, #5</code> — Sayaç 5.</li>
-<li><code>LI R2, #0</code> — Toplam 0&rsquo;dan başlar.</li>
-<li><code>loop:</code> — Döngü giriş etiketi.</li>
-<li><code>ADD R2, R2, R1</code> — <code>R2 += R1</code> (5+4+3+2+1).</li>
-<li><code>ADDI R1, #-1</code> — Sayaç bir azalır.</li>
-<li><code>BNE loop</code> — Sıfır değilse başa dön; sıfırda bir sonraki komuta geçer.</li>
-<li><code>HALT</code> — Durdur; sonuç <code>R2=15</code>.</li>
+sum:`<h3>Loop + branch basics (61C L09-L15) — Sum 1..5</h3><ol class="tut-steps">
+<li><code>LI R1,#5</code> sets the counter, <code>LI R2,#0</code> sets the accumulator (running sum).</li>
+<li><code>loop:</code> is the backward branch target label.</li>
+<li><code>ADD R2,R2,R1</code> computes the loop body.</li>
+<li><code>ADDI R1,#-1</code> decrements the counter; this is the 61C induction-variable pattern.</li>
+<li><code>BNE loop</code> returns control flow with a conditional branch.</li>
+<li><code>HALT</code> sonunda <code>R2=15</code>.</li>
 </ol>`,
-fib:`<h3>Fibonacci — fib(7)=13</h3><ol class="tut-steps">
-<li><code>LI R1,#0</code>, <code>LI R2,#1</code> — Ardışık iki Fibonacci değeri (F<sub>n</sub>, F<sub>n+1</sub>).</li>
-<li><code>LI R4,#6</code> — Kaç adım ilerlenecek (7&rsquo;ye kadar gitmek için 6 güncelleme).</li>
-<li>Döngüde <code>ADD R3,R1,R2</code> — Bir sonraki terim.</li>
-<li><code>MOV R1,R2</code> ve <code>MOV R2,R3</code> — Çifti kaydır (eski R2 yeni R1 olur).</li>
-<li><code>ADDI R4,#-1</code>, <code>BNE loop</code> — Sayacı azalt; bitmeden devam.</li>
-<li><code>HALT</code> — <code>R2</code> hedef değeri (13) içerir.</li>
+fib:`<h3>Data-flow practice — Fibonacci fib(7)=13</h3><ol class="tut-steps">
+<li>The <code>R1,R2</code> pair carries state <code>(F_n, F_{n+1})</code>.</li>
+<li><code>ADD R3,R1,R2</code> produces the next term; then state is shifted with <code>MOV</code>.</li>
+<li><code>R4</code> is the iteration counter; the loop continues with <code>BNE</code>.</li>
+<li>This example makes the register-renaming idea (old/new value separation) visible.</li>
+<li><code>HALT</code> sonunda <code>R2=13</code>.</li>
 </ol>`,
-fact:`<h3>Faktöriyel(5) = 120</h3><ol class="tut-steps">
-<li><code>LI R1,#5</code> — n; <code>LI R2,#1</code> — sonuç çarpanı.</li>
-<li>Dış <code>loop:</code> — Her n için iç çarpma.</li>
-<li>İç <code>mul:</code> — <code>R3</code>&rsquo;ü 0&rsquo;la; <code>R4</code> ile <code>R2</code> kadar <code>ADD R3,R3,R2</code> (işaretsiz çarpma).</li>
-<li><code>MOV R2,R3</code> — Yeni sonuç; <code>ADDI R1,#-1</code> — n azalt.</li>
-<li><code>CMPI R1,#1</code>, <code>BGE loop</code> — n≥1 iken tekrarla.</li>
-<li><code>HALT</code> — <code>R2=120</code>.</li>
+fact:`<h3>Nested loop + comparison — Factorial(5)</h3><ol class="tut-steps">
+<li>The outer loop decreases <code>n</code>; the inner loop performs multiplication by repeated addition.</li>
+<li>The <code>CMPI</code> + <code>BGE</code> combination shows the signed-comparison path.</li>
+<li>This pattern teaches software-level multiplication when ISA has no hardware MUL.</li>
+<li><code>HALT</code> sonunda <code>R2=120</code>.</li>
 </ol>`,
-call:`<h3>Alt yordam — çağrı ve dönüş</h3><ol class="tut-steps">
-<li><code>LI R1,#7</code> — Argüman benzeri değer.</li>
-<li><code>CALL double</code> — <code>LR</code> bir sonraki komut adresini alır; <code>double</code>&rsquo;a sıçrar.</li>
-<li><code>HALT</code> — Dönüşten sonra burada durur.</li>
-<li><code>double:</code> — Alt program: <code>ADD R1,R1,R1</code> (ör. iki katı).</li>
-<li><code>RET</code> — <code>PC = LR</code> ile çağırana dönüş.</li>
+call:`<h3>CALL/RET + LR protection (61C calling-convention idea)</h3><ol class="tut-steps">
+<li><code>main</code> calls the subroutine via <code>CALL inc2</code>.</li>
+<li>Since <code>inc2</code> will perform another <code>CALL</code>, it first saves return address with <code>PUSH LR</code>.</li>
+<li>After <code>CALL double</code>, <code>ADDI R1,#1</code> is applied.</li>
+<li><code>POP LR</code> + <code>RET</code> returns to the correct caller.</li>
+<li>This shows why an LR/stack protocol is required in nested-call situations.</li>
 </ol>`,
-mem:`<h3>Yükle / sakla / yığın</h3><ol class="tut-steps">
-<li><code>LI R1,#42</code> — Yazılacak sabit.</li>
-<li><code>LUI R2,#1</code> — Taban adres ≈ <code>0x0100</code> (üst bayt).</li>
-<li><code>STORE R1,[R2]</code> — Belleğe yaz.</li>
-<li><code>LOAD R3,[R2]</code> — Geri oku; <code>R3=42</code>.</li>
-<li><code>PUSH R3</code> / <code>POP R3</code> — Yığın üzerinde deneme (SP değişimini sağ panelde izleyin).</li>
-<li><code>HALT</code>.</li>
+mem:`<h3>Memory access and pointer basics</h3><ol class="tut-steps">
+<li><code>LUI R2,#1</code> builds the data-region base (<code>0x0100</code>).</li>
+<li>The <code>STORE</code> / <code>LOAD</code> pair verifies persistence and read-back from memory.</li>
+<li><code>PUSH</code>/<code>POP</code> makes stack pointer movement visible.</li>
+<li>This prepares for the 61C address-calculation + data-access model.</li>
 </ol>`,
-sort:`<h3>Kabarcık sıralama</h3><ol class="tut-steps">
-<li><code>LUI R2,#1</code> ile taban <code>0x0100</code>; ardışık <code>STORE</code> ile dizi yerleştirilir.</li>
-<li><code>outer</code> — Geçiş sayısı <code>R5</code>; her turda bir eleman yerine oturur.</li>
-<li><code>inner</code> — Komşu çiftleri <code>LOAD</code> ile oku, <code>CMP</code> ile karşılaştır.</li>
-<li><code>BGE noswap</code> — Zaten sıralıysa (R1≥R3) değiştirmeden geç.</li>
-<li><code>JMP skip</code> — Değişim bloğunu atla; etiket isimleri örneğe bağlıdır (mantığı adım adım izleyin).</li>
-<li><code>noswap</code> / <code>skip</code> — Yer değiştirme veya atlayış; indeks <code>ADDI R2,#1</code> ile artar.</li>
-<li><code>BLT inner</code> — İç döngü; dışta <code>R5</code> azaltılıp <code>BNE outer</code> ile tekrarlanır.</li>
+sort:`<h3>Array scan + branch-heavy example: Bubble sort</h3><ol class="tut-steps">
+<li>The array is written to memory at base <code>0x0100</code> (array-in-memory model).</li>
+<li>The <code>inner</code> loop <code>LOAD</code>s two adjacent elements and compares with <code>CMP</code>.</li>
+<li>The <code>BGE</code>/<code>JMP</code> path decides swap behavior; ideal for control-flow tracing.</li>
+<li>Outer/inner loop counters are useful for observing branch prediction and loop behavior.</li>
 </ol>`
 };
 
 const TUTORIAL_NAV=[
   {id:'sum',label:'Sum 1..5'},
   {id:'fib',label:'Fibonacci'},
-  {id:'fact',label:'Faktöriyel'},
-  {id:'call',label:'Alt yordam'},
+  {id:'fact',label:'Factorial'},
+  {id:'call',label:'Subroutine'},
   {id:'mem',label:'Load / Store'},
-  {id:'sort',label:'Kabarcık sıra'}
+  {id:'sort',label:'Bubble sort'}
 ];
 const DOC_SECTIONS=ISA_SECTIONS.concat(TUTORIAL_NAV.map(function(o){
   return{id:o.id,label:o.label,html:TUTORIAL_HTML[o.id]};
@@ -454,7 +517,7 @@ function ensureDocNav(){
     var on=s.id===firstId;
     return '<button type="button" role="tab" class="doc-subtab'+(on?' on':'')+'" data-isa="'+s.id+'" aria-selected="'+(on?'true':'false')+'">'+s.label+'</button>';
   }).join('');
-  html+='<span class="doc-nav-group" role="presentation">Öğretici — örnek programlar</span>';
+  html+='<span class="doc-nav-group" role="presentation">Tutorial — sample programs</span>';
   html+=TUTORIAL_NAV.map(function(s){
     return '<button type="button" role="tab" class="doc-subtab" data-isa="'+s.id+'" aria-selected="false">'+s.label+'</button>';
   }).join('');
@@ -603,7 +666,7 @@ function execOne(){
   if(halt)return;
   if(run&&breakpoints.size&&pLen&&PC<pLen){
     let lnBp=aLines[PC].ln;
-    if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: satır '+lnBp+' (henüz çalıştırılmadı)',0);renderAll();return}
+    if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp+' (not executed yet)',0);renderAll();return}
   }
   savePrev();
   MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
@@ -697,7 +760,7 @@ function renderAll(){
   updateDebugLineUI();
 }
 
-// Satır numaraları + editör (tek katman textarea — imleç hizası güvenilir)
+// Line numbers + editor (single-layer textarea — reliable caret alignment)
 const ed=document.getElementById('ed');
 const lns=document.getElementById('lns');
 const ew=document.querySelector('.ew');
@@ -746,7 +809,7 @@ function updLn(){
     let cl='ln-row';
     if(breakpoints.has(i))cl+=' ln-bp';
     if(cur!==null&&i===cur)cl+=' ln-cur';
-    h+='<span class="'+cl+'" data-line="'+i+'" title="Breakpoint: tıkla / kaldır">'+i+'</span>';
+    h+='<span class="'+cl+'" data-line="'+i+'" title="Breakpoint: click / remove">'+i+'</span>';
   }
   lns.innerHTML=h;
   syncLnScroll();
@@ -803,11 +866,17 @@ mul:
     CMPI R1, #1
     BGE  loop
     HALT`,
-call:`; Subroutine call
-; R1 = 14 (7 doubled)
+call:`; Nested call + LR save/restore
+; R1 = 15 (7*2 + 1)
     LI   R1, #7
-    CALL double
+    CALL inc2
     HALT
+inc2:
+    PUSH LR
+    CALL double
+    ADDI R1, #1
+    POP  LR
+    RET
 double:
     ADD  R1, R1, R1
     RET`,
