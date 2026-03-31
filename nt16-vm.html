@@ -363,11 +363,9 @@ body[data-editor-theme='light'] #ed::-webkit-scrollbar-corner{background:#ffffff
     <button type="button" class="b" id="cycleBtn" onclick="toggleCycleMode()" title="Cycle-accurate stepping mode">Cycle: Off</button>
     <span class="pill p-rdy" id="st">READY</span>
     <div class="sep"></div>
-    <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
+    <button type="button" class="b" onclick="toggleSettingsSidebar()" id="settingsBtn" title="Settings panel">Settings</button>
     <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
     <button type="button" class="b" onclick="openDocPanel()" title="Full guide (F1)">Guide</button>
-    <button type="button" class="b" id="editorThemeBtn" onclick="toggleEditorTheme()" title="Toggle editor light/dark">Editor: Auto</button>
-    <button type="button" class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark theme">Theme: Auto</button>
   </div>
 </div>
 <div class="mob-tabs">
@@ -542,6 +540,13 @@ body[data-editor-theme='light'] #ed::-webkit-scrollbar-corner{background:#ffffff
     </div>
     <div class="isa-sb" id="isaBody"></div>
   </div>
+  <div id="settingsSide" class="isa-side">
+    <div class="isa-sh">
+      <h3>Settings</h3>
+      <button class="b" onclick="toggleSettingsSidebar()" style="font-size:9px;padding:2px 6px">✕</button>
+    </div>
+    <div class="isa-sb" id="settingsBody"></div>
+  </div>
 </div>
 
 <!-- EXPORT MODAL -->
@@ -654,11 +659,36 @@ function buildIsaSidebar(){
 <tr><td><code>I-wide</code></td><td><code>op[15:11]</code> | <code>Rd[10:8]</code> | <code>imm8[7:0]</code></td></tr>
 <tr><td><code>J</code></td><td><code>op[15:11]</code> | <code>off11[10:0]</code></td></tr></table>`;
 }
+function buildSettingsSidebar(){
+  let sb=document.getElementById('settingsBody');if(!sb)return;
+  sb.innerHTML=`
+<h4>Appearance</h4>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+  <button type="button" class="b" id="themeBtn" onclick="toggleTheme()">Theme: Auto</button>
+  <button type="button" class="b" id="editorThemeBtn" onclick="toggleEditorTheme()">Editor: Auto</button>
+</div>
+<h4>Tools</h4>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+  <button type="button" class="b" onclick="openExport()">Export / Import Hex</button>
+</div>
+<p class="isa-note">Theme and editor color preferences are stored locally.</p>`;
+  updateThemeBtn(localStorage.getItem('nt16_theme')||'auto');
+  updateEditorThemeBtn(localStorage.getItem('nt16_editor_theme')||'auto');
+}
 
 function toggleIsaSidebar(){
   var s=document.getElementById('isaSide');
+  var ss=document.getElementById('settingsSide');
+  if(ss&&ss.classList.contains('open'))ss.classList.remove('open');
   s.classList.toggle('open');
   if(s.classList.contains('open')&&!s.dataset.built){buildIsaSidebar();s.dataset.built='1'}
+}
+function toggleSettingsSidebar(){
+  var s=document.getElementById('settingsSide');
+  var is=document.getElementById('isaSide');
+  if(is&&is.classList.contains('open'))is.classList.remove('open');
+  s.classList.toggle('open');
+  if(s.classList.contains('open')&&!s.dataset.built){buildSettingsSidebar();s.dataset.built='1'}
 }
 function setMobileTab(t){
   document.body.setAttribute('data-mobiletab',t);
@@ -850,7 +880,12 @@ function openDocPanel(){document.getElementById('docOv').hidden=false;document.b
 function closeDocPanel(){document.getElementById('docOv').hidden=true;document.body.style.overflow=''}
 document.addEventListener('keydown',function(e){
   var dov=document.getElementById('docOv'),eov=document.getElementById('expOv');
-  if(e.key==='Escape'){if(!dov.hidden){closeDocPanel();return}if(!eov.hidden){closeExport();return}var s=document.getElementById('isaSide');if(s.classList.contains('open')){toggleIsaSidebar();return}}
+  if(e.key==='Escape'){
+    if(!dov.hidden){closeDocPanel();return}
+    if(!eov.hidden){closeExport();return}
+    var s=document.getElementById('isaSide');if(s.classList.contains('open')){toggleIsaSidebar();return}
+    var ss=document.getElementById('settingsSide');if(ss&&ss.classList.contains('open')){toggleSettingsSidebar();return}
+  }
   if(e.key==='F1'){e.preventDefault();if(dov.hidden)openDocPanel();return}
   if(e.key==='F2'){e.preventDefault();toggleIsaSidebar();return}
 });
