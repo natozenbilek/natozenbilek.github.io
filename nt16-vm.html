@@ -115,16 +115,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .rw{display:flex;flex-direction:column;gap:6px}
 .rw > .cd{min-width:0}
 .cd{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
-.ch{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:4px 8px;border-bottom:1px solid var(--brd);background:var(--bg3)}
-.ch .ch-sub{font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);font-size:8.5px;margin-left:4px}
+.ch{font-family:var(--mono);font-size:9.8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:4px 8px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.ch .ch-sub{font-weight:500;text-transform:none;letter-spacing:0;color:var(--text2);font-size:9px;margin-left:4px}
 .cb{padding:6px 8px}
 
 .rg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
 .rc{display:flex;flex-direction:column;align-items:center;padding:3px;border-radius:var(--r);transition:background .2s}
 .rc.chg{background:var(--blu-l)}
-.rn{font-family:var(--mono);font-size:9px;color:var(--text3);font-weight:600}
+.rn{font-family:var(--mono);font-size:9.5px;color:var(--text2);font-weight:600}
 .rv{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)}
-.rd{font-family:var(--mono);font-size:8.5px;color:var(--text3)}
+.rd{font-family:var(--mono);font-size:9px;color:var(--text2)}
 
 .fr{display:flex;gap:5px;justify-content:center;padding:3px 0}
 .fb{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:var(--bg3);border:1px solid var(--brd);color:var(--text3);transition:all .2s}
@@ -133,7 +133,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bd{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
 
-.ir{font-family:var(--mono);font-size:10.5px;padding:4px 6px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:100%}
+.ir{font-family:var(--mono);font-size:10px;padding:3px 5px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:100%}
 
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
 .ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
@@ -144,9 +144,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc{display:flex;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--text2);padding:2px 0}
 .cyc b{color:var(--text);font-weight:600}
 
-.ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
+.ms{font-family:var(--mono);font-size:10.5px;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.55}
 .out-box{font-family:var(--mono);font-size:10px;line-height:1.45;background:var(--bg3);border-radius:var(--r);padding:6px 8px;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word}
-.out-meta{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px}
+.out-meta{font-family:var(--mono);font-size:9.5px;color:var(--text2);margin-top:4px}
 @media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
@@ -177,9 +177,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 }
 
 /* ===== MICROCODE VIEWER ===== */
-.uc-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px;line-height:1.4}
-.uc-tbl th{background:var(--bg3);border:1px solid var(--brd);padding:2px 5px;text-align:left;font-weight:600;color:var(--text2);position:sticky;top:0;z-index:1}
-.uc-tbl td{border:1px solid var(--brd);padding:2px 5px;color:var(--text2)}
+.uc-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9.5px;line-height:1.45}
+.uc-tbl th{background:var(--bg3);border:1px solid var(--brd);padding:3px 6px;text-align:left;font-weight:600;color:var(--text2);position:sticky;top:0;z-index:1}
+.uc-tbl td{border:1px solid var(--brd);padding:3px 6px;color:var(--text2)}
 .uc-tbl tr.uc-act{background:var(--grn-l)!important}
 .uc-tbl tr.uc-act td{color:var(--grn);font-weight:600}
 .uc-tbl tr.uc-done{background:var(--bg3)}
@@ -224,12 +224,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-panel-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
 .doc-panel-hd h2{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin:0;flex:1}
 .doc-panel-hd .b{padding:4px 10px}
-.doc-hint{font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap}
+.doc-hint{font-size:10px;font-family:var(--mono);color:var(--text2);white-space:nowrap}
 @media(max-width:640px){.doc-hint{display:none}}
 .doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .doc-isa-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0}
-.doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
+.doc-subtab{font-family:var(--mono);font-size:10px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
 .doc-subtab:hover{color:var(--text);background:var(--bg3)}
 .doc-subtab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
 .doc-isa-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 20px;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
@@ -325,26 +325,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Program:</span>
       <select id="ex" onchange="loadEx()">
         <option value="">— custom —</option>
-        <option value="sum" selected>Sum 1..5</option>
-        <option value="fib">Fibonacci</option>
-        <option value="fact">Factorial(5)</option>
-        <option value="call">Subroutine</option>
-        <option value="mem">Load / Store</option>
-        <option value="sort">Bubble sort</option>
-        <option value="max2">Max of two numbers</option>
-        <option value="absv">Absolute value</option>
-        <option value="gcd">GCD (Euclid-sub)</option>
-        <option value="sumarr">Sum array</option>
-        <option value="countdown">Countdown</option>
-        <option value="parity">Parity (XOR fold)</option>
-        <option value="shifts">Shift showcase</option>
-        <option value="stackdemo">Stack demo</option>
-        <option value="callchain">Call chain</option>
-        <option value="linsearch">Linear search</option>
-        <option value="memfill">Memory fill</option>
-        <option value="carrydemo">Carry branch demo</option>
-        <option value="signedcmp">Signed compare demo</option>
-        <option value="fib10">Fibonacci(10)</option>
+        <option value="helloout" selected>Hello output</option>
+        <option value="alphasout">Alphabet output (A-Z)</option>
+        <option value="sumout">Sum 1..5 + output</option>
+        <option value="fibout">Fibonacci + output</option>
+        <option value="max2out">Max(2) + output</option>
+        <option value="branchout">Branch demo + output</option>
+        <option value="stackout">Stack demo + output</option>
+        <option value="callout">Subroutine + output</option>
+        <option value="memecho">Memory echo output</option>
+        <option value="sort">Bubble sort (classic)</option>
       </select>
       <div class="eh-side">
         <button type="button" class="b bp" onclick="doAssemble()" title="Assemble (Ctrl+Enter)">Assemble</button>
@@ -371,10 +361,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
       </div></div>
     </div>
-    <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
-    <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
-    <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
     <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
+    <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
+    <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
+    <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
   </div></div>
 
   <div class="cp-right"><div class="ci">
@@ -1210,63 +1200,119 @@ ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();l
 
 // ===== EXAMPLES =====
 const EX={
-sum:`; Sum 1 to 5 — Result: R2 = 15
-    LI\tR1, #5
+helloout:`; Output "HELLO" to memory-mapped port (0xFF00+)
     LI\tR2, #0
+    LUI\tR2, #255
+    LI\tR1, #72
+    STORE\tR1, [R2]
+    LI\tR1, #69
+    STORE\tR1, [R2+1]
+    LI\tR1, #76
+    STORE\tR1, [R2+2]
+    STORE\tR1, [R2+3]
+    LI\tR1, #79
+    STORE\tR1, [R2+4]
+    HALT`,
+alphasout:`; Output A..Z using loop
+    LI\tR2, #0
+    LUI\tR2, #255
+    LI\tR1, #65
+    LI\tR3, #26
 loop:
-    ADD\tR2, R2, R1
-    ADDI\tR1, #-1
+    STORE\tR1, [R2]
+    ADDI\tR2, #1
+    ADDI\tR1, #1
+    ADDI\tR3, #-1
     BNE\tloop
     HALT`,
-fib:`; Fibonacci — R2 = fib(7) = 13
+sumout:`; Sum 1..5, then output marker 'S'
+    LI\tR1, #5
+    LI\tR3, #0
+sum_loop:
+    ADD\tR3, R3, R1
+    ADDI\tR1, #-1
+    BNE\tsum_loop
+    LI\tR2, #0
+    LUI\tR2, #255
+    LI\tR4, #83
+    STORE\tR4, [R2]
+    HALT`,
+fibout:`; Fibonacci(5)=5, output ASCII '5'
     LI\tR1, #0
     LI\tR2, #1
-    LI\tR4, #6
-loop:
+    LI\tR4, #4
+fib_loop:
     ADD\tR3, R1, R2
     MOV\tR1, R2
     MOV\tR2, R3
     ADDI\tR4, #-1
-    BNE\tloop
+    BNE\tfib_loop
+    ADDI\tR2, #48
+    LI\tR5, #0
+    LUI\tR5, #255
+    STORE\tR2, [R5]
     HALT`,
-fact:`; Factorial(5) — R2 = 120
-    LI\tR1, #5
-    LI\tR2, #1
-loop:
-    LI\tR3, #0
-    MOV\tR4, R1
-mul:
-    ADD\tR3, R3, R2
-    ADDI\tR4, #-1
-    BNE\tmul
-    MOV\tR2, R3
-    ADDI\tR1, #-1
-    CMPI\tR1, #1
-    BGE\tloop
-    HALT`,
-call:`; Nested call — R1 = 15 (7*2+1)
-    LI\tR1, #7
-    CALL\tinc2
+max2out:`; Max of two numbers, output 'A' if R1>=R2 else 'B'
+    LI\tR1, #37
+    LI\tR2, #52
+    LI\tR6, #0
+    LUI\tR6, #255
+    CMP\tR1, R2
+    BGE\ta_win
+    LI\tR3, #66
+    STORE\tR3, [R6]
     HALT
-inc2:
+a_win:
+    LI\tR3, #65
+    STORE\tR3, [R6]
+    HALT`,
+branchout:`; Signed branch demo, output 'T' when BLT is taken
+    LI\tR1, #-5
+    LI\tR2, #3
+    LI\tR6, #0
+    LUI\tR6, #255
+    CMP\tR1, R2
+    BLT\ttaken
+    LI\tR3, #70
+    STORE\tR3, [R6]
+    HALT
+taken:
+    LI\tR3, #84
+    STORE\tR3, [R6]
+    HALT`,
+stackout:`; Stack round-trip, output popped chars 'B' then 'A'
+    LI\tR1, #65
+    LI\tR2, #66
+    PUSH\tR1
+    PUSH\tR2
+    POP\tR3
+    POP\tR4
+    LI\tR6, #0
+    LUI\tR6, #255
+    STORE\tR3, [R6]
+    STORE\tR4, [R6+1]
+    HALT`,
+callout:`; CALL/RET with output from subroutine
+    LI\tR6, #0
+    LUI\tR6, #255
+    CALL\temit_x
+    HALT
+emit_x:
     PUSH\tLR
-    CALL\tdouble
-    ADDI\tR1, #1
+    LI\tR1, #88
+    STORE\tR1, [R6]
     POP\tLR
-    RET
-double:
-    ADD\tR1, R1, R1
     RET`,
-mem:`; Memory operations
-    LI\tR1, #42
+memecho:`; Memory write/read then echo loaded value as output
     LI\tR2, #0
     LUI\tR2, #1
+    LI\tR1, #90
     STORE\tR1, [R2]
     LI\tR3, #0
     LOAD\tR3, [R2]
-    PUSH\tR3
-    LI\tR3, #0
-    POP\tR3
+    LI\tR6, #0
+    LUI\tR6, #255
+    STORE\tR3, [R6]
     HALT`,
 sort:`; Bubble sort [5,3,1,4,2] at 0x0100
     LI\tR1, #5
@@ -1303,192 +1349,6 @@ skip:
     ADDI\tR5, #-1
     CMPI\tR5, #0
     BNE\touter
-    HALT`,
-max2:`; Max of two numbers -> R3
-    LI\tR1, #37
-    LI\tR2, #52
-    CMP\tR1, R2
-    BGE\tr1_ge
-    MOV\tR3, R2
-    JMP\tdone
-r1_ge:
-    MOV\tR3, R1
-done:
-    HALT`,
-absv:`; Absolute value of R1 (-7) -> R2
-    LI\tR1, #-7
-    CMPI\tR1, #0
-    BLT\tneg
-    MOV\tR2, R1
-    JMP\tdone
-neg:
-    NEG\tR2, R1
-done:
-    HALT`,
-gcd:`; GCD(48,18) via repeated subtraction -> R1
-    LI\tR1, #48
-    LI\tR2, #18
-loop:
-    CMP\tR1, R2
-    BEQ\tdone
-    BGE\tr1_big
-    SUB\tR2, R2, R1
-    JMP\tloop
-r1_big:
-    SUB\tR1, R1, R2
-    JMP\tloop
-done:
-    HALT`,
-sumarr:`; Sum [1,2,3,4,5] at 0x0100 -> R4
-    LI\tR2, #0
-    LUI\tR2, #1
-    LI\tR1, #1
-    STORE\tR1, [R2]
-    LI\tR1, #2
-    STORE\tR1, [R2+1]
-    LI\tR1, #3
-    STORE\tR1, [R2+2]
-    LI\tR1, #4
-    STORE\tR1, [R2+3]
-    LI\tR1, #5
-    STORE\tR1, [R2+4]
-    LI\tR3, #0
-    LI\tR4, #0
-sum_loop:
-    LOAD\tR1, [R2]
-    ADD\tR4, R4, R1
-    ADDI\tR2, #1
-    ADDI\tR3, #1
-    CMPI\tR3, #5
-    BLT\tsum_loop
-    HALT`,
-countdown:`; Countdown 5..0 in R1
-    LI\tR1, #5
-loop:
-    CMPI\tR1, #0
-    BEQ\tdone
-    ADDI\tR1, #-1
-    JMP\tloop
-done:
-    HALT`,
-parity:`; Parity of 13 in R1 -> R2 (0 even, 1 odd)
-    LI\tR1, #13
-    MOV\tR2, R1
-    SHR\tR3, R1, R0
-    XOR\tR2, R2, R3
-    LI\tR4, #2
-    SHR\tR3, R1, R4
-    XOR\tR2, R2, R3
-    LI\tR4, #4
-    SHR\tR3, R1, R4
-    XOR\tR2, R2, R3
-    ANDI\tR2, #1
-    HALT`,
-shifts:`; SHL/SHR/SRA showcase
-    LI\tR1, #-16
-    LI\tR2, #2
-    SHL\tR3, R2, R2
-    SHR\tR4, R1, R2
-    SRA\tR5, R1, R2
-    HALT`,
-stackdemo:`; Stack push/pop order
-    LI\tR1, #11
-    LI\tR2, #22
-    PUSH\tR1
-    PUSH\tR2
-    POP\tR3
-    POP\tR4
-    HALT`,
-callchain:`; a -> b -> c nested calls
-    LI\tR1, #1
-    CALL\ta
-    HALT
-a:
-    PUSH\tLR
-    ADDI\tR1, #2
-    CALL\tb
-    POP\tLR
-    RET
-b:
-    PUSH\tLR
-    ADDI\tR1, #3
-    CALL\tc
-    POP\tLR
-    RET
-c:
-    ADDI\tR1, #4
-    RET`,
-linsearch:`; Linear search in [5,3,9,2], target=9 -> R5=index
-    LI\tR2, #0
-    LUI\tR2, #1
-    LI\tR1, #5
-    STORE\tR1, [R2]
-    LI\tR1, #3
-    STORE\tR1, [R2+1]
-    LI\tR1, #9
-    STORE\tR1, [R2+2]
-    LI\tR1, #2
-    STORE\tR1, [R2+3]
-    LI\tR4, #9
-    LI\tR3, #0
-    LI\tR5, #-1
-loop:
-    LOAD\tR1, [R2]
-    CMP\tR1, R4
-    BEQ\tfound
-    ADDI\tR2, #1
-    ADDI\tR3, #1
-    CMPI\tR3, #4
-    BLT\tloop
-    JMP\tdone
-found:
-    MOV\tR5, R3
-done:
-    HALT`,
-memfill:`; Fill 5 words at 0x0100 with 9
-    LI\tR2, #0
-    LUI\tR2, #1
-    LI\tR1, #9
-    LI\tR3, #0
-loop:
-    STORE\tR1, [R2]
-    ADDI\tR2, #1
-    ADDI\tR3, #1
-    CMPI\tR3, #5
-    BLT\tloop
-    HALT`,
-carrydemo:`; Unsigned carry and BCS/BCC demo
-    LUI\tR1, #255
-    ORI\tR1, #255
-    ADDI\tR1, #1
-    BCS\tcarry_set
-    LI\tR2, #0
-    JMP\tdone
-carry_set:
-    LI\tR2, #1
-done:
-    HALT`,
-signedcmp:`; Signed compare: -5 < 3, so BLT taken
-    LI\tR1, #-5
-    LI\tR2, #3
-    CMP\tR1, R2
-    BLT\tlt
-    LI\tR3, #0
-    JMP\tdone
-lt:
-    LI\tR3, #1
-done:
-    HALT`,
-fib10:`; Fibonacci(10) -> R2 = 55
-    LI\tR1, #0
-    LI\tR2, #1
-    LI\tR4, #9
-loop:
-    ADD\tR3, R1, R2
-    MOV\tR1, R2
-    MOV\tR2, R3
-    ADDI\tR4, #-1
-    BNE\tloop
     HALT`
 };
 function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
