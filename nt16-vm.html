@@ -60,8 +60,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .p-hlt{background:var(--amb-l);color:var(--amb)}
 .p-err{background:var(--red-l);color:var(--red)}
 
-.mn{display:flex;flex:1;min-height:0}
-.ep{width:50%;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--brd)}
+.mn{display:grid;grid-template-columns:minmax(320px,1.1fr) minmax(300px,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);flex:1;min-height:0}
+.ep{grid-column:1;grid-row:1 / span 2;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--brd)}
 .eh{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:5px 10px;border-bottom:1px solid var(--brd);background:var(--bg2);font-size:10px}
 .eh span{color:var(--text2)}.eh select{font-family:var(--mono);font-size:10px;padding:1px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
 .eh-hint{margin-left:auto;font-size:9.5px;color:var(--text3);font-family:var(--mono)}
@@ -98,12 +98,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .lb::-webkit-scrollbar{width:6px}.lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 .le{color:var(--red)}.ls{color:var(--grn)}
 
-.cp{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg);min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
-.cp::-webkit-scrollbar{width:9px}.cp::-webkit-scrollbar-track{background:transparent}
-.cp::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg)}
+.cp,.cp-right{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg);min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.cp{grid-column:2;grid-row:1}
+.cp-right{grid-column:2;grid-row:2;border-top:1px solid var(--brd)}
+.cp::-webkit-scrollbar,.cp-right::-webkit-scrollbar{width:9px}
+.cp::-webkit-scrollbar-track,.cp-right::-webkit-scrollbar-track{background:transparent}
+.cp::-webkit-scrollbar-thumb,.cp-right::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg)}
 .ci{padding:6px 10px;display:flex;flex-direction:column;gap:6px}
-.cp-grid{display:grid;grid-template-columns:1fr;gap:6px}
-.cp-col{display:flex;flex-direction:column;gap:6px;min-width:0}
 .rw{display:flex;flex-direction:column;gap:6px}
 .rw > .cd{min-width:0}
 .cd{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
@@ -139,9 +140,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
 @media(min-width:860px){.rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}}
 @media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
-@media(min-width:1280px){.cp-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+@media(min-width:1400px){
+  .mn{grid-template-columns:minmax(420px,1.25fr) minmax(300px,.9fr) minmax(320px,.95fr);grid-template-rows:minmax(0,1fr)}
+  .ep{grid-column:1;grid-row:1}
+  .cp{grid-column:2;grid-row:1}
+  .cp-right{grid-column:3;grid-row:1;border-top:none;border-left:1px solid var(--brd)}
+}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
-@media(max-width:640px){.mn{flex-direction:column}.ep{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--brd)}}
+@media(max-width:640px){
+  .mn{display:flex;flex-direction:column}
+  .ep{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--brd)}
+  .cp-right{border-top:none}
+}
 
 /* ===== DATAPATH SVG ===== */
 .dp-svg{width:100%;height:auto;display:block}
@@ -331,22 +341,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
-    <div class="cp-grid">
-      <div class="cp-col">
-        <div class="rw rw-irbus">
-          <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
-          <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
-            <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
-          </div></div>
-        </div>
-        <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
-        <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
-        <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
-        <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
-      </div>
-      <div class="cp-col">
-        <!-- DATAPATH ANIMATION SVG -->
-        <div class="cd"><div class="ch">Datapath</div><div class="cb" style="padding:4px">
+    <div class="rw rw-irbus">
+      <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
+      <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
+        <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
+      </div></div>
+    </div>
+    <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
+    <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
+    <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
+    <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
+  </div></div>
+
+  <div class="cp-right"><div class="ci">
+    <!-- DATAPATH ANIMATION SVG -->
+    <div class="cd"><div class="ch">Datapath</div><div class="cb" style="padding:4px">
           <svg id="dpSvg" class="dp-svg" viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="dpArr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5z" class="dp-arrow"/></marker>
@@ -415,17 +424,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <text id="dpPh3" class="dp-label" x="575" y="178" text-anchor="middle" font-size="9" font-weight="600">WRITEBACK</text>
         <rect id="dpPhBar" x="18" y="162" width="140" height="26" rx="3" fill="var(--blu-l)" stroke="var(--blu)" stroke-width="1" opacity=".7"/>
           </svg>
-        </div></div>
-        <!-- MICROCODE VIEWER -->
-        <div class="cd"><div class="ch">Microcode · control store <span class="ch-sub" id="ucAddr">—</span></div><div class="cb" style="padding:0"><div class="uc-wrap" id="ucWrap">
-          <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
-        </div></div></div>
-        <div class="rw rw-mem">
-          <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
-          <div class="cd"><div class="ch">Stack <span class="ch-sub">0x02F8&ndash;0x02FF · SP</span></div><div class="cb"><div class="mg" id="mS"></div></div></div>
-        </div>
-      </div>
+    </div></div>
+    <!-- MICROCODE VIEWER -->
+    <div class="cd"><div class="ch">Microcode · control store <span class="ch-sub" id="ucAddr">—</span></div><div class="cb" style="padding:0"><div class="uc-wrap" id="ucWrap">
+      <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
+    </div></div></div>
+    <div class="rw rw-mem">
+      <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
+      <div class="cd"><div class="ch">Stack <span class="ch-sub">0x02F8&ndash;0x02FF · SP</span></div><div class="cb"><div class="mg" id="mS"></div></div></div>
     </div>
+  </div></div>
   </div></div>
 
   <!-- ISA SIDEBAR -->
