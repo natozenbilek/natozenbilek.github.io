@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NT-16 Virtual Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6;
+  --bg2: #ffffff;
+  --bg3: #f4f3ee;
+  --bg-ed: #1e1e2e;
+  --text: #2c2c2a;
+  --text2: #6b6b66;
+  --text3: #9c9a92;
+  --brd: #d8d6ce;
+  --acc: #8b1a1a;
+  --acc-l: #f5e6e6;
+  --blu: #1a5276;
+  --blu-l: #e8f0f7;
+  --grn: #2e6b34;
+  --grn-l: #e8f5e9;
+  --amb: #7a5c00;
+  --amb-l: #fef8e1;
+  --red: #a32d2d;
+  --red-l: #fde8e8;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Source Sans 3', sans-serif;
+  --serif: 'Crimson Pro', serif;
+  --r: 3px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1e;--bg2:#232328;--bg3:#1e1e22;--bg-ed:#16161a;
+  --text:#d4d2c8;--text2:#8a8880;--text3:#5a5852;--brd:#3a3a3e;
+  --acc:#e07070;--acc-l:#3a2020;--blu:#6ab0e8;--blu-l:#1a2a3a;
+  --grn:#6bc96f;--grn-l:#1a2e1c;--amb:#e8c44a;--amb-l:#2e2a10;
+  --red:#e86060;--red-l:#3a1e1e;
+}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;height:100vh;overflow:hidden}
+.home-back{position:fixed;top:8px;left:12px;z-index:200;font-family:var(--sans);font-size:11px;color:var(--text2);text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
+.home-back:hover{color:var(--text);border-bottom-color:var(--text3)}
+.hd{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 88px;border-bottom:1px solid var(--brd);background:var(--bg2);height:42px}
+.hd h1{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-.02em}
+.hd h1 b{color:var(--acc);font-weight:600}
+.sep{width:1px;height:18px;background:var(--brd)}
+.ctrls{display:flex;gap:3px}
+.b{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);cursor:pointer;transition:all .1s;white-space:nowrap}
+.b:hover{background:var(--bg3)}.b:active{transform:scale(.97)}
+.bp{background:var(--acc);color:#fff;border-color:var(--acc)}.bp:hover{opacity:.9;background:var(--acc)}
+.bg{background:var(--grn);color:#fff;border-color:var(--grn)}.bg:hover{opacity:.9;background:var(--grn)}
+.spd{display:flex;align-items:center;gap:4px;margin-left:6px}
+.spd label{font-size:10px;color:var(--text2);font-family:var(--mono)}
+.spd select{font-family:var(--mono);font-size:10px;padding:2px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
+.pill{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:auto}
+.p-rdy{background:var(--blu-l);color:var(--blu)}
+.p-run{background:var(--grn-l);color:var(--grn)}
+.p-hlt{background:var(--amb-l);color:var(--amb)}
+.p-err{background:var(--red-l);color:var(--red)}
+
+.mn{display:flex;height:calc(100vh - 42px)}
+.ep{width:50%;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--brd)}
+.eh{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--brd);background:var(--bg2);font-size:10px}
+.eh span{color:var(--text2)}.eh select{font-family:var(--mono);font-size:10px;padding:1px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
+.ew{flex:1;display:flex;overflow:hidden}
+.ln{padding:8px 0;background:var(--bg-ed);color:#5a5a6a;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;padding-right:6px;padding-left:6px;user-select:none;overflow:hidden;min-width:32px}
+#ed{flex:1;background:var(--bg-ed);color:#cdd6f4;font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:8px 10px;border:none;outline:none;resize:none;tab-size:4;white-space:pre;overflow:auto}
+#ed::placeholder{color:#585868}
+.lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto}
+.le{color:var(--red)}.ls{color:var(--grn)}
+
+.cp{flex:1;display:flex;flex-direction:column;overflow-y:auto;background:var(--bg)}
+.ci{padding:6px 10px;display:flex;flex-direction:column;gap:6px}
+.cd{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
+.ch{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:4px 8px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.cb{padding:6px 8px}
+
+.rg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.rc{display:flex;flex-direction:column;align-items:center;padding:3px;border-radius:var(--r);transition:background .2s}
+.rc.chg{background:var(--blu-l)}
+.rn{font-family:var(--mono);font-size:9px;color:var(--text3);font-weight:600}
+.rv{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)}
+.rd{font-family:var(--mono);font-size:8.5px;color:var(--text3)}
+
+.fr{display:flex;gap:5px;justify-content:center;padding:3px 0}
+.fb{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:var(--bg3);border:1px solid var(--brd);color:var(--text3);transition:all .2s}
+.fb.fs{background:var(--amb-l);border-color:var(--amb);color:var(--amb)}
+
+.bd{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
+.ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
+
+.ir{font-family:var(--mono);font-size:11.5px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600}
+
+.mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
+.ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
+.mv{text-align:center;padding:1px;border-radius:2px;color:var(--text3);transition:all .15s}
+.mv.nz{color:var(--text)}.mv.act{background:var(--blu-l);color:var(--blu);font-weight:600}
+.mv.pc{background:var(--grn-l);color:var(--grn);font-weight:600}
+.mv.sp{background:var(--amb-l);color:var(--amb);font-weight:600}
+
+.cyc{display:flex;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--text2);padding:2px 0}
+.cyc b{color:var(--text);font-weight:600}
+
+.ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
+@media(max-width:720px){.home-back{position:static;display:block;padding:6px 14px;background:var(--bg2);border-bottom:1px solid var(--brd)}.hd{padding-left:14px}}
+</style>
+</head>
+<body>
+<a class="home-back" href="index.html">← Ana sayfa</a>
+<div class="hd">
+  <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
+  <div class="sep"></div>
+  <div class="ctrls">
+    <button class="b bp" onclick="doAssemble()">Assemble</button>
+    <div class="sep"></div>
+    <button class="b" onclick="doStep()" title="One instruction">Step</button>
+    <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
+    <button class="b" onclick="doReset()">Reset</button>
+  </div>
+  <div class="spd">
+    <label>Hz:</label>
+    <select id="spd" onchange="updSpd()">
+      <option value="2">2</option>
+      <option value="10" selected>10</option>
+      <option value="50">50</option>
+      <option value="200">200</option>
+      <option value="9999">Max</option>
+    </select>
+  </div>
+  <span class="pill p-rdy" id="st">READY</span>
+</div>
+<div class="mn">
+  <div class="ep">
+    <div class="eh">
+      <span>Program:</span>
+      <select id="ex" onchange="loadEx()">
+        <option value="">— custom —</option>
+        <option value="sum" selected>Sum 1..5</option>
+        <option value="fib">Fibonacci</option>
+        <option value="fact">Factorial(5)</option>
+        <option value="call">Subroutine</option>
+        <option value="mem">Load / Store</option>
+        <option value="sort">Bubble sort</option>
+      </select>
+    </div>
+    <div class="ew">
+      <div class="ln" id="lns">1</div>
+      <textarea id="ed" spellcheck="false" placeholder="; NT-16 assembly"></textarea>
+    </div>
+    <div class="lb" id="log">Ready.</div>
+  </div>
+  <div class="cp"><div class="ci">
+    <div class="cyc">
+      <span>Cycle: <b id="cyN">0</b></span>
+      <span>Instr: <b id="inN">0</b></span>
+      <span>Phase: <b id="phN">—</b></span>
+    </div>
+    <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
+    <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
+      <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
+    </div></div>
+    <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
+    <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
+    <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
+    <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
+    <div class="cd"><div class="ch">Memory &mdash; stack (grows down from 0x0300)</div><div class="cb"><div class="mg" id="mS"></div></div></div>
+    <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
+  </div></div>
+</div>
+<script>
+// ===== ASSEMBLER =====
+const INS={
+  ADD:{t:'R',o:0b00000,f:0},SUB:{t:'R',o:0b00000,f:1},AND:{t:'R',o:0b00000,f:2},OR:{t:'R',o:0b00000,f:3},
+  XOR:{t:'R',o:0b00001,f:0},NOT:{t:'N',o:0b00001,f:1},SHL:{t:'R',o:0b00001,f:2},SHR:{t:'R',o:0b00001,f:3},
+  SRA:{t:'R',o:0b00010,f:0},CMP:{t:'C',o:0b00010,f:1},
+  ADDI:{t:'W',o:0b01000},ANDI:{t:'W',o:0b01001},ORI:{t:'W',o:0b01010},LI:{t:'W',o:0b01011},LUI:{t:'W',o:0b01100},CMPI:{t:'W',o:0b01101},
+  LOAD:{t:'S',o:0b10000},STORE:{t:'S',o:0b10001},PUSH:{t:'P',o:0b10010},POP:{t:'P',o:0b10011},
+  RET:{t:'Z',o:0b10100},HALT:{t:'Z',o:0b10101},
+  BEQ:{t:'J',o:0b11000},BNE:{t:'J',o:0b11001},BLT:{t:'J',o:0b11010},BGE:{t:'J',o:0b11011},
+  BCS:{t:'J',o:0b11100},BCC:{t:'J',o:0b11101},JMP:{t:'J',o:0b11110},CALL:{t:'J',o:0b11111},
+};
+const PSE={NOP:a=>({m:'ADD',a:['R0','R0','R0']}),MOV:(a)=>({m:'ADD',a:[a[0],a[1],'R0']}),NEG:(a)=>({m:'SUB',a:[a[0],'R0',a[1]]}),CLR:(a)=>({m:'ADD',a:[a[0],'R0','R0']})};
+function pR(s){s=s.toUpperCase().replace(/,/g,'').trim();if(s==='SP')return 6;if(s==='LR')return 7;let m=s.match(/^R(\d)$/);if(m){let n=+m[1];if(n>=0&&n<=7)return n}return -1}
+function pI(s,b,sg){s=s.replace(/,/g,'').trim();if(s[0]==='#')s=s.slice(1);let v;if(s.match(/^0x/i))v=parseInt(s,16);else if(s.match(/^0b/i))v=parseInt(s.slice(2),2);else v=parseInt(s,10);if(isNaN(v))return null;let mx=sg?(1<<(b-1))-1:(1<<b)-1,mn=sg?-(1<<(b-1)):0;if(v<mn||v>mx)return null;return v&((1<<b)-1)}
+function se(v,b){let m=1<<(b-1);v=v&((1<<b)-1);return(v^m)-m}
+
+let mem=new Uint16Array(65536),R=new Uint16Array(8);
+let PC=0,MAR=0,MDR=0,IR=0,A=0,ALUO=0;
+let FL={Z:0,C:0,N:0,V:0};
+let cy=0,ic=0,halt=false,run=false,tmr=null;
+let pLen=0,labels={},aLines=[];
+let pR_=new Uint16Array(8),pPC=0,pFL={Z:0,C:0,N:0,V:0};
+let chg=new Set(),bus={s:'—',v:'—',d:'—',a:'—'},curI=null,curDesc='';
+
+function doAssemble(){
+  let src=document.getElementById('ed').value,lines=src.split('\n'),lbl={},ils=[],errs=[],ad=0;
+  for(let i=0;i<lines.length;i++){
+    let l=lines[i].replace(/;.*$/,'').trim();if(!l)continue;
+    if(l.endsWith(':')){lbl[l.slice(0,-1).trim()]=ad;continue}
+    if(l.includes(':')){let[lb,r]=l.split(':');lbl[lb.trim()]=ad;l=r.trim();if(!l)continue}
+    ils.push({l,ad,ln:i+1});ad++
+  }
+  let bin=[];
+  for(let{l,ad,ln}of ils){
+    let p=l.split(/[\s,]+/).filter(Boolean),mn=p[0].toUpperCase(),ar=p.slice(1);
+    if(PSE[mn]){let e=PSE[mn](ar);mn=e.m;ar=e.a}
+    let inf=INS[mn];if(!inf){errs.push(`Line ${ln}: Unknown "${mn}"`);bin.push(0);continue}
+    let w=0;
+    try{
+      if(inf.t==='R'){let d=pR(ar[0]),s=pR(ar[1]),t=pR(ar[2]);if(d<0||s<0||t<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)|(s<<5)|(t<<2)|inf.f}
+      else if(inf.t==='N'){let d=pR(ar[0]),s=pR(ar[1]);if(d<0||s<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)|(s<<5)|inf.f}
+      else if(inf.t==='C'){let s=pR(ar[0]),t=pR(ar[1]);if(s<0||t<0)throw'Bad reg';w=(inf.o<<11)|(s<<5)|(t<<2)|inf.f}
+      else if(inf.t==='W'){let d=pR(ar[0]),im=pI(ar[1],8,true);if(d<0)throw'Bad reg';if(im===null)throw'Bad imm8';w=(inf.o<<11)|(d<<8)|(im&0xFF)}
+      else if(inf.t==='S'){let d=pR(ar[0]);if(d<0)throw'Bad reg';let rest=ar.slice(1).join(' '),m=rest.match(/\[\s*(R\d|SP|LR)\s*(?:\+\s*(.+?))?\s*\]/i);if(!m)throw'Use [Rs+off]';let s=pR(m[1]);if(s<0)throw'Bad base';let im=0;if(m[2]){im=pI('#'+m[2].trim(),5,true);if(im===null)throw'Bad off5'}w=(inf.o<<11)|(d<<8)|(s<<5)|(im&0x1F)}
+      else if(inf.t==='P'){let d=pR(ar[0]);if(d<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)}
+      else if(inf.t==='Z'){w=(inf.o<<11)}
+      else if(inf.t==='J'){let tgt=ar[0],off;if(lbl[tgt]!==undefined){off=lbl[tgt]-(ad+1)}else{off=parseInt(tgt);if(isNaN(off))throw'Unknown label "'+tgt+'"'}if(off<-1024||off>1023)throw'Offset OOB';w=(inf.o<<11)|(off&0x7FF)}
+    }catch(e){errs.push(`Line ${ln}: ${e}`);bin.push(0);continue}
+    bin.push(w&0xFFFF)
+  }
+  if(errs.length){sLog(errs.join('\n'),1);return}
+  resetState();
+  for(let i=0;i<bin.length;i++)mem[i]=bin[i];
+  pLen=bin.length;labels=lbl;aLines=ils;
+  sLog(`Assembled ${bin.length} instructions.`,0);sSt('READY');renderAll()
+}
+
+function resetState(){
+  mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;
+  FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();
+  bus={s:'—',v:'—',d:'—',a:'—'};curI=null;curDesc=''
+}
+function doReset(){stopR();resetState();doAssemble();renderAll()}
+
+function alu(op,a,b){
+  let r=0,c=0;
+  switch(op){
+    case'ADD':r=a+b;c=r>0xFFFF?1:0;break;case'SUB':r=a-b;c=a>=b?1:0;break;
+    case'AND':r=a&b;break;case'OR':r=a|b;break;case'XOR':r=a^b;break;case'NOT':r=~b;break;
+    case'SHL':r=a<<(b&0xF);c=(b>0)?((a>>(16-(b&0xF)))&1):0;break;
+    case'SHR':r=(a&0xFFFF)>>>(b&0xF);c=(b>0)?((a>>((b&0xF)-1))&1):0;break;
+    case'SRA':{let s=b&0xF,sg=a&0x8000;r=a>>s;if(sg)r|=(0xFFFF<<(16-s))&0xFFFF;c=(s>0)?((a>>(s-1))&1):0;break}
+    default:r=b
+  }
+  r&=0xFFFF;let z=r===0?1:0,n=(r&0x8000)?1:0,v=0;
+  if(op==='ADD'){let sa=(a>>15)&1,sb=(b>>15)&1,sr=(r>>15)&1;v=(sa===sb&&sa!==sr)?1:0}
+  if(op==='SUB'){let sa=(a>>15)&1,sb=(b>>15)&1,sr=(r>>15)&1;v=(sa!==sb&&sb===sr)?1:0}
+  return{r,z,c,n,v}
+}
+
+function dis(ir){
+  let op=(ir>>11)&0x1F,rd=(ir>>8)&7,rs=(ir>>5)&7,rt=(ir>>2)&7,fn=ir&3;
+  let i5=se(ir&0x1F,5),i8=se(ir&0xFF,8),i8u=ir&0xFF,i11=se(ir&0x7FF,11);
+  let rn=i=>'R'+i;
+  if(op<=2){let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[fn];if(!nm)return'???';if(nm==='NOT')return`NOT ${rn(rd)}, ${rn(rs)}`;if(nm==='CMP')return`CMP ${rn(rs)}, ${rn(rt)}`;return`${nm} ${rn(rd)}, ${rn(rs)}, ${rn(rt)}`}
+  let iw={8:'ADDI',9:'ANDI',10:'ORI',11:'LI',12:'LUI',13:'CMPI'};if(iw[op])return`${iw[op]} ${rn(rd)}, #${i8}`;
+  if(op===16)return`LOAD ${rn(rd)}, [${rn(rs)}${i5?'+'+i5:''}]`;if(op===17)return`STORE ${rn(rd)}, [${rn(rs)}${i5?'+'+i5:''}]`;
+  if(op===18)return`PUSH ${rn(rd)}`;if(op===19)return`POP ${rn(rd)}`;if(op===20)return'RET';if(op===21)return'HALT';
+  let jn={24:'BEQ',25:'BNE',26:'BLT',27:'BGE',28:'BCS',29:'BCC',30:'JMP',31:'CALL'};if(jn[op])return`${jn[op]} ${i11>=0?'+':''}${i11}`;
+  return'???'
+}
+
+function savePrev(){pR_=new Uint16Array(R);pPC=PC;pFL={...FL}}
+function detect(){
+  chg.clear();
+  for(let i=0;i<8;i++)if(R[i]!==pR_[i])chg.add('R'+i);
+  if(PC!==pPC)chg.add('PC');if(FL.Z!==pFL.Z)chg.add('Z');if(FL.C!==pFL.C)chg.add('C');if(FL.N!==pFL.N)chg.add('N');if(FL.V!==pFL.V)chg.add('V')
+}
+
+function execOne(){
+  if(halt)return;savePrev();
+  MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
+  let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
+  curI=dis(IR);let op=d.op;
+
+  if(op<=2){
+    let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};
+    let nm=m[op]?.[d.fn]||'ADD';let a,b;
+    if(nm==='NOT'){a=0;b=R[d.rs]}else if(nm==='CMP'){a=R[d.rs];b=R[d.rt]}else{a=R[d.rs];b=R[d.rt]}
+    let res=alu(nm==='CMP'?'SUB':nm,a,b);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;
+    if(nm!=='CMP'&&d.rd!==0)R[d.rd]=res.r;
+    bus={s:nm==='CMP'?`R${d.rs},R${d.rt}`:`R${d.rs},R${d.rt}`,v:f16(res.r),d:nm==='CMP'?'FLAGS':`R${d.rd}`,a:nm};
+    curDesc=nm==='CMP'?`Compare R${d.rs}(${f16(a)}) - R${d.rt}(${f16(b)}) → flags`:`${nm}: R${d.rs}(${f16(a)}) ${nm} R${d.rt}(${f16(b)}) = ${f16(res.r)} → R${d.rd}`
+  }
+  else if(op>=8&&op<=13){
+    let rd=d.rd;
+    if(op===8){let res=alu('ADD',R[rd],d.i8&0xFFFF);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'ADD'};curDesc=`ADDI: R${rd} + ${d.i8} = ${f16(res.r)}`}
+    else if(op===9){let res=alu('AND',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'AND'};curDesc=`ANDI: R${rd} & 0x${d.i8u.toString(16)} = ${f16(res.r)}`}
+    else if(op===10){let res=alu('OR',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'OR'};curDesc=`ORI: R${rd} | 0x${d.i8u.toString(16)} = ${f16(res.r)}`}
+    else if(op===11){let v=d.i8&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'PASS'};curDesc=`LI: ${d.i8} → R${rd}`}
+    else if(op===12){let v=(d.i8u<<8)&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'SHL8'};curDesc=`LUI: ${d.i8u} << 8 = ${f16(v)} → R${rd}`}
+    else if(op===13){let res=alu('SUB',R[rd],d.i8&0xFFFF);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(R[rd]),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])}) - ${d.i8} → flags`}
+  }
+  else if(op===16){let ad=(R[d.rs]+d.i5)&0xFFFF;if(d.rd!==0)R[d.rd]=mem[ad];bus={s:`[${f16(ad)}]`,v:f16(mem[ad]),d:`R${d.rd}`,a:'—'};curDesc=`LOAD: Mem[${f16(ad)}] = ${f16(mem[ad])} → R${d.rd}`}
+  else if(op===17){let ad=(R[d.rs]+d.i5)&0xFFFF;mem[ad]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'—'};curDesc=`STORE: R${d.rd}(${f16(R[d.rd])}) → Mem[${f16(ad)}]`}
+  else if(op===18){R[6]=(R[6]-1)&0xFFFF;mem[R[6]]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP-- → ${f16(R[6])}, R${d.rd}(${f16(R[d.rd])}) → stack`}
+  else if(op===19){let v=mem[R[6]];if(d.rd!==0)R[d.rd]=v;R[6]=(R[6]+1)&0xFFFF;bus={s:`[SP]`,v:f16(v),d:`R${d.rd}`,a:'POP'};curDesc=`POP: Mem[SP] = ${f16(v)} → R${d.rd}, SP++`}
+  else if(op===20){PC=R[7];bus={s:'LR',v:f16(R[7]),d:'PC',a:'—'};curDesc=`RET: LR(${f16(R[7])}) → PC`}
+  else if(op===21){halt=true;bus={s:'—',v:'—',d:'—',a:'HALT'};curDesc='HALT: Machine stopped';sSt('HALTED')}
+  else if(op>=24){
+    let tk=false;
+    if(op===24)tk=FL.Z===1;else if(op===25)tk=FL.Z===0;else if(op===26)tk=FL.N!==FL.V;
+    else if(op===27)tk=FL.N===FL.V;else if(op===28)tk=FL.C===1;else if(op===29)tk=FL.C===0;
+    else if(op===30)tk=true;else if(op===31){R[7]=PC;tk=true}
+    if(tk)PC=(PC+d.i11)&0xFFFF;
+    let nm={24:'BEQ',25:'BNE',26:'BLT',27:'BGE',28:'BCS',29:'BCC',30:'JMP',31:'CALL'}[op];
+    bus={s:'offset',v:f16(d.i11&0xFFFF),d:tk?'PC':'—',a:tk?'TAKEN':'NOT TAKEN'};
+    curDesc=`${nm}: offset=${d.i11}, ${tk?'TAKEN → PC='+f16(PC):'NOT TAKEN'}`
+  }
+  R[0]=0;cy++;ic++;detect()
+}
+
+function doStep(){if(halt)return;execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}}
+function getResults(){let parts=[];for(let i=1;i<=5;i++)if(R[i])parts.push(`R${i}=${R[i]}(${f16(R[i])})`);return parts.join(', ')}
+let spd=10;
+function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();startR()}}
+function doToggleRun(){if(run)stopR();else startR()}
+function startR(){if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
+  let dl=spd>=9999?1:Math.max(1,Math.floor(1000/spd)),bt=spd>=9999?200:1;
+  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}},dl)}
+function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getElementById('runBtn').textContent='Run';document.getElementById('runBtn').className='b bg';if(!halt)sSt('READY')}
+
+// ===== RENDER =====
+function f16(v){return'0x'+((v&0xFFFF).toString(16)).toUpperCase().padStart(4,'0')}
+function fD(v){return v>32767?(v-65536).toString():v.toString()}
+function sSt(s){let e=document.getElementById('st');e.textContent=s;e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s]}
+function sLog(m,err){let e=document.getElementById('log');e.textContent=m;e.className='lb'+(err?' le':' ls')}
+
+function renderAll(){
+  let nm=['R0','R1','R2','R3','R4','R5','SP','LR'];
+  let h='';for(let i=0;i<8;i++){let c=chg.has('R'+i);h+=`<div class="rc${c?' chg':''}"><span class="rn">${nm[i]}</span><span class="rv">${f16(R[i])}</span><span class="rd">${fD(R[i])}</span></div>`}
+  document.getElementById('rgG').innerHTML=h;
+
+  h='';for(let[n,v]of[['PC',PC],['MAR',MAR],['IR',IR]]){let c=chg.has(n);h+=`<div class="rc${c?' chg':''}"><span class="rn">${n}</span><span class="rv">${f16(v)}</span></div>`}
+  document.getElementById('ctG').innerHTML=h;
+
+  h='';for(let f of['Z','C','N','V'])h+=`<span class="fb${FL[f]?' fs':''}">${f}=${FL[f]}</span>`;
+  document.getElementById('flG').innerHTML=h;
+
+  document.getElementById('bS').textContent=bus.s;document.getElementById('bV').textContent=bus.v;
+  document.getElementById('bD').textContent=bus.d;document.getElementById('bA').textContent=bus.a;
+  document.getElementById('irD').textContent=curI||'—';
+  document.getElementById('cyN').textContent=cy;document.getElementById('inN').textContent=ic;
+  document.getElementById('phN').textContent=halt?'HALTED':(run?'RUNNING':'READY');
+  document.getElementById('desc').textContent=curDesc||'—';
+
+  // Memory: program
+  let rows=Math.ceil(Math.max(pLen,1)/8);
+  h='';for(let r=0;r<rows;r++){let base=r*8;h+=`<span class="ma">${f16(base)}</span>`;
+    for(let c=0;c<8;c++){let ad=base+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===PC)cl+=' pc';if(ad===R[6])cl+=' sp';
+      h+=`<span class="${cl}" title="${f16(ad)}: ${dis(v)}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}}
+  document.getElementById('mP').innerHTML=h;
+
+  // Memory: stack
+  h='';let sBase=0x02F8;
+  h+=`<span class="ma">${f16(sBase)}</span>`;
+  for(let c=0;c<8;c++){let ad=sBase+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===R[6])cl+=' sp';
+    h+=`<span class="${cl}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}
+  document.getElementById('mS').innerHTML=h;
+}
+
+// Line numbers
+const ed=document.getElementById('ed');
+ed.addEventListener('input',updLn);
+ed.addEventListener('scroll',function(){document.getElementById('lns').scrollTop=this.scrollTop});
+function updLn(){let n=ed.value.split('\n').length,h='';for(let i=1;i<=n;i++)h+=i+'\n';document.getElementById('lns').textContent=h}
+ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn()}});
+
+// Examples
+const EX={
+sum:`; Sum 1 to 5
+; Result: R2 = 15
+    LI   R1, #5
+    LI   R2, #0
+loop:
+    ADD  R2, R2, R1
+    ADDI R1, #-1
+    BNE  loop
+    HALT`,
+fib:`; Fibonacci sequence
+; R2 = fib(7) = 13
+    LI   R1, #0
+    LI   R2, #1
+    LI   R4, #6
+loop:
+    ADD  R3, R1, R2
+    MOV  R1, R2
+    MOV  R2, R3
+    ADDI R4, #-1
+    BNE  loop
+    HALT`,
+fact:`; Factorial of 5
+; R2 = 120
+    LI   R1, #5
+    LI   R2, #1
+loop:
+    LI   R3, #0
+    MOV  R4, R1
+mul:
+    ADD  R3, R3, R2
+    ADDI R4, #-1
+    BNE  mul
+    MOV  R2, R3
+    ADDI R1, #-1
+    CMPI R1, #1
+    BGE  loop
+    HALT`,
+call:`; Subroutine call
+; R1 = 14 (7 doubled)
+    LI   R1, #7
+    CALL double
+    HALT
+double:
+    ADD  R1, R1, R1
+    RET`,
+mem:`; Memory operations
+    LI   R1, #42
+    LI   R2, #0
+    LUI  R2, #1
+    STORE R1, [R2]
+    LI   R3, #0
+    LOAD R3, [R2]
+    PUSH R3
+    LI   R3, #0
+    POP  R3
+    HALT`,
+sort:`; Bubble sort [5,3,1,4,2]
+; Data at 0x0100
+    LI   R1, #5
+    LI   R2, #0
+    LUI  R2, #1
+    STORE R1, [R2]
+    LI   R1, #3
+    STORE R1, [R2+1]
+    LI   R1, #1
+    STORE R1, [R2+2]
+    LI   R1, #4
+    STORE R1, [R2+3]
+    LI   R1, #2
+    STORE R1, [R2+4]
+    LI   R5, #4
+outer:
+    LI   R4, #0
+    LI   R2, #0
+    LUI  R2, #1
+inner:
+    LOAD R1, [R2]
+    LOAD R3, [R2+1]
+    CMP  R1, R3
+    BGE  noswap
+    JMP  skip
+noswap:
+    STORE R3, [R2]
+    STORE R1, [R2+1]
+skip:
+    ADDI R2, #1
+    ADDI R4, #1
+    CMP  R4, R5
+    BLT  inner
+    ADDI R5, #-1
+    CMPI R5, #0
+    BNE  outer
+    HALT`
+};
+function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
+
+// Init
+ed.value=EX.sum;updLn();doAssemble();renderAll();
+</script>
+</body>
+</html>
