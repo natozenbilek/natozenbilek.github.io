@@ -66,13 +66,24 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ew{flex:1;display:flex;overflow:hidden;min-height:0;overscroll-behavior:contain}
 .ln{flex-shrink:0;padding:8px 6px 8px 8px;background:var(--bg-ed);color:#6c6c7e;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;user-select:none;overflow-y:auto;overflow-x:hidden;min-width:2.75rem;white-space:pre;tab-size:4;border-right:1px solid rgba(255,255,255,.06);scrollbar-width:none;-ms-overflow-style:none}
 .ln::-webkit-scrollbar{display:none;width:0;height:0}
-#ed{flex:1;background:var(--bg-ed);color:#cdd6f4;font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:8px 10px;border:none;outline:none;resize:none;tab-size:4;white-space:pre;overflow:auto;min-width:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(205,214,244,.35) var(--bg-ed)}
+.ed-wrap{flex:1;position:relative;min-width:0;min-height:0;align-self:stretch;background:var(--bg-ed)}
+.ed-hl{position:absolute;inset:0;margin:0;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.65;tab-size:4;white-space:pre;overflow:hidden;pointer-events:none;z-index:0;color:#cdd6f4;border-radius:0}
+.ed-hl code{display:block;transform-origin:0 0;will-change:transform}
+.hl-op{color:#cba6f7;font-weight:500}
+.hl-reg{color:#89dceb;font-weight:500}
+.hl-imm{color:#fab387}
+.hl-num{color:#a6e3a1}
+.hl-lbl{color:#f9e2af;font-weight:500}
+.hl-ref{color:#94e2d5}
+.hl-cmnt{color:#7f849c;font-style:italic}
+.hl-ph{color:#585868}
+#ed{position:absolute;inset:0;z-index:1;width:100%;height:100%;box-sizing:border-box;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#cdd6f4;font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:8px 10px;border:none;outline:none;resize:none;tab-size:4;white-space:pre;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(205,214,244,.35) var(--bg-ed)}
+#ed::selection{background:rgba(137,180,250,.35)}
 #ed::-webkit-scrollbar{width:10px;height:10px}
 #ed::-webkit-scrollbar-track{background:var(--bg-ed)}
 #ed::-webkit-scrollbar-thumb{background:rgba(205,214,244,.28);border-radius:6px;border:2px solid var(--bg-ed)}
 #ed::-webkit-scrollbar-thumb:hover{background:rgba(205,214,244,.45)}
 #ed::-webkit-scrollbar-corner{background:var(--bg-ed)}
-#ed::placeholder{color:#585868}
 .lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) var(--bg2)}
 .lb::-webkit-scrollbar{width:6px}
 .lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
@@ -84,8 +95,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cp::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg)}
 .cp::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .ci{padding:6px 10px;display:flex;flex-direction:column;gap:6px}
+.rw{display:flex;flex-direction:column;gap:6px}
+.rw > .cd{min-width:0}
 .cd{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
 .ch{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:4px 8px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.ch .ch-sub{font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);font-size:8.5px;margin-left:4px}
 .cb{padding:6px 8px}
 
 .rg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
@@ -99,7 +113,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .fb{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:var(--bg3);border:1px solid var(--brd);color:var(--text3);transition:all .2s}
 .fb.fs{background:var(--amb-l);border-color:var(--amb);color:var(--amb)}
 
-.bd{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
+.bd{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
 
 .ir{font-family:var(--mono);font-size:11.5px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600}
@@ -115,6 +129,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
+@media(min-width:860px){
+  .rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}
+}
+@media(min-width:1080px){
+  .rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}
+}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 </style>
 </head>
@@ -159,7 +179,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </div>
     <div class="ew">
       <div class="ln" id="lns">1</div>
-      <textarea id="ed" spellcheck="false" placeholder="; NT-16 assembly"></textarea>
+      <div class="ed-wrap">
+        <pre class="ed-hl" id="edHl" aria-hidden="true"><code id="edH"></code></pre>
+        <textarea id="ed" spellcheck="false" autocomplete="off"></textarea>
+      </div>
     </div>
     <div class="lb" id="log">Ready.</div>
   </div>
@@ -169,15 +192,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
+    <div class="rw rw-irbus">
     <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
     <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
       <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
     </div></div>
+    </div>
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
     <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
     <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
+    <div class="rw rw-mem">
     <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
-    <div class="cd"><div class="ch">Memory &mdash; stack (grows down from 0x0300)</div><div class="cb"><div class="mg" id="mS"></div></div></div>
+    <div class="cd"><div class="ch">Stack <span class="ch-sub">0x02F8&ndash;0x02FF · SP</span></div><div class="cb"><div class="mg" id="mS"></div></div></div>
+    </div>
     <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
   </div></div>
 </div>
@@ -373,22 +400,49 @@ function renderAll(){
   document.getElementById('mS').innerHTML=h;
 }
 
-// Line numbers — tek kaydırma: sadece #ed çubuğu; gutter senkron, tekerlek gutter’da iken editöre aktarılır
+// Satır numaraları + sözdizimi rengi (arka katman #edH, üstte şeffaf #ed)
 const ed=document.getElementById('ed');
+const edH=document.getElementById('edH');
 const lns=document.getElementById('lns');
 const ew=document.querySelector('.ew');
+const MNEM=new Set(['ADD','SUB','AND','OR','XOR','NOT','SHL','SHR','SRA','CMP','ADDI','ANDI','ORI','LI','LUI','CMPI','LOAD','STORE','PUSH','POP','RET','HALT','BEQ','BNE','BLT','BGE','BCS','BCC','JMP','CALL','NOP','MOV','NEG','CLR']);
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function hlTok(p){
+  const raw=p,t=p.replace(/,/g,''),up=t.toUpperCase();
+  if(MNEM.has(up))return'<span class="hl-op">'+esc(raw)+'</span>';
+  if(/^[A-Za-z_][\w]*:$/.test(t))return'<span class="hl-lbl">'+esc(raw)+'</span>';
+  if(/^[Rr][0-7]$|^SP$|^LR$/i.test(t))return'<span class="hl-reg">'+esc(raw)+'</span>';
+  if(/^#/.test(t)||/^\[/.test(t))return'<span class="hl-imm">'+esc(raw)+'</span>';
+  if(/^[+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|\d+)$/.test(t))return'<span class="hl-num">'+esc(raw)+'</span>';
+  if(/^[A-Za-z_][\w]*$/.test(t))return'<span class="hl-ref">'+esc(raw)+'</span>';
+  return esc(raw);
+}
+function hlCode(c){if(!c)return'';return c.split(/(\s+)/).map(p=>/^\s+$/.test(p)?p:hlTok(p)).join('')}
+function hlLine(line){
+  const i=line.indexOf(';');
+  if(i>=0)return hlCode(line.slice(0,i))+'<span class="hl-cmnt">;'+esc(line.slice(i+1))+'</span>';
+  return hlCode(line);
+}
+function highlightAsm(src){if(!src)return'';return src.split('\n').map(hlLine).join('\n')}
+function updHl(){
+  const v=ed.value;
+  edH.innerHTML=v.trim()?highlightAsm(v):'<span class="hl-ph">; NT-16 assembly</span>';
+  syncHlScroll();
+}
+function syncHlScroll(){edH.style.transform='translate('+(-ed.scrollLeft)+'px,'+(-ed.scrollTop)+'px)'}
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
-ed.addEventListener('input',updLn);
-ed.addEventListener('scroll',syncLnScroll);
+function syncAllScroll(){syncLnScroll();syncHlScroll()}
+ed.addEventListener('input',function(){updLn();updHl()});
+ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){
   if(e.target===ed)return;
   e.preventDefault();
   ed.scrollTop+=e.deltaY;
   if(e.deltaX)ed.scrollLeft+=e.deltaX;
-  syncLnScroll();
+  syncAllScroll();
 },{passive:false});
 function updLn(){let n=ed.value.split('\n').length,h='';for(let i=1;i<=n;i++)h+=i+'\n';lns.textContent=h;syncLnScroll()}
-ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn()}});
+ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl()}});
 
 // Examples
 const EX={
@@ -486,10 +540,10 @@ skip:
     BNE  outer
     HALT`
 };
-function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
+function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();updHl();doReset()}}
 
 // Init
-ed.value=EX.sum;updLn();doAssemble();renderAll();
+ed.value=EX.sum;updLn();updHl();doAssemble();renderAll();
 </script>
 </body>
 </html>
