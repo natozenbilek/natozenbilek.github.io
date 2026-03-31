@@ -927,6 +927,7 @@ let stepPast=[],stepFuture=[],vmStatus='READY';
 let outLog=[];
 let outMode='char',lastDiff='—',flagWhyText='—';
 let cycleMode=false,cyclePhase=0;
+let cycleD=null,cycleOp=0;
 let baseMem=new Uint16Array(65536),dirtyPages=new Set();
 const IO_OUT_BASE=0xFF00;
 const IO_IN_BASE=0xFE00;
@@ -1000,7 +1001,7 @@ function doAssemble(){
   sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char';cyclePhase=0;baseMem.fill(0);dirtyPages.clear()}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char';cyclePhase=0;cycleD=null;cycleOp=0;baseMem.fill(0);dirtyPages.clear()}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
 
 function captureSnapshot(){
@@ -1008,7 +1009,7 @@ function captureSnapshot(){
     memPages:captureDirtyPages(),dirtyPageIdx:[...dirtyPages],R:new Uint16Array(R),PC,MAR,MDR,IR,A,ALUO,
     FL:{...FL},cy,ic,halt,bus:{...bus},curI,curDesc,
     ucSteps:ucSteps.map(s=>({...s})),
-    vmStatus,cycleMode,cyclePhase,
+    vmStatus,cycleMode,cyclePhase,cycleD,cycleOp,
     outLog:outLog.map(x=>({...x})),
     outMode,lastDiff,flagWhyText
   }
@@ -1017,7 +1018,7 @@ function restoreSnapshot(s){
   restoreDirtyPages(s.memPages||[]);dirtyPages=new Set(s.dirtyPageIdx||[]);R=s.R;PC=s.PC;MAR=s.MAR;MDR=s.MDR;IR=s.IR;A=s.A;ALUO=s.ALUO;
   FL={...s.FL};cy=s.cy;ic=s.ic;halt=s.halt;bus={...s.bus};curI=s.curI;curDesc=s.curDesc;
   ucSteps=s.ucSteps.map(x=>({...x}));vmStatus=s.vmStatus||'READY';
-  cycleMode=!!s.cycleMode;cyclePhase=s.cyclePhase||0;
+  cycleMode=!!s.cycleMode;cyclePhase=s.cyclePhase||0;cycleD=s.cycleD||null;cycleOp=s.cycleOp||0;
   outLog=(s.outLog||[]).map(x=>({...x}));
   outMode=s.outMode||'char';lastDiff=s.lastDiff||'—';flagWhyText=s.flagWhyText||'—';
   chg.clear();sSt(vmStatus);syncCycleBtn()
@@ -1152,14 +1153,7 @@ function buildUcTrace(d,op){
   return steps;
 }
 
-function execOne(){
-  if(halt)return;
-  if(run&&breakpoints.size&&pLen&&PC<pLen){let lnBp=aLines[PC].ln;if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp,0);renderAll();return}}
-  savePrev();
-  MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
-  let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
-  curI=dis(IR);let op=d.op;
-
+function executeDecoded(d,op){
   if(op<=2){
     let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[d.fn];
     if(!nm){halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'ILLEGAL'};curDesc='ILLEGAL INSTRUCTION';sSt('ERROR');ucSteps=[];return}
@@ -1195,17 +1189,45 @@ function execOne(){
   else if(op===24){PC=R[7];bus={s:'LR',v:f16(R[7]),d:'PC',a:'\u2014'};curDesc=`RET: LR\u2192PC`}
   else if(op===31){halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'HALT'};curDesc='HALT';sSt('HALTED')}
   else{halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'ILLEGAL'};curDesc='ILLEGAL';sSt('ERROR')}
-
-  // Build microcode trace
+}
+function execOne(){
+  if(halt)return;
+  if(run&&breakpoints.size&&pLen&&PC<pLen){let lnBp=aLines[PC].ln;if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp,0);renderAll();return}}
+  savePrev();
+  MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
+  let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
+  curI=dis(IR);let op=d.op;
+  executeDecoded(d,op);
   ucSteps=buildUcTrace(d,op);
   R[0]=0;cy++;ic++;detect();lastDiff=summarizeDiff();flagWhyText=summarizeFlagWhy()
 }
 
 function execCycle(){
   if(halt)return;
-  if(cyclePhase<3){cyclePhase++;cy++;return}
-  execOne();
-  cyclePhase=0;
+  if(cyclePhase===0){
+    if(run&&breakpoints.size&&pLen&&PC<pLen){let lnBp=aLines[PC].ln;if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp,0);renderAll();return}}
+    savePrev();
+    MAR=PC;
+    bus={s:'PC',v:f16(PC),d:'MAR',a:'FETCH'};
+    curDesc='FETCH: MAR \u2190 PC';
+    cyclePhase=1;cy++;return;
+  }
+  if(cyclePhase===1){
+    MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
+    cycleD={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
+    cycleOp=cycleD.op;curI=dis(IR);ucSteps=buildUcTrace(cycleD,cycleOp);
+    bus={s:'MDR',v:f16(IR),d:'IR',a:'DECODE'};
+    curDesc='DECODE: IR \u2192 control';
+    cyclePhase=2;cy++;return;
+  }
+  if(cyclePhase===2){
+    bus={s:'IR',v:f16(IR),d:'ALU/CTRL',a:'EXECUTE'};
+    curDesc='EXECUTE: evaluate instruction';
+    cyclePhase=3;cy++;return;
+  }
+  executeDecoded(cycleD||{op:31,rd:0,rs:0,rt:0,fn:0,i5:0,i8:0,i8u:0,i11:0},cycleOp);
+  R[0]=0;ic++;detect();lastDiff=summarizeDiff();flagWhyText=summarizeFlagWhy();
+  cyclePhase=0;cycleD=null;cycleOp=0;cy++;
 }
 function doStep(){if(!pLen){sLog('No program assembled.',1);return}if(halt)return;stepPast.push(captureSnapshot());if(stepPast.length>300)stepPast.shift();stepFuture=[];(cycleMode?execCycle():execOne());renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
 function doStepBack(){
@@ -1409,16 +1431,16 @@ function renderMicrocode(){
     return;
   }
   let actIdx=ucSteps.length-1;
+  let phNow=cycleMode?['FETCH','DECODE','EXECUTE','WRITEBACK'][cyclePhase]:null;
   if(cycleMode){
-    let ph=['FETCH','DECODE','EXECUTE','WRITEBACK'][cyclePhase];
-    for(let i=ucSteps.length-1;i>=0;i--)if(ucSteps[i].phase===ph){actIdx=i;break}
+    for(let i=0;i<ucSteps.length;i++)if(ucSteps[i].phase===phNow){actIdx=i;break}
   }
   let actStep=ucSteps[actIdx]||ucSteps[ucSteps.length-1];
   document.getElementById('ucAddr').textContent=actStep.addr;
   let html='';
   for(let i=0;i<ucSteps.length;i++){
     let s=ucSteps[i];
-    let cl=i===actIdx?'uc-act':(i<actIdx?'uc-done':'');
+    let cl=cycleMode?(i===actIdx?'uc-act':''):(i===actIdx?'uc-act':(i<actIdx?'uc-done':''));
     html+=`<tr class="${cl}"><td>${s.addr}</td><td>${s.phase}</td><td>${s.action}</td><td>${s.bus}</td></tr>`;
   }
   document.getElementById('ucBody').innerHTML=html;
