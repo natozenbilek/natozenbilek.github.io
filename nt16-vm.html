@@ -91,6 +91,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ln-row{display:block;text-align:right;padding:0 6px 0 4px;border-radius:2px;cursor:pointer;transition:background .12s;box-sizing:border-box;line-height:var(--ed-lh);min-height:var(--ed-lh)}
 .ln-row:hover{background:rgba(255,255,255,.07)}
 .ln-bp{box-shadow:inset 3px 0 0 #e87070;background:rgba(232,112,112,.12)}
+.ln-err{box-shadow:inset 3px 0 0 #d9534f;background:rgba(217,83,79,.16)}
 .ln-cur{font-weight:700;color:#a6c8ff;background:rgba(137,180,250,.14)}
 .ln-row.ln-bp.ln-cur{box-shadow:inset 3px 0 0 #e87070;background:rgba(180,140,200,.18)}
 .ed-line-hi{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;border-radius:0}
@@ -113,6 +114,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 #ed::-webkit-scrollbar-thumb{background:rgba(205,214,244,.28);border-radius:6px;border:2px solid var(--bg-ed)}
 #ed::-webkit-scrollbar-thumb:hover{background:rgba(205,214,244,.45)}
 #ed::-webkit-scrollbar-corner{background:var(--bg-ed)}
+body[data-editor-theme='light'] .ln{background:#f7f7fb;color:#6b7280;border-right:1px solid #d1d5db}
+body[data-editor-theme='light'] .ln-row:hover{background:rgba(31,41,55,.06)}
+body[data-editor-theme='light'] .ed-wrap{background:#ffffff}
+body[data-editor-theme='light'] #ed{background:#ffffff;color:#111827;caret-color:#0f766e;scrollbar-color:rgba(75,85,99,.35) #ffffff}
+body[data-editor-theme='light'] #ed::placeholder{color:#9ca3af}
+body[data-editor-theme='light'] #ed::selection{background:rgba(59,130,246,.22)}
+body[data-editor-theme='light'] #ed::-webkit-scrollbar-track{background:#ffffff}
+body[data-editor-theme='light'] #ed::-webkit-scrollbar-thumb{background:rgba(75,85,99,.28);border:2px solid #ffffff}
+body[data-editor-theme='light'] #ed::-webkit-scrollbar-thumb:hover{background:rgba(75,85,99,.45)}
+body[data-editor-theme='light'] #ed::-webkit-scrollbar-corner{background:#ffffff}
 .lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) var(--bg2)}
 .lb::-webkit-scrollbar{width:6px}.lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 .le{color:var(--red)}.ls{color:var(--grn)}
@@ -171,10 +182,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .out-in{display:flex;gap:4px;margin-bottom:6px}
 .out-in input{flex:1;font-family:var(--mono);font-size:10px;padding:3px 6px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
 .flag-help{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:5px;line-height:1.4}
+.mob-tabs{display:none}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
+  .mob-tabs{display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--brd);background:var(--bg2)}
+  .mob-tabs .b{font-size:10px;padding:4px 8px}
+  .mob-tabs .b.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
+  body[data-mobiletab="editor"] .cp,body[data-mobiletab="editor"] .cp-right{display:none}
+  body[data-mobiletab="state"] .ep,body[data-mobiletab="state"] .cp-right{display:none}
+  body[data-mobiletab="memory"] .ep,body[data-mobiletab="memory"] .cp{display:none}
   .mn{display:flex;flex-direction:column}
-  .ep{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--brd)}
+  .ep,.cp,.cp-right{width:100%;min-width:0;border-right:none}
+  .ep{max-height:none;border-bottom:1px solid var(--brd)}
   .cp-right{border-top:none}
   .cp-right .ci{padding-top:6px}
 }
@@ -347,8 +366,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
     <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
     <button type="button" class="b" onclick="openDocPanel()" title="Full guide (F1)">Guide</button>
+    <button type="button" class="b" id="editorThemeBtn" onclick="toggleEditorTheme()" title="Toggle editor light/dark">Editor: Auto</button>
     <button type="button" class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark theme">Theme: Auto</button>
   </div>
+</div>
+<div class="mob-tabs">
+  <button type="button" class="b" id="mobTabEditor" onclick="setMobileTab('editor')">Editor</button>
+  <button type="button" class="b" id="mobTabState" onclick="setMobileTab('state')">State</button>
+  <button type="button" class="b" id="mobTabMemory" onclick="setMobileTab('memory')">Memory</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -532,6 +557,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       </div>
       <div class="exp-sub">Load from hex dump (accepts <code>ADDR: WORDS</code> or plain 16-bit words):</div>
       <textarea id="hexIn" class="exp-in" spellcheck="false" placeholder="0000: 7105 7200 8A01&#10;..."></textarea>
+      <div class="exp-sub" id="hexPreview">Preview: 0 word</div>
       <div class="exp-sub"><button class="b" onclick="loadHexFromExport()">Load Hex</button></div>
       <pre class="exp-out" id="expOut"></pre>
     </div>
@@ -634,6 +660,12 @@ function toggleIsaSidebar(){
   s.classList.toggle('open');
   if(s.classList.contains('open')&&!s.dataset.built){buildIsaSidebar();s.dataset.built='1'}
 }
+function setMobileTab(t){
+  document.body.setAttribute('data-mobiletab',t);
+  let m={editor:'mobTabEditor',state:'mobTabState',memory:'mobTabMemory'};
+  ['mobTabEditor','mobTabState','mobTabMemory'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
+  document.getElementById(m[t]||'mobTabEditor')?.classList.add('on');
+}
 
 // ===== EXPORT =====
 let expFmt='hex';
@@ -700,6 +732,7 @@ overview:`<h3>Overview</h3>
 <tr><td>Breakpoints</td><td>Click source line numbers to toggle breakpoints; the active PC line is highlighted in blue.</td><td>Fast source-level control while keeping machine-level visibility.</td></tr>
 <tr><td>Run semantics</td><td><code>Run</code> pauses <em>before</em> executing a breakpointed line</td><td>Lets you inspect pre-instruction state safely.</td></tr>
 <tr><td>Step navigation</td><td><code>Back / Step / Forward</code> traverses execution snapshots</td><td>You can replay control flow and verify state transitions.</td></tr></table>
+<p class="doc-note"><strong>Keyboard shortcuts:</strong> <code>Ctrl+Enter</code> Assemble, <code>F1</code> Guide, <code>F2</code> ISA sidebar.</p>
 <h4>Core design decisions</h4>
 <table><tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
 <tr><td><code>R0</code></td><td>Hardwired zero</td><td>Simplifies code generation and pseudo-ops (e.g. <code>MOV</code>, <code>NOP</code>).</td></tr>
@@ -841,9 +874,26 @@ function toggleTheme(){
   localStorage.setItem('nt16_theme',next);
   applyTheme(next);
 }
+function updateEditorThemeBtn(mode){
+  let b=document.getElementById('editorThemeBtn');if(!b)return;
+  b.textContent='Editor: '+(mode==='auto'?'Auto':(mode==='dark'?'Dark':'Light'));
+}
+function applyEditorTheme(mode){
+  if(mode==='auto')document.body.removeAttribute('data-editor-theme');
+  else document.body.setAttribute('data-editor-theme',mode);
+  updateEditorThemeBtn(mode);
+}
+function toggleEditorTheme(){
+  let cur=localStorage.getItem('nt16_editor_theme')||'auto';
+  let next=cur==='auto'?'dark':(cur==='dark'?'light':'auto');
+  localStorage.setItem('nt16_editor_theme',next);
+  applyEditorTheme(next);
+}
 function initTheme(){
   let mode=localStorage.getItem('nt16_theme')||'auto';
   applyTheme(mode);
+  let emode=localStorage.getItem('nt16_editor_theme')||'auto';
+  applyEditorTheme(emode);
 }
 
 // ===== ASSEMBLER (opcodes aligned to ISA spec v0.1) =====
@@ -869,6 +919,7 @@ let FL={Z:0,C:0,N:0,V:0};
 let cy=0,ic=0,halt=false,run=false,tmr=null;
 let pLen=0,labels={},aLines=[];
 let breakpoints=new Set(),instrLines=new Set();
+let asmErrLines=new Set();
 let pR_=new Uint16Array(8),pPC=0,pFL={Z:0,C:0,N:0,V:0};
 let chg=new Set(),bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'},curI=null,curDesc='';
 let ucSteps=[]; // microcode trace for current instruction
@@ -912,6 +963,7 @@ function restoreDirtyPages(pages){
 
 function doAssemble(){
   let src=document.getElementById('ed').value,lines=src.split('\n'),lbl={},ils=[],errs=[],ad=0;
+  let errLines=new Set();
   let iLines=new Set();
   for(let i=0;i<lines.length;i++){
     let l=lines[i].replace(/;.*$/,'').trim();if(!l)continue;
@@ -923,7 +975,7 @@ function doAssemble(){
   for(let{l,ad,ln}of ils){
     let p=l.split(/[\s,]+/).filter(Boolean),mn=p[0].toUpperCase(),ar=p.slice(1);
     if(PSE[mn]){let e=PSE[mn](ar);mn=e.m;ar=e.a}
-    let inf=INS[mn];if(!inf){errs.push(`Line ${ln}: Unknown "${mn}"`);bin.push(0);continue}
+    let inf=INS[mn];if(!inf){errs.push(`Line ${ln}: Unknown "${mn}"`);errLines.add(ln);bin.push(0);continue}
     let w=0;
     try{
       if(inf.t==='R'){let d=pR(ar[0]),s=pR(ar[1]),t=pR(ar[2]);if(d<0||s<0||t<0)throw'Bad register';w=(inf.o<<11)|(d<<8)|(s<<5)|(t<<2)|inf.f}
@@ -935,10 +987,11 @@ function doAssemble(){
       else if(inf.t==='P'){let d=pR(ar[0]);if(d<0)throw'Bad register';w=(inf.o<<11)|(d<<8)}
       else if(inf.t==='Z'){w=(inf.o<<11)}
       else if(inf.t==='J'){let tgt=ar[0],off;if(lbl[tgt]!==undefined)off=lbl[tgt]-(ad+1);else{off=parseInt(tgt);if(isNaN(off))throw'Unknown label "'+tgt+'"'}if(off<-1024||off>1023)throw'Offset OOB';w=(inf.o<<11)|(off&0x7FF)}
-    }catch(e){errs.push(`Line ${ln}: ${e}`);bin.push(0);continue}
+    }catch(e){errs.push(`Line ${ln}: ${e}`);errLines.add(ln);bin.push(0);continue}
     bin.push(w&0xFFFF)
   }
-  if(errs.length){sLog(errs.join('\n'),1);return}
+  if(errs.length){asmErrLines=errLines;updLn();updateDebugLineUI();sLog(errs.join('\n'),1);return}
+  asmErrLines.clear();
   resetState();for(let i=0;i<bin.length;i++)mem[i]=bin[i];
   baseMem.set(mem);dirtyPages.clear();
   pLen=bin.length;labels=lbl;aLines=ils;instrLines=iLines;R[6]=SP_INIT;
@@ -1245,6 +1298,7 @@ function renderOutput(){
   }
   let last=outLog[outLog.length-1];
   box.textContent=outMode==='hex'?hexs.join(' '):outMode==='dec'?decs.join(' '):outMode==='trace'?rows.join('\n'):chars;
+  box.scrollTop=box.scrollHeight;
   meta.textContent='Range: 0xFF00–0xFFFF · mode: '+outMode.toUpperCase()+' · writes: '+outLog.length+' · last: '+f16(last.v)+' @ '+f16(last.ad);
 }
 function setOutMode(m,btn){outMode=m;document.querySelectorAll('.out-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');renderOutput()}
@@ -1288,33 +1342,38 @@ function renderDatapath(){
   // Highlight active boxes
   let boxes=['dpPC','dpMem','dpIR','dpDec','dpRF','dpALU','dpFL','dpWB','dpMA'];
   boxes.forEach(id=>document.getElementById(id).setAttribute('class','dp-box'));
+  const actBox=id=>document.getElementById(id).setAttribute('class','dp-box dp-box-act');
   if(curI){
-    document.getElementById('dpPC').setAttribute('class','dp-box dp-box-act');
-    document.getElementById('dpMem').setAttribute('class','dp-box dp-box-act');
-    document.getElementById('dpIR').setAttribute('class','dp-box dp-box-act');
-    document.getElementById('dpDec').setAttribute('class','dp-box dp-box-act');
-    if(op<=2||( op>=4&&op<=9))document.getElementById('dpALU').setAttribute('class','dp-box dp-box-act');
-    if(bus.d!=='\u2014'&&!bus.d.startsWith('[')&&bus.d!=='FLAGS')document.getElementById('dpWB').setAttribute('class','dp-box dp-box-act');
-    if(bus.d==='FLAGS'||bus.a!=='\u2014')document.getElementById('dpFL').setAttribute('class','dp-box dp-box-act');
-    if(isMem)document.getElementById('dpMA').setAttribute('class','dp-box dp-box-act');
-    document.getElementById('dpRF').setAttribute('class','dp-box dp-box-act');
+    if(cycleMode){
+      if(cyclePhase===0){actBox('dpPC');actBox('dpMem');actBox('dpIR')}
+      else if(cyclePhase===1){actBox('dpIR');actBox('dpDec');actBox('dpRF')}
+      else if(cyclePhase===2){actBox('dpRF');actBox('dpALU');actBox('dpFL');if(isMem)actBox('dpMA')}
+      else {actBox('dpWB');actBox('dpRF');if(isMem)actBox('dpMA')}
+    }else{
+      actBox('dpPC');actBox('dpMem');actBox('dpIR');actBox('dpDec');actBox('dpRF');
+      if(op<=2||( op>=4&&op<=9))actBox('dpALU');
+      if(bus.d!=='\u2014'&&!bus.d.startsWith('[')&&bus.d!=='FLAGS')actBox('dpWB');
+      if(bus.d==='FLAGS'||bus.a!=='\u2014')actBox('dpFL');
+      if(isMem)actBox('dpMA');
+    }
   }
 
   // Activate bus lines
   let busLines=['busPC2M','busM2IR','busIR2D','busD2RF','busRF2A','busALU2F','busALU2WB','busD2MA','busWB2RF'];
   busLines.forEach(id=>{let el=document.getElementById(id);el.setAttribute('class','dp-bus');el.setAttribute('marker-end','url(#dpArr)')});
+  const actLine=id=>{let el=document.getElementById(id);el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)')};
   if(curI){
-    ['busPC2M','busM2IR','busIR2D'].forEach(id=>{let el=document.getElementById(id);el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)')});
-    if(bus.s!=='\u2014'){
-      let el=document.getElementById('busD2RF');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)');
-      let el2=document.getElementById('busRF2A');el2.setAttribute('class','dp-bus dp-bus-act');el2.setAttribute('marker-end','url(#dpArrAct)');
+    if(cycleMode){
+      if(cyclePhase===0){actLine('busPC2M');actLine('busM2IR')}
+      else if(cyclePhase===1){actLine('busIR2D');actLine('busD2RF')}
+      else if(cyclePhase===2){actLine('busRF2A');actLine('busALU2F');if(isMem)actLine('busD2MA')}
+      else {if(isMem)actLine('busD2MA');else{actLine('busALU2WB');actLine('busWB2RF')}}
+    }else{
+      ['busPC2M','busM2IR','busIR2D'].forEach(actLine);
+      if(bus.s!=='\u2014'){actLine('busD2RF');actLine('busRF2A')}
+      if(op<=2||(op>=4&&op<=9)){actLine('busALU2F');if(bus.d!=='FLAGS'){actLine('busALU2WB');actLine('busWB2RF')}}
+      if(isMem)actLine('busD2MA');
     }
-    if(op<=2||(op>=4&&op<=9)){
-      let el=document.getElementById('busALU2F');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)');
-      if(bus.d!=='FLAGS'){let el2=document.getElementById('busALU2WB');el2.setAttribute('class','dp-bus dp-bus-act');el2.setAttribute('marker-end','url(#dpArrAct)');
-        let el3=document.getElementById('busWB2RF');el3.setAttribute('class','dp-bus dp-bus-act');el3.setAttribute('marker-end','url(#dpArrAct)')}
-    }
-    if(isMem){let el=document.getElementById('busD2MA');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)')}
   }
 
   // Phase bar position
@@ -1349,12 +1408,17 @@ function renderMicrocode(){
     document.getElementById('ucAddr').textContent='\u2014';
     return;
   }
-  let last=ucSteps[ucSteps.length-1];
-  document.getElementById('ucAddr').textContent=last.addr;
+  let actIdx=ucSteps.length-1;
+  if(cycleMode){
+    let ph=['FETCH','DECODE','EXECUTE','WRITEBACK'][cyclePhase];
+    for(let i=ucSteps.length-1;i>=0;i--)if(ucSteps[i].phase===ph){actIdx=i;break}
+  }
+  let actStep=ucSteps[actIdx]||ucSteps[ucSteps.length-1];
+  document.getElementById('ucAddr').textContent=actStep.addr;
   let html='';
   for(let i=0;i<ucSteps.length;i++){
     let s=ucSteps[i];
-    let cl=i===ucSteps.length-1?'uc-act':(i<ucSteps.length-1?'uc-done':'');
+    let cl=i===actIdx?'uc-act':(i<actIdx?'uc-done':'');
     html+=`<tr class="${cl}"><td>${s.addr}</td><td>${s.phase}</td><td>${s.action}</td><td>${s.bus}</td></tr>`;
   }
   document.getElementById('ucBody').innerHTML=html;
@@ -1413,10 +1477,11 @@ function syncAllScroll(){syncLnScroll();updateLineHighlight()}
 ed.addEventListener('input',function(){updLn();updateDebugLineUI()});
 ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){if(e.target===ed)return;e.preventDefault();ed.scrollTop+=e.deltaY;if(e.deltaX)ed.scrollLeft+=e.deltaX;syncAllScroll()},{passive:false});
-function updLn(){let n=ed.value.split('\n').length,h='',cur=activeSourceLine();for(let i=1;i<=n;i++){let cl='ln-row';if(breakpoints.has(i))cl+=' ln-bp';if(cur!==null&&i===cur)cl+=' ln-cur';h+='<span class="'+cl+'" data-line="'+i+'" title="Toggle breakpoint">'+i+'</span>'}lns.innerHTML=h;syncLnScroll()}
+function updLn(){let n=ed.value.split('\n').length,h='',cur=activeSourceLine();for(let i=1;i<=n;i++){let cl='ln-row';if(breakpoints.has(i))cl+=' ln-bp';if(asmErrLines.has(i))cl+=' ln-err';if(cur!==null&&i===cur)cl+=' ln-cur';h+='<span class="'+cl+'" data-line="'+i+'" title="Toggle breakpoint">'+i+'</span>'}lns.innerHTML=h;syncLnScroll()}
 lns.addEventListener('click',function(e){const row=e.target.closest('.ln-row');if(!row)return;let line=+row.dataset.line;if(!line)return;if(instrLines.size>0&&!instrLines.has(line)){sLog('Line '+line+': no instruction here.',1);return}if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);updLn();updateLineHighlight()});
 document.getElementById('log').addEventListener('click',function(e){let b=e.target.closest('.log-ln-btn');if(!b)return;jumpToLine(+b.dataset.ln)});
 ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn()}else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}});
+document.getElementById('hexIn').addEventListener('input',previewHexImport);
 function parseHexWords(t){
   let out=[],lines=String(t||'').split('\n');
   for(let ln of lines){
@@ -1427,6 +1492,14 @@ function parseHexWords(t){
     for(let tk of toks){let v=parseInt(tk,16);if(!Number.isNaN(v))out.push(v&0xFFFF)}
   }
   return out;
+}
+function previewHexImport(){
+  let ta=document.getElementById('hexIn'),pv=document.getElementById('hexPreview');
+  if(!ta||!pv)return;
+  let raw=String(ta.value||'');
+  let words=parseHexWords(raw);
+  let junk=raw.replace(/;.*$/gm,'').replace(/\/\/.*$/gm,'').replace(/(?:0x)?[0-9a-fA-F]{1,4}|[:\s,\n\r\t]/g,'');
+  pv.textContent='Preview: '+words.length+' word'+(words.length===1?'':'s')+(junk.trim()?(' · warning: non-hex chars "'+junk.slice(0,24)+(junk.length>24?'...':'')+'"'):'');
 }
 function loadHexFromExport(){
   let ta=document.getElementById('hexIn');if(!ta){sLog('Hex input not found.',1);return}
@@ -1684,7 +1757,7 @@ fibm_loop:
 function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
 
 // ===== INIT =====
-initTheme();
+initTheme();setMobileTab('editor');previewHexImport();
 ed.value=EX.helloout;updLn();doAssemble();renderAll();
 </script>
 </body>
