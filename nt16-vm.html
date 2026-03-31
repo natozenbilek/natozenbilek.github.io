@@ -162,10 +162,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:11.2px;color:var(--text);padding:6px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.6}
-.prof-list{font-family:var(--mono);font-size:10px;line-height:1.55;white-space:pre-wrap}
-.prof-empty{font-family:var(--mono);font-size:10px;color:var(--text2)}
-.watch-in{font-family:var(--mono);font-size:10px;line-height:1.45;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:6px 8px;width:100%;min-height:64px;resize:vertical;color:var(--text)}
-.watch-out{font-family:var(--mono);font-size:10px;line-height:1.5;white-space:pre-wrap}
 .out-box{font-family:var(--mono);font-size:10.8px;line-height:1.5;background:var(--bg3);border-radius:var(--r);padding:7px 8px;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .out-meta{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:5px}
 .out-modes{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
@@ -347,7 +343,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <span class="pill p-rdy" id="st">READY</span>
     <div class="sep"></div>
     <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
-    <button type="button" class="b" onclick="showShortcuts()" title="Keyboard shortcuts">?</button>
     <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
     <button type="button" class="b" onclick="openDocPanel()" title="Full guide (F1)">Guide</button>
     <button type="button" class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark theme">Theme: Auto</button>
@@ -391,9 +386,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
-    <div class="cd"><div class="ch">Profile <span class="ch-sub">instruction + line frequency</span></div><div class="cb">
-      <div id="profBox" class="prof-empty">— run program to collect profile —</div>
-    </div></div>
     <div class="rw rw-irbus">
       <div class="cd"><div class="ch">Instruction summary</div><div class="cb" style="display:flex;flex-direction:column;gap:6px">
         <div class="blk-lbl">Instruction</div>
@@ -411,10 +403,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
     <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
     <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div><div class="flag-help" id="flagHelp">Z:result=0 · N:sign bit · C:carry/borrow · V:signed overflow</div></div></div>
-    <div class="cd"><div class="ch">Watch <span class="ch-sub">R1+R2, Mem[0x0100], ...</span></div><div class="cb">
-      <textarea id="watchIn" class="watch-in" spellcheck="false" placeholder="R1+R2&#10;Mem[0x0100]"></textarea>
-      <div id="watchOut" class="watch-out">—</div>
-    </div></div>
   </div></div>
 
   <div class="cp-right"><div class="ci">
@@ -880,7 +868,6 @@ let ucSteps=[]; // microcode trace for current instruction
 let stepPast=[],stepFuture=[],vmStatus='READY';
 let outLog=[];
 let outMode='char',lastDiff='—',flagWhyText='—';
-let opFreq={},lineFreq={};
 let cycleMode=false,cyclePhase=0;
 let baseMem=new Uint16Array(65536),dirtyPages=new Set();
 const IO_OUT_BASE=0xFF00;
@@ -950,7 +937,7 @@ function doAssemble(){
   sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char';opFreq={};lineFreq={};cyclePhase=0;baseMem.fill(0);dirtyPages.clear()}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char';cyclePhase=0;baseMem.fill(0);dirtyPages.clear()}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
 
 function captureSnapshot(){
@@ -958,9 +945,7 @@ function captureSnapshot(){
     memPages:captureDirtyPages(),dirtyPageIdx:[...dirtyPages],R:new Uint16Array(R),PC,MAR,MDR,IR,A,ALUO,
     FL:{...FL},cy,ic,halt,bus:{...bus},curI,curDesc,
     ucSteps:ucSteps.map(s=>({...s})),
-    vmStatus,
-    opFreq:{...opFreq},lineFreq:{...lineFreq},
-    cycleMode,cyclePhase,
+    vmStatus,cycleMode,cyclePhase,
     outLog:outLog.map(x=>({...x})),
     outMode,lastDiff,flagWhyText
   }
@@ -969,7 +954,6 @@ function restoreSnapshot(s){
   restoreDirtyPages(s.memPages||[]);dirtyPages=new Set(s.dirtyPageIdx||[]);R=s.R;PC=s.PC;MAR=s.MAR;MDR=s.MDR;IR=s.IR;A=s.A;ALUO=s.ALUO;
   FL={...s.FL};cy=s.cy;ic=s.ic;halt=s.halt;bus={...s.bus};curI=s.curI;curDesc=s.curDesc;
   ucSteps=s.ucSteps.map(x=>({...x}));vmStatus=s.vmStatus||'READY';
-  opFreq={...(s.opFreq||{})};lineFreq={...(s.lineFreq||{})};
   cycleMode=!!s.cycleMode;cyclePhase=s.cyclePhase||0;
   outLog=(s.outLog||[]).map(x=>({...x}));
   outMode=s.outMode||'char';lastDiff=s.lastDiff||'—';flagWhyText=s.flagWhyText||'—';
@@ -1101,9 +1085,6 @@ function execOne(){
   MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
   let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
   curI=dis(IR);let op=d.op;
-  let mnem=mnemonicOf(curI),lnHit=(aLines[MAR]&&aLines[MAR].ln)||0;
-  opFreq[mnem]=(opFreq[mnem]||0)+1;
-  if(lnHit)lineFreq[lnHit]=(lineFreq[lnHit]||0)+1;
 
   if(op<=2){
     let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[d.fn];
@@ -1206,10 +1187,6 @@ function sLog(m,err){
   });
   e.innerHTML=rows.join('<br>');
 }
-function showShortcuts(){
-  sLog('Shortcuts: Ctrl+Enter = Assemble · F1 = Guide · F2 = ISA',0);
-}
-
 function updateStepNavButtons(){
   let b=document.getElementById('stepBackBtn'),f=document.getElementById('stepFwdBtn');
   if(b)b.disabled=run||stepPast.length===0;
@@ -1352,41 +1329,6 @@ function renderMicrocode(){
   let act=wrap.querySelector('.uc-act');
   if(act)act.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
-function renderProfile(){
-  let box=document.getElementById('profBox');if(!box)return;
-  let total=Object.values(opFreq).reduce((a,b)=>a+b,0);
-  if(!total){box.className='prof-empty';box.textContent='— run program to collect profile —';return}
-  let topOps=Object.entries(opFreq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>k+': '+v).join('\n');
-  let topLines=Object.entries(lineFreq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>'L'+k+': '+v).join('\n');
-  box.className='prof-list';
-  box.textContent='Total: '+total+'\n\nTop instructions:\n'+topOps+'\n\nTop source lines:\n'+(topLines||'—');
-}
-function evalWatchExpr(expr){
-  let s=expr.trim();
-  if(!s)return null;
-  s=s.replace(/\bSP\b/gi,'R6').replace(/\bLR\b/gi,'R7');
-  s=s.replace(/Mem\[(.*?)\]/gi,(_,inner)=>{
-    let ad=evalWatchExpr(inner);
-    if(ad===null||ad===undefined||Number.isNaN(ad))return '0';
-    return String(mem[(ad|0)&0xFFFF]);
-  });
-  s=s.replace(/\bR([0-7])\b/gi,(_,n)=>String(R[+n]));
-  if(/[^0-9xXa-fA-F+\-()\s]/.test(s))return null;
-  try{return Function('"use strict";return ('+s+');')()}catch(_){return null}
-}
-function renderWatch(){
-  let tin=document.getElementById('watchIn'),tout=document.getElementById('watchOut');
-  if(!tin||!tout)return;
-  let lines=tin.value.split('\n').map(x=>x.trim()).filter(Boolean);
-  if(!lines.length){tout.textContent='—';return}
-  let rows=lines.map(ex=>{
-    let v=evalWatchExpr(ex);
-    if(v===null||v===undefined||Number.isNaN(v))return ex+' = ?';
-    v=((v%65536)+65536)%65536;
-    return ex+' = '+f16(v)+' ('+fD(v)+')';
-  });
-  tout.textContent=rows.join('\n');
-}
 
 function renderAll(){
   let nm=['R0','R1','R2','R3','R4','R5','SP','LR'];
@@ -1422,8 +1364,6 @@ function renderAll(){
   renderOutput();
   renderDatapath();
   renderMicrocode();
-  renderProfile();
-  renderWatch();
   updateDebugLineUI();
   updateStepNavButtons();
 }
@@ -1437,7 +1377,6 @@ function updateDebugLineUI(){updateLineHighlight();const cur=activeSourceLine();
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
 function syncAllScroll(){syncLnScroll();updateLineHighlight()}
 ed.addEventListener('input',function(){updLn();updateDebugLineUI()});
-document.getElementById('watchIn').addEventListener('input',renderWatch);
 ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){if(e.target===ed)return;e.preventDefault();ed.scrollTop+=e.deltaY;if(e.deltaX)ed.scrollLeft+=e.deltaX;syncAllScroll()},{passive:false});
 function updLn(){let n=ed.value.split('\n').length,h='',cur=activeSourceLine();for(let i=1;i<=n;i++){let cl='ln-row';if(breakpoints.has(i))cl+=' ln-bp';if(cur!==null&&i===cur)cl+=' ln-cur';h+='<span class="'+cl+'" data-line="'+i+'" title="Toggle breakpoint">'+i+'</span>'}lns.innerHTML=h;syncLnScroll()}
