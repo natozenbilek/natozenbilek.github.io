@@ -226,7 +226,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .doc-isa-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0}
-.doc-nav-group{flex-basis:100%;width:100%;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:8px 4px 2px}
 .doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
 .doc-subtab:hover{color:var(--text);background:var(--bg3)}
 .doc-subtab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
@@ -250,9 +249,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-card h4{margin:.1rem 0 .45rem!important}
 .doc-card table{margin:.35rem 0}
 .doc-card.doc-card-warn{background:linear-gradient(180deg,var(--amb-l),var(--bg2))}
-.tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
-.tut-steps li{margin:.55rem 0;padding-left:.25rem}
-.tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
 .doc-fig{margin:.6rem 0;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);padding:8px}
 .doc-fig svg{width:100%;height:auto;display:block}
 .doc-fig text{font-family:var(--mono);font-size:10px;fill:var(--text)}
@@ -673,31 +669,58 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
 <tr><td>Control flow</td><td>24</td><td><code>11000</code></td><td>RET</td><td>PC = LR</td></tr>
 <tr><td>System</td><td>31</td><td><code>11111</code></td><td>HALT</td><td>stop execution</td></tr></table></div>`,
 aluImmediate:`<h3>ALU and immediate</h3>
-<h4>Immediate extension rules</h4>
-<table><tr><th>Inst</th><th>Width</th><th>Extension</th></tr>
-<tr><td>ADDI,CMPI</td><td>imm8</td><td>Sign-extend</td></tr>
-<tr><td>ANDI,ORI</td><td>imm8</td><td>Zero-extend</td></tr>
-<tr><td>LI</td><td>imm8</td><td>Sign-extend</td></tr>
-<tr><td>LUI</td><td>imm8</td><td>imm8\u00AB8</td></tr>
-<tr><td>LOAD,STORE</td><td>imm5</td><td>Sign-extend</td></tr></table>
-<p class="doc-note">SUBI is not a separate opcode; use ADDI Rd,#-k.</p>`,
+<p>NT-16 uses small immediates and expands them before execution. The key is: <strong>same bit pattern, different interpretation</strong> depending on instruction class.</p>
+<h4>How immediates are interpreted</h4>
+<table><tr><th>Instruction(s)</th><th>Field</th><th>Expansion rule</th><th>Resulting value</th></tr>
+<tr><td><code>ADDI</code>, <code>CMPI</code>, <code>LI</code></td><td><code>imm8</code></td><td>Sign-extend</td><td><code>0x00..0x7F</code> \u2192 <code>0..127</code>, <code>0x80..0xFF</code> \u2192 <code>-128..-1</code></td></tr>
+<tr><td><code>ANDI</code>, <code>ORI</code></td><td><code>imm8</code></td><td>Zero-extend</td><td>Always <code>0..255</code></td></tr>
+<tr><td><code>LUI</code></td><td><code>imm8</code></td><td>Shift left 8 (<code>imm8 << 8</code>)</td><td>Builds upper byte: <code>0xAB</code> \u2192 <code>0xAB00</code></td></tr>
+<tr><td><code>LOAD</code>, <code>STORE</code></td><td><code>imm5</code></td><td>Sign-extend</td><td>Address offset range <code>-16..+15</code></td></tr></table>
+<h4>Quick intuition</h4>
+<table><tr><th>Pattern</th><th>Why this rule?</th></tr>
+<tr><td><code>ADDI/CMPI/LI</code> use signed</td><td>So small negative constants are possible without extra instructions.</td></tr>
+<tr><td><code>ANDI/ORI</code> use unsigned</td><td>They are bit-mask operations; raw bit pattern should be preserved.</td></tr>
+<tr><td><code>LUI</code> shifts immediate</td><td>Lets you compose 16-bit constants in two steps: <code>LUI</code> then <code>ORI</code>.</td></tr></table>
+<p class="doc-note"><strong>About SUBI:</strong> there is no dedicated <code>SUBI</code> opcode. Use <code>ADDI Rd,#-k</code> (e.g. <code>SUBI R3,#5</code> \u2261 <code>ADDI R3,#-5</code>).</p>`,
 memoryFlow:`<h3>Memory and control flow</h3>
-<h4>Stack</h4>
-<p>Stack grows downward. PUSH: pre-decrement SP. POP: post-increment SP. SP is auto-initialized to 0x0300.</p>
-<h4>Branches</h4>
-<table><tr><th>Op</th><th>Condition</th></tr>
-<tr><td>BEQ/BNE</td><td>Z=1/Z=0</td></tr>
-<tr><td>BLT/BGE</td><td>N\u2260V / N=V (signed)</td></tr>
-<tr><td>BCS/BCC</td><td>C=1/C=0 (unsigned)</td></tr></table>
-<p>Typical nested-call: PUSH LR \u2192 CALL \u2192 POP LR \u2192 RET</p>`,
+<h4>Stack model</h4>
+<p>NT-16 stack is <strong>descending</strong>: addresses move downward as stack usage increases. At reset, <code>SP</code> starts at <code>0x0300</code>.</p>
+<table><tr><th>Operation</th><th>Micro-behavior</th><th>Effect on SP</th></tr>
+<tr><td><code>PUSH Rx</code></td><td><code>SP = SP - 1</code>, then <code>Mem[SP] = Rx</code></td><td>SP decreases first (pre-decrement)</td></tr>
+<tr><td><code>POP Rx</code></td><td><code>Rx = Mem[SP]</code>, then <code>SP = SP + 1</code></td><td>SP increases after read (post-increment)</td></tr></table>
+<p class="doc-note">Rule of thumb: <code>PUSH</code> reserves space first, <code>POP</code> frees space last.</p>
+<h4>Branch decision logic</h4>
+<table><tr><th>Instruction</th><th>Condition</th><th>Interpretation</th></tr>
+<tr><td><code>BEQ</code> / <code>BNE</code></td><td><code>Z==1</code> / <code>Z==0</code></td><td>Equal / not equal (usually after <code>CMP/CMPI</code>)</td></tr>
+<tr><td><code>BLT</code> / <code>BGE</code></td><td><code>N!=V</code> / <code>N==V</code></td><td>Signed less-than / signed greater-or-equal</td></tr>
+<tr><td><code>BCS</code> / <code>BCC</code></td><td><code>C==1</code> / <code>C==0</code></td><td>Unsigned carry-set / carry-clear</td></tr>
+<tr><td><code>JMP</code></td><td>always</td><td>Unconditional branch</td></tr></table>
+<h4>Call/return discipline (recommended)</h4>
+<table><tr><th>Pattern</th><th>Why</th></tr>
+<tr><td><code>PUSH LR</code> \u2192 <code>CALL sub</code> \u2192 <code>POP LR</code> \u2192 <code>RET</code></td><td>Protects caller return address across nested calls.</td></tr></table>`,
 emulatorDesign:`<h3>Emulator</h3>
-<p>SP auto-initialized to 0x0300. Click line numbers for breakpoints. Run stops before executing a breakpoint line.</p>
-<h4>Design</h4>
-<table><tr><th>Decision</th><th>Choice</th></tr>
-<tr><td>R0</td><td>Hardwired zero</td></tr>
-<tr><td>SP,LR</td><td>Inside GPR file (R6,R7)</td></tr>
-<tr><td>Branches</td><td>PC-relative 11-bit</td></tr>
-<tr><td>Formats</td><td>4 types (R, I-short, I-wide, J)</td></tr></table>
+<p>The simulator models the architectural state step-by-step (registers, memory, flags, bus and datapath highlights) so each instruction can be inspected deterministically.</p>
+<h4>Execution and debugging model</h4>
+<table><tr><th>Feature</th><th>Behavior</th><th>Why it helps</th></tr>
+<tr><td>Initial stack state</td><td><code>SP</code> is auto-initialized to <code>0x0300</code></td><td>Examples run consistently without manual setup.</td></tr>
+<tr><td>Breakpoints</td><td>Click source line numbers to toggle breakpoints</td><td>Fast source-level control while keeping machine-level visibility.</td></tr>
+<tr><td>Run semantics</td><td><code>Run</code> pauses <em>before</em> executing a breakpointed line</td><td>Lets you inspect pre-instruction state safely.</td></tr>
+<tr><td>Step navigation</td><td><code>Back / Step / Forward</code> traverses execution snapshots</td><td>You can replay control flow and verify state transitions.</td></tr></table>
+<h4>Core design decisions</h4>
+<table><tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+<tr><td><code>R0</code></td><td>Hardwired zero</td><td>Simplifies code generation and pseudo-ops (e.g. <code>MOV</code>, <code>NOP</code>).</td></tr>
+<tr><td><code>SP/LR</code></td><td>Mapped inside GPR file (<code>R6/R7</code>)</td><td>Smaller datapath/control complexity with standard calling convention support.</td></tr>
+<tr><td>Branches</td><td>PC-relative <code>off11</code></td><td>Compact encoding and position-independent control flow.</td></tr>
+<tr><td>Instruction formats</td><td>4 formats (<code>R</code>, <code>I-short</code>, <code>I-wide</code>, <code>J</code>)</td><td>Balanced trade-off between simplicity and expressiveness.</td></tr></table>
+<h4>Worked examples (integrated)</h4>
+<table><tr><th>Example</th><th>Core idea</th><th>What to watch while stepping</th></tr>
+<tr><td>Sum 1..5</td><td><code>LI</code> + loop with <code>ADD/ADDI/BNE</code></td><td><code>R1</code> decreases, <code>R2</code> accumulates final sum.</td></tr>
+<tr><td>Fibonacci</td><td>Rolling register state</td><td><code>R1,R2</code> hold consecutive terms; <code>R3</code> is temporary next term.</td></tr>
+<tr><td>Factorial(5)</td><td>Nested-loop multiplication by repeated addition</td><td><code>CMPI</code> and signed branches control loop exits.</td></tr>
+<tr><td>Subroutine</td><td><code>CALL/RET</code> with LR preservation</td><td><code>PUSH LR</code> before nested call, <code>POP LR</code> before returning.</td></tr>
+<tr><td>Load / Store</td><td>Data memory + stack behavior</td><td>Address build via <code>LUI</code>, then memory round-trip and <code>PUSH/POP</code>.</td></tr>
+<tr><td>Bubble sort</td><td>Indexed memory access + conditional swap</td><td><code>LOAD/CMP/STORE</code> across inner and outer loops.</td></tr></table>
+<p class="doc-note">All examples are in the editor's <strong>Program</strong> dropdown. Select one, press <code>Assemble</code>, then inspect with <code>Back / Step / Forward</code>.</p>
 <p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`
 };
 const ISA_SECTIONS=[
@@ -708,19 +731,10 @@ const ISA_SECTIONS=[
 {id:'bellek_akis',label:'Memory & Flow',html:DOC_HTML.memoryFlow},
 {id:'emul_tasarim',label:'Emulator & Design',html:DOC_HTML.emulatorDesign}
 ];
-const TUTORIAL_HTML={
-sum:`<h3>Sum 1..5</h3><ol class="tut-steps"><li><code>LI R1,#5</code> counter, <code>LI R2,#0</code> accumulator.</li><li><code>ADD R2,R2,R1</code> loop body.</li><li><code>ADDI R1,#-1</code> + <code>BNE loop</code> control.</li><li>Result: R2=15.</li></ol>`,
-fib:`<h3>Fibonacci fib(7)=13</h3><ol class="tut-steps"><li>R1,R2 carry F_n, F_{n+1}.</li><li><code>ADD R3,R1,R2</code> next term; shift with MOV.</li><li>R4 iteration counter. Result: R2=13.</li></ol>`,
-fact:`<h3>Factorial(5)</h3><ol class="tut-steps"><li>Outer loop decreases n; inner loop multiplies by repeated addition.</li><li><code>CMPI</code>+<code>BGE</code> shows signed comparison.</li><li>Result: R2=120.</li></ol>`,
-call:`<h3>CALL/RET + LR save</h3><ol class="tut-steps"><li><code>CALL inc2</code> from main.</li><li><code>inc2</code> saves LR with PUSH, calls <code>double</code>.</li><li>POP LR + RET returns correctly. Result: R1=15.</li></ol>`,
-mem:`<h3>Load / Store</h3><ol class="tut-steps"><li>LUI builds base 0x0100.</li><li>STORE/LOAD verify memory persistence.</li><li>PUSH/POP show stack pointer movement.</li></ol>`,
-sort:`<h3>Bubble sort</h3><ol class="tut-steps"><li>Array [5,3,1,4,2] at 0x0100.</li><li>Inner loop LOADs adjacent pairs, CMP decides swap.</li><li>Outer/inner counters drive full sort.</li></ol>`
-};
-const TUTORIAL_NAV=[{id:'sum',label:'Sum 1..5'},{id:'fib',label:'Fibonacci'},{id:'fact',label:'Factorial'},{id:'call',label:'Subroutine'},{id:'mem',label:'Load / Store'},{id:'sort',label:'Bubble sort'}];
-const DOC_SECTIONS=ISA_SECTIONS.concat(TUTORIAL_NAV.map(o=>({id:o.id,label:o.label,html:TUTORIAL_HTML[o.id]})));
+const DOC_SECTIONS=ISA_SECTIONS;
 let docNavBuilt=false;
 function setDocSection(id){var sec=DOC_SECTIONS.find(s=>s.id===id);if(!sec)return;document.getElementById('paneIsaBody').innerHTML=sec.html;document.querySelectorAll('#docNav .doc-subtab').forEach(btn=>{var on=btn.getAttribute('data-isa')===id;btn.classList.toggle('on',on)});var sc=document.getElementById('isaScrollRegion');if(sc)sc.scrollTop=0}
-function ensureDocNav(){if(docNavBuilt)return;var nav=document.getElementById('docNav');var html=ISA_SECTIONS.map(s=>'<button type="button" class="doc-subtab'+(s.id==='genel'?' on':'')+'" data-isa="'+s.id+'">'+s.label+'</button>').join('');html+='<span class="doc-nav-group">Tutorial</span>';html+=TUTORIAL_NAV.map(s=>'<button type="button" class="doc-subtab" data-isa="'+s.id+'">'+s.label+'</button>').join('');nav.innerHTML=html;nav.onclick=e=>{var b=e.target.closest('[data-isa]');if(b)setDocSection(b.getAttribute('data-isa'))};docNavBuilt=true;setDocSection('genel')}
+function ensureDocNav(){if(docNavBuilt)return;var nav=document.getElementById('docNav');var html=ISA_SECTIONS.map(s=>'<button type="button" class="doc-subtab'+(s.id==='genel'?' on':'')+'" data-isa="'+s.id+'">'+s.label+'</button>').join('');nav.innerHTML=html;nav.onclick=e=>{var b=e.target.closest('[data-isa]');if(b)setDocSection(b.getAttribute('data-isa'))};docNavBuilt=true;setDocSection('genel')}
 function openDocPanel(){document.getElementById('docOv').hidden=false;document.body.style.overflow='hidden';ensureDocNav()}
 function closeDocPanel(){document.getElementById('docOv').hidden=true;document.body.style.overflow=''}
 document.addEventListener('keydown',function(e){
@@ -1133,98 +1147,98 @@ ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();l
 // ===== EXAMPLES =====
 const EX={
 sum:`; Sum 1 to 5 — Result: R2 = 15
-    LI   R1, #5
-    LI   R2, #0
+    LI\tR1, #5
+    LI\tR2, #0
 loop:
-    ADD  R2, R2, R1
-    ADDI R1, #-1
-    BNE  loop
+    ADD\tR2, R2, R1
+    ADDI\tR1, #-1
+    BNE\tloop
     HALT`,
 fib:`; Fibonacci — R2 = fib(7) = 13
-    LI   R1, #0
-    LI   R2, #1
-    LI   R4, #6
+    LI\tR1, #0
+    LI\tR2, #1
+    LI\tR4, #6
 loop:
-    ADD  R3, R1, R2
-    MOV  R1, R2
-    MOV  R2, R3
-    ADDI R4, #-1
-    BNE  loop
+    ADD\tR3, R1, R2
+    MOV\tR1, R2
+    MOV\tR2, R3
+    ADDI\tR4, #-1
+    BNE\tloop
     HALT`,
 fact:`; Factorial(5) — R2 = 120
-    LI   R1, #5
-    LI   R2, #1
+    LI\tR1, #5
+    LI\tR2, #1
 loop:
-    LI   R3, #0
-    MOV  R4, R1
+    LI\tR3, #0
+    MOV\tR4, R1
 mul:
-    ADD  R3, R3, R2
-    ADDI R4, #-1
-    BNE  mul
-    MOV  R2, R3
-    ADDI R1, #-1
-    CMPI R1, #1
-    BGE  loop
+    ADD\tR3, R3, R2
+    ADDI\tR4, #-1
+    BNE\tmul
+    MOV\tR2, R3
+    ADDI\tR1, #-1
+    CMPI\tR1, #1
+    BGE\tloop
     HALT`,
 call:`; Nested call — R1 = 15 (7*2+1)
-    LI   R1, #7
-    CALL inc2
+    LI\tR1, #7
+    CALL\tinc2
     HALT
 inc2:
-    PUSH LR
-    CALL double
-    ADDI R1, #1
-    POP  LR
+    PUSH\tLR
+    CALL\tdouble
+    ADDI\tR1, #1
+    POP\tLR
     RET
 double:
-    ADD  R1, R1, R1
+    ADD\tR1, R1, R1
     RET`,
 mem:`; Memory operations
-    LI   R1, #42
-    LI   R2, #0
-    LUI  R2, #1
-    STORE R1, [R2]
-    LI   R3, #0
-    LOAD R3, [R2]
-    PUSH R3
-    LI   R3, #0
-    POP  R3
+    LI\tR1, #42
+    LI\tR2, #0
+    LUI\tR2, #1
+    STORE\tR1, [R2]
+    LI\tR3, #0
+    LOAD\tR3, [R2]
+    PUSH\tR3
+    LI\tR3, #0
+    POP\tR3
     HALT`,
 sort:`; Bubble sort [5,3,1,4,2] at 0x0100
-    LI   R1, #5
-    LI   R2, #0
-    LUI  R2, #1
-    STORE R1, [R2]
-    LI   R1, #3
-    STORE R1, [R2+1]
-    LI   R1, #1
-    STORE R1, [R2+2]
-    LI   R1, #4
-    STORE R1, [R2+3]
-    LI   R1, #2
-    STORE R1, [R2+4]
-    LI   R5, #4
+    LI\tR1, #5
+    LI\tR2, #0
+    LUI\tR2, #1
+    STORE\tR1, [R2]
+    LI\tR1, #3
+    STORE\tR1, [R2+1]
+    LI\tR1, #1
+    STORE\tR1, [R2+2]
+    LI\tR1, #4
+    STORE\tR1, [R2+3]
+    LI\tR1, #2
+    STORE\tR1, [R2+4]
+    LI\tR5, #4
 outer:
-    LI   R4, #0
-    LI   R2, #0
-    LUI  R2, #1
+    LI\tR4, #0
+    LI\tR2, #0
+    LUI\tR2, #1
 inner:
-    LOAD R1, [R2]
-    LOAD R3, [R2+1]
-    CMP  R1, R3
-    BGE  noswap
-    JMP  skip
+    LOAD\tR1, [R2]
+    LOAD\tR3, [R2+1]
+    CMP\tR1, R3
+    BGE\tnoswap
+    JMP\tskip
 noswap:
-    STORE R3, [R2]
-    STORE R1, [R2+1]
+    STORE\tR3, [R2]
+    STORE\tR1, [R2+1]
 skip:
-    ADDI R2, #1
-    ADDI R4, #1
-    CMP  R4, R5
-    BLT  inner
-    ADDI R5, #-1
-    CMPI R5, #0
-    BNE  outer
+    ADDI\tR2, #1
+    ADDI\tR4, #1
+    CMP\tR4, R5
+    BLT\tinner
+    ADDI\tR5, #-1
+    CMPI\tR5, #0
+    BNE\touter
     HALT`
 };
 function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
