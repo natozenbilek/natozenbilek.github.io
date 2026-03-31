@@ -187,6 +187,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-scroll-article pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
 .doc-note{font-size:11.5px;color:var(--text2);border-left:3px solid var(--blu);padding:8px 12px;background:var(--blu-l);margin:12px 0;border-radius:0 var(--r) var(--r) 0}
 @media(prefers-color-scheme:dark){.doc-note{background:var(--blu-l);color:var(--text)}}
+.doc-card{margin:.6rem 0 1rem;border:1px solid var(--brd);border-radius:var(--r);background:linear-gradient(180deg,var(--blu-l),var(--bg2));padding:10px 12px}
+.doc-card h4{margin:.1rem 0 .45rem!important}
+.doc-card table{margin:.35rem 0}
+.doc-card.doc-card-warn{background:linear-gradient(180deg,var(--amb-l),var(--bg2))}
 .tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
 .tut-steps li{margin:.55rem 0;padding-left:.25rem}
 .tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
@@ -215,6 +219,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 @media(prefers-color-scheme:dark){
   .doc-dispatch tr.dd-hi{background:rgba(106,176,232,.14)}
   .doc-dispatch .fmt-is{background:#252838;color:#9aa8e8}
+  .doc-card{background:linear-gradient(180deg,rgba(106,176,232,.12),var(--bg2))}
+  .doc-card.doc-card-warn{background:linear-gradient(180deg,rgba(232,196,74,.10),var(--bg2))}
 }
 </style>
 </head>
@@ -421,6 +427,7 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <tr><td>ADDI / ANDI / ORI / LI / LUI</td><td>Immediate (imm8) operations</td><td>sign/zero extension depends on instruction</td></tr></table>
 <p>16-bit constant loading pattern: <code>LUI R1,#0x3F</code> then <code>ORI R1,#0x7A</code>. <code>SUBI</code> is not a separate opcode; use <code>ADDI Rd,#-k</code>.</p>
 <p class="doc-note">Common pitfall: <code>CMPI</code> and <code>CMP</code> do not write a destination register; they only update flags.</p>
+<div class="doc-card">
 <h4>Immediate extension rules (quick reference)</h4>
 <table><tr><th>Instruction</th><th>Immediate width</th><th>Extension behavior</th><th>Example</th></tr>
 <tr><td>ADDI, CMPI</td><td>imm8</td><td>Sign-extend to 16-bit</td><td><code>ADDI R1,#-1</code> → adds <code>0xFFFF</code></td></tr>
@@ -428,6 +435,7 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <tr><td>ANDI, ORI</td><td>imm8</td><td>Zero-extend logical mask</td><td><code>ANDI R1,#0x0F</code> masks low nibble</td></tr>
 <tr><td>LI</td><td>imm8</td><td>Sign-extend into destination</td><td><code>LI R1,#-5</code> → <code>0xFFFB</code></td></tr>
 <tr><td>LUI</td><td>imm8</td><td>Placed at high byte (<code>imm8 &lt;&lt; 8</code>)</td><td><code>LUI R1,#0x12</code> → <code>0x1200</code></td></tr></table>
+</div>
 <h4>Figure — ALU datapath</h4>
 <figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="ALU datapath">
 <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
@@ -459,6 +467,7 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <tr><td>RET</td><td>PC=LR</td></tr>
 <tr><td>HALT</td><td>Stop</td></tr></table>
 <p>Typical nested-call pattern: <code>PUSH LR</code> → <code>CALL</code> → <code>POP LR</code> → <code>RET</code>.</p>
+<div class="doc-card doc-card-warn">
 <h4>Signed vs unsigned branches</h4>
 <table><tr><th>Family</th><th>Uses flags</th><th>Interpretation</th><th>When to use</th></tr>
 <tr><td>BLT / BGE</td><td>N and V</td><td>Signed compare (<code>&lt;</code>, <code>≥</code>)</td><td>Values represent signed integers</td></tr>
@@ -466,6 +475,7 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <table><tr><th>Operands compared</th><th>Result meaning</th><th>Recommended branch</th></tr>
 <tr><td><code>R1=0xFFFF</code>, <code>R2=0x0001</code></td><td>signed: -1 &lt; 1, unsigned: 65535 &gt; 1</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr>
 <tr><td><code>R1=0x8000</code>, <code>R2=0x7FFF</code></td><td>signed: -32768 &lt; 32767, unsigned: 32768 &gt; 32767</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr></table>
+</div>
 <h4>Figure — shared branch-taken routine</h4>
 <figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="Shared branch-taken routine">
 <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
