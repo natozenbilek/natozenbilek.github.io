@@ -116,6 +116,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) var(--bg2)}
 .lb::-webkit-scrollbar{width:6px}.lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 .le{color:var(--red)}.ls{color:var(--grn)}
+.log-ln-btn{font:inherit;border:none;background:transparent;color:var(--blu);text-decoration:underline;cursor:pointer;padding:0}
+.log-ln-btn:hover{color:var(--acc)}
 
 .cp,.cp-right{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg);min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .cp{grid-column:2;grid-row:1}
@@ -160,6 +162,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:11.2px;color:var(--text);padding:6px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.6}
+.prof-list{font-family:var(--mono);font-size:10px;line-height:1.55;white-space:pre-wrap}
+.prof-empty{font-family:var(--mono);font-size:10px;color:var(--text2)}
+.watch-in{font-family:var(--mono);font-size:10px;line-height:1.45;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:6px 8px;width:100%;min-height:64px;resize:vertical;color:var(--text)}
+.watch-out{font-family:var(--mono);font-size:10px;line-height:1.5;white-space:pre-wrap}
 .out-box{font-family:var(--mono);font-size:10.8px;line-height:1.5;background:var(--bg3);border-radius:var(--r);padding:7px 8px;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .out-meta{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:5px}
 .out-modes{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
@@ -223,6 +229,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .exp-tab{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
 .exp-tab:hover{background:var(--bg3)}.exp-tab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
 .exp-out{font-family:var(--mono);font-size:10px;line-height:1.6;background:var(--bg-ed);color:#cdd6f4;padding:10px 12px;border-radius:var(--r);border:1px solid var(--brd);white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;user-select:all;cursor:text}
+.exp-in{font-family:var(--mono);font-size:10px;line-height:1.45;background:var(--bg-ed);color:#cdd6f4;padding:8px 10px;border-radius:var(--r);border:1px solid var(--brd);width:100%;min-height:88px;resize:vertical}
+.exp-sub{font-family:var(--mono);font-size:9.5px;color:var(--text2);margin:6px 0}
 .exp-foot{padding:8px 14px;border-top:1px solid var(--brd);display:flex;gap:6px;justify-content:flex-end}
 
 /* ===== ISA SIDEBAR ===== */
@@ -335,9 +343,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="9999">Max</option>
       </select>
     </div>
+    <button type="button" class="b" id="cycleBtn" onclick="toggleCycleMode()" title="Cycle-accurate stepping mode">Cycle: Off</button>
     <span class="pill p-rdy" id="st">READY</span>
     <div class="sep"></div>
     <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
+    <button type="button" class="b" onclick="showShortcuts()" title="Keyboard shortcuts">?</button>
     <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
     <button type="button" class="b" onclick="openDocPanel()" title="Full guide (F1)">Guide</button>
     <button type="button" class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark theme">Theme: Auto</button>
@@ -358,6 +368,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="callout">Subroutine + output</option>
         <option value="memecho">Memory echo output</option>
         <option value="sort">Bubble sort (classic)</option>
+        <option value="factorial">Factorial (repeated add)</option>
+        <option value="muladd">Multiply via repeated add</option>
+        <option value="fibmulti">Fibonacci (multi output)</option>
       </select>
       <div class="eh-side">
         <button type="button" class="b bp" onclick="doAssemble()" title="Assemble (Ctrl+Enter)">Assemble</button>
@@ -378,6 +391,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
+    <div class="cd"><div class="ch">Profile <span class="ch-sub">instruction + line frequency</span></div><div class="cb">
+      <div id="profBox" class="prof-empty">— run program to collect profile —</div>
+    </div></div>
     <div class="rw rw-irbus">
       <div class="cd"><div class="ch">Instruction summary</div><div class="cb" style="display:flex;flex-direction:column;gap:6px">
         <div class="blk-lbl">Instruction</div>
@@ -395,6 +411,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
     <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
     <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div><div class="flag-help" id="flagHelp">Z:result=0 · N:sign bit · C:carry/borrow · V:signed overflow</div></div></div>
+    <div class="cd"><div class="ch">Watch <span class="ch-sub">R1+R2, Mem[0x0100], ...</span></div><div class="cb">
+      <textarea id="watchIn" class="watch-in" spellcheck="false" placeholder="R1+R2&#10;Mem[0x0100]"></textarea>
+      <div id="watchOut" class="watch-out">—</div>
+    </div></div>
   </div></div>
 
   <div class="cp-right"><div class="ci">
@@ -515,6 +535,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <button class="exp-tab" onclick="setExpFmt('asm',this)">Listing</button>
         <button class="exp-tab" onclick="setExpFmt('c',this)">C array</button>
       </div>
+      <div class="exp-sub">Load from hex dump (accepts <code>ADDR: WORDS</code> or plain 16-bit words):</div>
+      <textarea id="hexIn" class="exp-in" spellcheck="false" placeholder="0000: 7105 7200 8A01&#10;..."></textarea>
+      <div class="exp-sub"><button class="b" onclick="loadHexFromExport()">Load Hex</button></div>
       <pre class="exp-out" id="expOut"></pre>
     </div>
     <div class="exp-foot">
@@ -781,7 +804,8 @@ memoryFlow:`<h3>Memory and control flow</h3>
 <tr><td><code>JMP</code></td><td>always</td><td>Unconditional branch</td></tr></table>
 <h4>Call/return discipline (recommended)</h4>
 <table><tr><th>Pattern</th><th>Why</th></tr>
-<tr><td><code>PUSH LR</code> \u2192 <code>CALL sub</code> \u2192 <code>POP LR</code> \u2192 <code>RET</code></td><td>Protects caller return address across nested calls.</td></tr></table>`
+<tr><td><code>PUSH LR</code> \u2192 <code>CALL sub</code> \u2192 <code>POP LR</code> \u2192 <code>RET</code></td><td>Protects caller return address across nested calls.</td></tr></table>
+<p class="doc-note"><strong>Absolute addressing trick:</strong> <code>LOAD Rd,[R0+off]</code> addresses memory 0..15 directly since R0=0.</p>`
 };
 const ISA_SECTIONS=[
 {id:'genel',label:'Overview',html:DOC_HTML.overview},
@@ -856,9 +880,38 @@ let ucSteps=[]; // microcode trace for current instruction
 let stepPast=[],stepFuture=[],vmStatus='READY';
 let outLog=[];
 let outMode='char',lastDiff='—',flagWhyText='—';
+let opFreq={},lineFreq={};
+let cycleMode=false,cyclePhase=0;
+let baseMem=new Uint16Array(65536),dirtyPages=new Set();
 const IO_OUT_BASE=0xFF00;
 const OUT_LOG_MAX=120;
 const SP_INIT=0x0300;
+const PAGE_WORDS=256;
+
+function markDirty(ad){
+  ad&=0xFFFF;
+  if(mem[ad]!==baseMem[ad])dirtyPages.add((ad/PAGE_WORDS)|0);
+}
+function writeMem(ad,val){
+  ad&=0xFFFF;
+  mem[ad]=val&0xFFFF;
+  markDirty(ad);
+}
+function captureDirtyPages(){
+  let pages=[];
+  dirtyPages.forEach(p=>{
+    let s=p*PAGE_WORDS;
+    pages.push({p,data:new Uint16Array(mem.subarray(s,s+PAGE_WORDS))});
+  });
+  return pages;
+}
+function restoreDirtyPages(pages){
+  mem.set(baseMem);
+  for(let i=0;i<(pages||[]).length;i++){
+    let pg=pages[i],s=(pg.p|0)*PAGE_WORDS;
+    mem.set(pg.data,s);
+  }
+}
 
 function doAssemble(){
   let src=document.getElementById('ed').value,lines=src.split('\n'),lbl={},ils=[],errs=[],ad=0;
@@ -890,32 +943,37 @@ function doAssemble(){
   }
   if(errs.length){sLog(errs.join('\n'),1);return}
   resetState();for(let i=0;i<bin.length;i++)mem[i]=bin[i];
+  baseMem.set(mem);dirtyPages.clear();
   pLen=bin.length;labels=lbl;aLines=ils;instrLines=iLines;R[6]=SP_INIT;
   breakpoints=new Set([...breakpoints].filter(n=>n>=1&&n<=lines.length&&instrLines.has(n)));
   stepPast=[];stepFuture=[];
   sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char'}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char';opFreq={};lineFreq={};cyclePhase=0;baseMem.fill(0);dirtyPages.clear()}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
 
 function captureSnapshot(){
   return{
-    mem:new Uint16Array(mem),R:new Uint16Array(R),PC,MAR,MDR,IR,A,ALUO,
+    memPages:captureDirtyPages(),dirtyPageIdx:[...dirtyPages],R:new Uint16Array(R),PC,MAR,MDR,IR,A,ALUO,
     FL:{...FL},cy,ic,halt,bus:{...bus},curI,curDesc,
     ucSteps:ucSteps.map(s=>({...s})),
     vmStatus,
+    opFreq:{...opFreq},lineFreq:{...lineFreq},
+    cycleMode,cyclePhase,
     outLog:outLog.map(x=>({...x})),
     outMode,lastDiff,flagWhyText
   }
 }
 function restoreSnapshot(s){
-  mem=s.mem;R=s.R;PC=s.PC;MAR=s.MAR;MDR=s.MDR;IR=s.IR;A=s.A;ALUO=s.ALUO;
+  restoreDirtyPages(s.memPages||[]);dirtyPages=new Set(s.dirtyPageIdx||[]);R=s.R;PC=s.PC;MAR=s.MAR;MDR=s.MDR;IR=s.IR;A=s.A;ALUO=s.ALUO;
   FL={...s.FL};cy=s.cy;ic=s.ic;halt=s.halt;bus={...s.bus};curI=s.curI;curDesc=s.curDesc;
   ucSteps=s.ucSteps.map(x=>({...x}));vmStatus=s.vmStatus||'READY';
+  opFreq={...(s.opFreq||{})};lineFreq={...(s.lineFreq||{})};
+  cycleMode=!!s.cycleMode;cyclePhase=s.cyclePhase||0;
   outLog=(s.outLog||[]).map(x=>({...x}));
   outMode=s.outMode||'char';lastDiff=s.lastDiff||'—';flagWhyText=s.flagWhyText||'—';
-  chg.clear();sSt(vmStatus)
+  chg.clear();sSt(vmStatus);syncCycleBtn()
 }
 
 function pushOutput(ad,val){
@@ -971,6 +1029,7 @@ function dis(ir){
   let jn={16:'BEQ',17:'BNE',18:'BLT',19:'BGE',20:'BCS',21:'BCC',22:'JMP',23:'CALL'};if(jn[op])return`${jn[op]} ${i11>=0?'+':''}${i11}`;
   if(op===24)return'RET';if(op===31)return'HALT';return'ILLEGAL';
 }
+function mnemonicOf(txt){return (txt||'').split(/\s+/)[0]||'—'}
 
 function savePrev(){pR_=new Uint16Array(R);pPC=PC;pFL={...FL}}
 function detect(){chg.clear();for(let i=0;i<8;i++)if(R[i]!==pR_[i])chg.add('R'+i);if(PC!==pPC)chg.add('PC');if(FL.Z!==pFL.Z)chg.add('Z');if(FL.C!==pFL.C)chg.add('C');if(FL.N!==pFL.N)chg.add('N');if(FL.V!==pFL.V)chg.add('V')}
@@ -992,7 +1051,8 @@ function buildUcTrace(d,op){
     let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};
     let nm=m[op]?.[d.fn]||'?';
     steps.push({addr:'0x10',phase:'EXECUTE',action:'A \u2190 R[Rs='+d.rs+']',bus:'RegFile \u2192 A'});
-    steps.push({addr:'0x11',phase:'EXECUTE',action:'B \u2190 R[Rt='+d.rt+']',bus:'RegFile \u2192 B'});
+    if(nm==='NOT')steps.push({addr:'0x11',phase:'EXECUTE',action:'B \u2190 (unused)',bus:'\u2014'});
+    else steps.push({addr:'0x11',phase:'EXECUTE',action:'B \u2190 R[Rt='+d.rt+']',bus:'RegFile \u2192 B'});
     steps.push({addr:'0x12',phase:'EXECUTE',action:'ALU: '+nm+' A,B',bus:'A,B \u2192 ALU'});
     if(nm!=='CMP')steps.push({addr:'0x13',phase:'WRITEBACK',action:'R[Rd='+d.rd+'] \u2190 result',bus:'ALU \u2192 RegFile'});
     else steps.push({addr:'0x13',phase:'WRITEBACK',action:'FLAGS \u2190 result',bus:'ALU \u2192 FLAGS'});
@@ -1041,6 +1101,9 @@ function execOne(){
   MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
   let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
   curI=dis(IR);let op=d.op;
+  let mnem=mnemonicOf(curI),lnHit=(aLines[MAR]&&aLines[MAR].ln)||0;
+  opFreq[mnem]=(opFreq[mnem]||0)+1;
+  if(lnHit)lineFreq[lnHit]=(lineFreq[lnHit]||0)+1;
 
   if(op<=2){
     let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[d.fn];
@@ -1058,11 +1121,11 @@ function execOne(){
     else if(op===6){let res=alu('OR',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'OR'};curDesc=`ORI: R${rd}|0x${d.i8u.toString(16).toUpperCase()}=${f16(res.r)}`}
     else if(op===7){let v=d.i8&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'PASS'};curDesc=`LI: ${d.i8}\u2192R${rd}`}
     else if(op===8){let v=(d.i8u<<8)&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'SHL8'};curDesc=`LUI: 0x${d.i8u.toString(16).toUpperCase()}\u00AB8=${f16(v)}\u2192R${rd}`}
-    else if(op===9){let imm16=d.i8&0xFFFF;let res=alu('SUB',R[rd],imm16);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(R[rd]),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])})-${d.i8}\u2192flags`}
+    else if(op===9){let imm16=d.i8&0xFFFF;let res=alu('SUB',R[rd],imm16);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(res.r),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])})-${d.i8}\u2192flags`}
   }
   else if(op===10){let ad=(R[d.rs]+d.i5)&0xFFFF;if(d.rd!==0)R[d.rd]=mem[ad];bus={s:`[${f16(ad)}]`,v:f16(mem[ad]),d:`R${d.rd}`,a:'\u2014'};curDesc=`LOAD: Mem[${f16(ad)}]=${f16(mem[ad])}\u2192R${d.rd}`}
-  else if(op===11){let ad=(R[d.rs]+d.i5)&0xFFFF;mem[ad]=R[d.rd];pushOutput(ad,R[d.rd]);bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'\u2014'};curDesc=`STORE: R${d.rd}\u2192Mem[${f16(ad)}]`}
-  else if(op===12){R[6]=(R[6]-1)&0xFFFF;mem[R[6]]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP--,R${d.rd}\u2192stack`}
+  else if(op===11){let ad=(R[d.rs]+d.i5)&0xFFFF;writeMem(ad,R[d.rd]);pushOutput(ad,R[d.rd]);bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'\u2014'};curDesc=`STORE: R${d.rd}\u2192Mem[${f16(ad)}]`}
+  else if(op===12){R[6]=(R[6]-1)&0xFFFF;writeMem(R[6],R[d.rd]);bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP--,R${d.rd}\u2192stack`}
   else if(op===13){let v=mem[R[6]];if(d.rd!==0)R[d.rd]=v;R[6]=(R[6]+1)&0xFFFF;bus={s:'[SP]',v:f16(v),d:`R${d.rd}`,a:'POP'};curDesc=`POP: Mem[SP]\u2192R${d.rd},SP++`}
   else if(op>=16&&op<=23){
     let tk=false;
@@ -1083,7 +1146,13 @@ function execOne(){
   R[0]=0;cy++;ic++;detect();lastDiff=summarizeDiff();flagWhyText=summarizeFlagWhy()
 }
 
-function doStep(){if(halt)return;stepPast.push(captureSnapshot());if(stepPast.length>300)stepPast.shift();stepFuture=[];execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
+function execCycle(){
+  if(halt)return;
+  if(cyclePhase<3){cyclePhase++;cy++;return}
+  execOne();
+  cyclePhase=0;
+}
+function doStep(){if(!pLen){sLog('No program assembled.',1);return}if(halt)return;stepPast.push(captureSnapshot());if(stepPast.length>300)stepPast.shift();stepFuture=[];(cycleMode?execCycle():execOne());renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
 function doStepBack(){
   if(!stepPast.length)return;
   stopR();
@@ -1102,21 +1171,51 @@ function getResults(){let p=[];for(let i=1;i<=7;i++)if(R[i])p.push(`R${i}=${R[i]
 let spd=10;
 function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();startR()}}
 function doToggleRun(){if(run)stopR();else startR()}
-function startR(){if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
+function toggleCycleMode(){cycleMode=!cycleMode;cyclePhase=0;syncCycleBtn();renderAll()}
+function startR(){if(!pLen){sLog('No program assembled.',1);return}if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
   let dl=spd>=9999?1:Math.max(1,Math.floor(1000/spd)),bt=spd>=9999?200:1;
-  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}},dl)}
+  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)(cycleMode?execCycle():execOne());renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}},dl)}
 function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getElementById('runBtn').textContent='Run';document.getElementById('runBtn').className='b bg';if(!halt)sSt('READY')}
 
 // ===== RENDER =====
 function f16(v){return'0x'+((v&0xFFFF).toString(16)).toUpperCase().padStart(4,'0')}
 function fD(v){return v>32767?(v-65536).toString():v.toString()}
 function sSt(s){vmStatus=s;let e=document.getElementById('st');e.textContent=s;e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s]}
-function sLog(m,err){let e=document.getElementById('log');e.textContent=m;e.className='lb'+(err?' le':' ls')}
+function syncCycleBtn(){let b=document.getElementById('cycleBtn');if(b)b.textContent='Cycle: '+(cycleMode?'On':'Off')}
+function escHtml(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function jumpToLine(n){
+  n=+n;if(!n||n<1)return;
+  let lines=ed.value.split('\n');
+  if(n>lines.length)n=lines.length;
+  let pos=0;for(let i=1;i<n;i++)pos+=lines[i-1].length+1;
+  ed.focus();
+  ed.setSelectionRange(pos,pos);
+  const m=lineMetrics();
+  ed.scrollTop=Math.max(0,(n-2)*m.lh);
+  syncAllScroll();
+}
+function sLog(m,err){
+  let e=document.getElementById('log');
+  e.className='lb'+(err?' le':' ls');
+  let txt=String(m??'');
+  if(!err){e.textContent=txt;return}
+  let rows=txt.split('\n').map(r=>{
+    let mt=r.match(/^Line\s+(\d+):\s*(.*)$/);
+    if(!mt)return escHtml(r);
+    return `<button type="button" class="log-ln-btn" data-ln="${mt[1]}" title="Go to line ${mt[1]}">Line ${mt[1]}</button>: ${escHtml(mt[2])}`;
+  });
+  e.innerHTML=rows.join('<br>');
+}
+function showShortcuts(){
+  sLog('Shortcuts: Ctrl+Enter = Assemble · F1 = Guide · F2 = ISA',0);
+}
 
 function updateStepNavButtons(){
   let b=document.getElementById('stepBackBtn'),f=document.getElementById('stepFwdBtn');
   if(b)b.disabled=run||stepPast.length===0;
   if(f)f.disabled=run||stepFuture.length===0;
+  if(b)b.textContent='← Back ('+stepPast.length+')';
+  if(f)f.textContent='Forward → ('+stepFuture.length+')';
 }
 
 function renderOutput(){
@@ -1128,7 +1227,11 @@ function renderOutput(){
     return;
   }
   let chars='',hexs=[],decs=[],rows=[];
-  for(let i=0;i<outLog.length;i++){let o=outLog[i];chars+=o.ch==='.'?('\\\\x'+(o.v&0xFF).toString(16).toUpperCase().padStart(2,'0')):o.ch;hexs.push(f16(o.v));decs.push(String(o.v));rows.push(o.ch+'  '+f16(o.v)+' @ '+f16(o.ad))}
+  for(let i=0;i<outLog.length;i++){
+    let o=outLog[i],b=o.v&0xFF,ch=(b>=32&&b<=126)?String.fromCharCode(b):(b===10?'\n':'.');
+    chars+=ch==='.'?('\\x'+b.toString(16).toUpperCase().padStart(2,'0')):ch;
+    hexs.push(f16(o.v));decs.push(String(o.v));rows.push((ch==='\n'?'\\n':ch)+'  '+f16(o.v)+' @ '+f16(o.ad));
+  }
   let last=outLog[outLog.length-1];
   box.textContent=outMode==='hex'?hexs.join(' '):outMode==='dec'?decs.join(' '):outMode==='trace'?rows.join('\n'):chars;
   meta.textContent='Range: 0xFF00–0xFFFF · mode: '+outMode.toUpperCase()+' · writes: '+outLog.length+' · last: '+f16(last.v)+' @ '+f16(last.ad);
@@ -1207,12 +1310,13 @@ function renderDatapath(){
   let phBar=document.getElementById('dpPhBar');
   let phTexts=['dpPh0','dpPh1','dpPh2','dpPh3'];
   phTexts.forEach(id=>{let el=document.getElementById(id);el.setAttribute('fill','var(--text3)');el.setAttribute('font-weight','500')});
-  // All phases execute in one step, highlight last relevant
+  // Phase bar
   if(halt){phBar.setAttribute('x','18');phBar.setAttribute('width','140')}
   else if(curI){
-    // Show WRITEBACK as final phase
-    phBar.setAttribute('x','508');phBar.setAttribute('width','140');
-    document.getElementById('dpPh3').setAttribute('fill','var(--blu)');document.getElementById('dpPh3').setAttribute('font-weight','700');
+    let idx=cycleMode?cyclePhase:3;
+    let x=[18,181,344,508][idx]||508;
+    phBar.setAttribute('x',String(x));phBar.setAttribute('width','140');
+    document.getElementById(phTexts[idx]).setAttribute('fill','var(--blu)');document.getElementById(phTexts[idx]).setAttribute('font-weight','700');
   }else{
     phBar.setAttribute('x','18');phBar.setAttribute('width','140');
     document.getElementById('dpPh0').setAttribute('fill','var(--blu)');document.getElementById('dpPh0').setAttribute('font-weight','700');
@@ -1248,6 +1352,41 @@ function renderMicrocode(){
   let act=wrap.querySelector('.uc-act');
   if(act)act.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
+function renderProfile(){
+  let box=document.getElementById('profBox');if(!box)return;
+  let total=Object.values(opFreq).reduce((a,b)=>a+b,0);
+  if(!total){box.className='prof-empty';box.textContent='— run program to collect profile —';return}
+  let topOps=Object.entries(opFreq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>k+': '+v).join('\n');
+  let topLines=Object.entries(lineFreq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>'L'+k+': '+v).join('\n');
+  box.className='prof-list';
+  box.textContent='Total: '+total+'\n\nTop instructions:\n'+topOps+'\n\nTop source lines:\n'+(topLines||'—');
+}
+function evalWatchExpr(expr){
+  let s=expr.trim();
+  if(!s)return null;
+  s=s.replace(/\bSP\b/gi,'R6').replace(/\bLR\b/gi,'R7');
+  s=s.replace(/Mem\[(.*?)\]/gi,(_,inner)=>{
+    let ad=evalWatchExpr(inner);
+    if(ad===null||ad===undefined||Number.isNaN(ad))return '0';
+    return String(mem[(ad|0)&0xFFFF]);
+  });
+  s=s.replace(/\bR([0-7])\b/gi,(_,n)=>String(R[+n]));
+  if(/[^0-9xXa-fA-F+\-()\s]/.test(s))return null;
+  try{return Function('"use strict";return ('+s+');')()}catch(_){return null}
+}
+function renderWatch(){
+  let tin=document.getElementById('watchIn'),tout=document.getElementById('watchOut');
+  if(!tin||!tout)return;
+  let lines=tin.value.split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!lines.length){tout.textContent='—';return}
+  let rows=lines.map(ex=>{
+    let v=evalWatchExpr(ex);
+    if(v===null||v===undefined||Number.isNaN(v))return ex+' = ?';
+    v=((v%65536)+65536)%65536;
+    return ex+' = '+f16(v)+' ('+fD(v)+')';
+  });
+  tout.textContent=rows.join('\n');
+}
 
 function renderAll(){
   let nm=['R0','R1','R2','R3','R4','R5','SP','LR'];
@@ -1262,7 +1401,8 @@ function renderAll(){
   document.getElementById('bD').textContent=bus.d;document.getElementById('bA').textContent=bus.a;
   document.getElementById('irD').textContent=curI||'\u2014';
   document.getElementById('cyN').textContent=cy;document.getElementById('inN').textContent=ic;
-  document.getElementById('phN').textContent=halt?'HALTED':(run?'RUNNING':'READY');
+  let phTxt=cycleMode?['FETCH','DECODE','EXECUTE','WRITEBACK'][cyclePhase]:'READY';
+  document.getElementById('phN').textContent=halt?'HALTED':(cycleMode?phTxt:(run?'RUNNING':'READY'));
   document.getElementById('desc').textContent=curDesc||'\u2014';
   document.getElementById('diffBox').textContent=lastDiff;
   document.getElementById('flagWhy').textContent=flagWhyText;
@@ -1271,6 +1411,10 @@ function renderAll(){
   h='';for(let r=0;r<rows;r++){let base=r*8;h+=`<span class="ma">${f16(base)}</span>`;
     for(let c=0;c<8;c++){let ad=base+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===PC)cl+=' pc';if(ad===R[6])cl+=' sp';h+=`<span class="${cl}" title="${f16(ad)}: ${dis(v)}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}}
   document.getElementById('mP').innerHTML=h;
+  let mP=document.getElementById('mP');
+  let pcCell=mP.querySelector('.mv.pc'),spCell=mP.querySelector('.mv.sp');
+  if(pcCell)pcCell.scrollIntoView({block:'nearest',inline:'nearest'});
+  if(spCell)spCell.scrollIntoView({block:'nearest',inline:'nearest'});
   // Stack
   h='';let sBase=0x02F8;h+=`<span class="ma">${f16(sBase)}</span>`;
   for(let c=0;c<8;c++){let ad=sBase+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===R[6])cl+=' sp';h+=`<span class="${cl}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}
@@ -1278,6 +1422,8 @@ function renderAll(){
   renderOutput();
   renderDatapath();
   renderMicrocode();
+  renderProfile();
+  renderWatch();
   updateDebugLineUI();
   updateStepNavButtons();
 }
@@ -1291,11 +1437,38 @@ function updateDebugLineUI(){updateLineHighlight();const cur=activeSourceLine();
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
 function syncAllScroll(){syncLnScroll();updateLineHighlight()}
 ed.addEventListener('input',function(){updLn();updateDebugLineUI()});
+document.getElementById('watchIn').addEventListener('input',renderWatch);
 ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){if(e.target===ed)return;e.preventDefault();ed.scrollTop+=e.deltaY;if(e.deltaX)ed.scrollLeft+=e.deltaX;syncAllScroll()},{passive:false});
 function updLn(){let n=ed.value.split('\n').length,h='',cur=activeSourceLine();for(let i=1;i<=n;i++){let cl='ln-row';if(breakpoints.has(i))cl+=' ln-bp';if(cur!==null&&i===cur)cl+=' ln-cur';h+='<span class="'+cl+'" data-line="'+i+'" title="Toggle breakpoint">'+i+'</span>'}lns.innerHTML=h;syncLnScroll()}
 lns.addEventListener('click',function(e){const row=e.target.closest('.ln-row');if(!row)return;let line=+row.dataset.line;if(!line)return;if(instrLines.size>0&&!instrLines.has(line)){sLog('Line '+line+': no instruction here.',1);return}if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);updLn();updateLineHighlight()});
+document.getElementById('log').addEventListener('click',function(e){let b=e.target.closest('.log-ln-btn');if(!b)return;jumpToLine(+b.dataset.ln)});
 ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn()}else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}});
+function parseHexWords(t){
+  let out=[],lines=String(t||'').split('\n');
+  for(let ln of lines){
+    let s=ln.replace(/;.*$/,'').replace(/\/\/.*$/,'').trim();
+    if(!s)continue;
+    let ci=s.indexOf(':');if(ci>=0)s=s.slice(ci+1);
+    let toks=s.match(/(?:0x)?[0-9a-fA-F]{1,4}/g)||[];
+    for(let tk of toks){let v=parseInt(tk,16);if(!Number.isNaN(v))out.push(v&0xFFFF)}
+  }
+  return out;
+}
+function loadHexFromExport(){
+  let ta=document.getElementById('hexIn');if(!ta){sLog('Hex input not found.',1);return}
+  let words=parseHexWords(ta.value);
+  if(!words.length){sLog('Hex import failed: no 16-bit words found.',1);return}
+  stopR();resetState();
+  for(let i=0;i<words.length&&i<65536;i++)mem[i]=words[i];
+  baseMem.set(mem);dirtyPages.clear();cyclePhase=0;
+  pLen=Math.min(words.length,65536);
+  labels={};aLines=Array.from({length:pLen},(_,i)=>({ln:i+1}));
+  instrLines=new Set(aLines.map(x=>x.ln));breakpoints.clear();R[6]=SP_INIT;
+  ed.value=words.slice(0,pLen).map(w=>dis(w)).join('\n');
+  updLn();renderAll();
+  sLog('Loaded '+pLen+' words from hex. SP='+f16(SP_INIT)+'.',0);
+}
 
 // ===== EXAMPLES =====
 const EX={
@@ -1354,30 +1527,30 @@ fib_loop:
 max2out:`; Max of two numbers, output 'A' if R1>=R2 else 'B'
     LI\tR1, #37
     LI\tR2, #52
-    LI\tR6, #0
-    LUI\tR6, #255
+    LI\tR5, #0
+    LUI\tR5, #255
     CMP\tR1, R2
     BGE\ta_win
     LI\tR3, #66
-    STORE\tR3, [R6]
+    STORE\tR3, [R5]
     HALT
 a_win:
     LI\tR3, #65
-    STORE\tR3, [R6]
+    STORE\tR3, [R5]
     HALT`,
 branchout:`; Signed branch demo, output 'T' when BLT is taken
     LI\tR1, #-5
     LI\tR2, #3
-    LI\tR6, #0
-    LUI\tR6, #255
+    LI\tR5, #0
+    LUI\tR5, #255
     CMP\tR1, R2
     BLT\ttaken
     LI\tR3, #70
-    STORE\tR3, [R6]
+    STORE\tR3, [R5]
     HALT
 taken:
     LI\tR3, #84
-    STORE\tR3, [R6]
+    STORE\tR3, [R5]
     HALT`,
 stackout:`; Stack round-trip, output popped chars 'B' then 'A'
     LI\tR1, #65
@@ -1386,20 +1559,20 @@ stackout:`; Stack round-trip, output popped chars 'B' then 'A'
     PUSH\tR2
     POP\tR3
     POP\tR4
-    LI\tR6, #0
-    LUI\tR6, #255
-    STORE\tR3, [R6]
-    STORE\tR4, [R6+1]
+    LI\tR5, #0
+    LUI\tR5, #255
+    STORE\tR3, [R5]
+    STORE\tR4, [R5+1]
     HALT`,
 callout:`; CALL/RET with output from subroutine
-    LI\tR6, #0
-    LUI\tR6, #255
+    LI\tR5, #0
+    LUI\tR5, #255
     CALL\temit_x
     HALT
 emit_x:
     PUSH\tLR
     LI\tR1, #88
-    STORE\tR1, [R6]
+    STORE\tR1, [R5]
     POP\tLR
     RET`,
 memecho:`; Memory write/read then echo loaded value as output
@@ -1409,9 +1582,9 @@ memecho:`; Memory write/read then echo loaded value as output
     STORE\tR1, [R2]
     LI\tR3, #0
     LOAD\tR3, [R2]
-    LI\tR6, #0
-    LUI\tR6, #255
-    STORE\tR3, [R6]
+    LI\tR5, #0
+    LUI\tR5, #255
+    STORE\tR3, [R5]
     HALT`,
 sort:`; Bubble sort [5,3,1,4,2] at 0x0100
     LI\tR1, #5
@@ -1435,9 +1608,8 @@ inner:
     LOAD\tR1, [R2]
     LOAD\tR3, [R2+1]
     CMP\tR1, R3
-    BGE\tnoswap
-    JMP\tskip
-noswap:
+    BGE\tskip
+doswap:
     STORE\tR3, [R2]
     STORE\tR1, [R2+1]
 skip:
@@ -1448,6 +1620,57 @@ skip:
     ADDI\tR5, #-1
     CMPI\tR5, #0
     BNE\touter
+    HALT`,
+factorial:`; 5! via repeated addition multiply, output marker 'F'
+    LI\tR1, #5
+    LI\tR2, #1
+fact_outer:
+    LI\tR3, #0
+    MOV\tR4, R2
+fact_mul:
+    ADD\tR3, R3, R1
+    ADDI\tR4, #-1
+    BNE\tfact_mul
+    MOV\tR2, R3
+    ADDI\tR1, #-1
+    CMPI\tR1, #1
+    BNE\tfact_outer
+    LI\tR5, #0
+    LUI\tR5, #255
+    LI\tR6, #70
+    STORE\tR6, [R5]
+    HALT`,
+muladd:`; 3*4 by repeated addition, output result as two digits "12"
+    LI\tR1, #3
+    LI\tR2, #4
+    LI\tR3, #0
+mul_loop:
+    ADD\tR3, R3, R1
+    ADDI\tR2, #-1
+    BNE\tmul_loop
+    LI\tR5, #0
+    LUI\tR5, #255
+    LI\tR4, #49
+    STORE\tR4, [R5]
+    LI\tR4, #50
+    STORE\tR4, [R5+1]
+    HALT`,
+fibmulti:`; Fibonacci sequence output: 1,1,2,3,5,8
+    LI\tR1, #1
+    LI\tR2, #1
+    LI\tR5, #0
+    LUI\tR5, #255
+    LI\tR4, #6
+fibm_loop:
+    ADDI\tR1, #48
+    STORE\tR1, [R5]
+    ADDI\tR1, #-48
+    ADDI\tR5, #1
+    ADD\tR3, R1, R2
+    MOV\tR1, R2
+    MOV\tR2, R3
+    ADDI\tR4, #-1
+    BNE\tfibm_loop
     HALT`
 };
 function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
