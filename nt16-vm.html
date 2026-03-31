@@ -282,10 +282,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-dispatch .fmt-is{background:#e8ecf8;color:#3d4a7a}
 .doc-dispatch .fmt-j{background:var(--amb-l);color:var(--amb)}
 .doc-dispatch .fmt-sp{background:var(--red-l);color:var(--red)}
-.bitbar{display:flex;min-width:320px;border:1px solid var(--brd);border-radius:4px;overflow:hidden;font-family:var(--mono);font-size:9px;line-height:1.4}
-.bitbar .seg{padding:2px 4px;border-right:1px solid var(--brd);text-align:center;white-space:nowrap}
+.bitbar{--bitw:20px;display:flex;width:calc(var(--bitw) * 16);max-width:100%;border:1px solid var(--brd);border-radius:4px;overflow:hidden;font-family:var(--mono);font-size:9px;line-height:1.4}
+.bitbar .seg{flex:none;padding:2px 4px;border-right:1px solid var(--brd);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bitbar .seg:last-child{border-right:none}
-.bitbar .w2{flex:2}.bitbar .w3{flex:3}.bitbar .w5{flex:5}.bitbar .w8{flex:8}.bitbar .w11{flex:11}
+.bitbar .w2{width:calc(var(--bitw) * 2)}.bitbar .w3{width:calc(var(--bitw) * 3)}.bitbar .w5{width:calc(var(--bitw) * 5)}.bitbar .w8{width:calc(var(--bitw) * 8)}.bitbar .w11{width:calc(var(--bitw) * 11)}
 .bitbar .op{background:var(--blu-l);color:var(--blu)}
 .bitbar .reg{background:var(--bg3);color:var(--text)}
 .bitbar .imm{background:var(--grn-l);color:var(--grn)}
@@ -300,8 +300,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 </head>
 <body>
 <div class="hd">
-  <a class="home-lnk" href="index.html">Home</a>
-  <div class="sep"></div>
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="hd-right">
     <div class="ctrls">
@@ -326,6 +324,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
     <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
     <button type="button" class="b" onclick="openDocPanel()" title="Full guide (F1)">Guide</button>
+    <a class="home-lnk" href="https://natozenbilek.github.io/" target="_blank" rel="noopener noreferrer">Site</a>
   </div>
 </div>
 <div class="mn">
