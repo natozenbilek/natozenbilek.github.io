@@ -61,11 +61,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 
 .mn{display:flex;flex:1;min-height:0}
 .ep{width:50%;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--brd)}
-.eh{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--brd);background:var(--bg2);font-size:10px}
+.eh{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:5px 10px;border-bottom:1px solid var(--brd);background:var(--bg2);font-size:10px}
 .eh span{color:var(--text2)}.eh select{font-family:var(--mono);font-size:10px;padding:1px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
+.eh-hint{margin-left:auto;font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+@media(max-width:560px){.eh-hint{margin-left:0;width:100%}}
 .ew{flex:1;display:flex;overflow:hidden;min-height:0;overscroll-behavior:contain}
-.ln{flex-shrink:0;padding:8px 6px 8px 8px;background:var(--bg-ed);color:#6c6c7e;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;user-select:none;overflow-y:auto;overflow-x:hidden;min-width:2.75rem;white-space:pre;tab-size:4;border-right:1px solid rgba(255,255,255,.06);scrollbar-width:none;-ms-overflow-style:none}
+.ln{flex-shrink:0;padding:8px 0 8px 4px;background:var(--bg-ed);color:#6c6c7e;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;user-select:none;overflow-y:auto;overflow-x:hidden;min-width:2.75rem;tab-size:4;border-right:1px solid rgba(255,255,255,.06);scrollbar-width:none;-ms-overflow-style:none;display:flex;flex-direction:column;align-items:stretch;box-sizing:border-box}
 .ln::-webkit-scrollbar{display:none;width:0;height:0}
+.ln-row{display:block;text-align:right;padding:0 6px 0 4px;border-radius:2px;cursor:pointer;transition:background .12s;box-sizing:border-box}
+.ln-row:hover{background:rgba(255,255,255,.07)}
+.ln-bp{box-shadow:inset 3px 0 0 #e87070;background:rgba(232,112,112,.12)}
+.ln-cur{font-weight:700;color:#a6c8ff;background:rgba(137,180,250,.14)}
+.ln-row.ln-bp.ln-cur{box-shadow:inset 3px 0 0 #e87070;background:rgba(180,140,200,.18)}
+.ed-line-hi{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;border-radius:0}
+.ed-line-hi-bar{position:absolute;left:0;right:0;background:rgba(137,180,250,.14);border-left:3px solid rgba(137,180,250,.65);box-sizing:border-box}
 .ed-wrap{flex:1;position:relative;min-width:0;min-height:0;align-self:stretch;background:var(--bg-ed)}
 .ed-hl{position:absolute;inset:0;margin:0;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.65;tab-size:4;white-space:pre;overflow:hidden;pointer-events:none;z-index:0;color:#cdd6f4;border-radius:0}
 .ed-hl code{display:block;transform-origin:0 0;will-change:transform}
@@ -139,6 +148,36 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   .rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}
 }
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
+
+.doc-ov{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px 14px;overflow:auto;background:rgba(26,26,30,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.doc-ov[hidden]{display:none!important}
+.doc-panel{max-width:min(56rem,100%);width:100%;max-height:min(92vh,100%);margin:auto;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden}
+.doc-panel-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
+.doc-panel-hd h2{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin:0;flex:1}
+.doc-panel-hd .b{padding:4px 10px}
+.doc-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.doc-tab{font-family:var(--mono);font-size:10px;padding:6px 11px;border:1px solid transparent;border-radius:var(--r);cursor:pointer;background:transparent;color:var(--text2);transition:background .12s,border-color .12s,color .12s}
+.doc-tab:hover{color:var(--text);background:var(--bg2)}
+.doc-tab.on{background:var(--bg2);border-color:var(--brd);color:var(--text);font-weight:600}
+.doc-scroll{overflow-y:auto;padding:0 16px 20px;flex:1;min-height:0}
+.doc-scroll article{max-width:100%;padding-top:14px;font-family:var(--sans);font-size:12.5px;line-height:1.58;color:var(--text)}
+.doc-scroll h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem;color:var(--text)}
+.doc-scroll h3:first-child{margin-top:0}
+.doc-scroll h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1rem 0 .35rem}
+.doc-scroll p{margin:.45rem 0}
+.doc-scroll table{border-collapse:collapse;width:100%;font-size:11px;margin:.55rem 0}
+.doc-scroll th,.doc-scroll td{border:1px solid var(--brd);padding:5px 7px;text-align:left;vertical-align:top}
+.doc-scroll th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text2)}
+.doc-scroll code{font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--acc)}
+.doc-scroll pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
+.doc-note{font-size:11.5px;color:var(--text2);border-left:3px solid var(--blu);padding:8px 12px;background:var(--blu-l);margin:12px 0;border-radius:0 var(--r) var(--r) 0}
+@media(prefers-color-scheme:dark){.doc-note{background:var(--blu-l);color:var(--text)}}
+.doc-pane-tut{padding-top:12px}
+.doc-pane-tut label{display:block;font-size:10px;font-family:var(--mono);color:var(--text2);margin-bottom:4px}
+.doc-pane-tut select{font-family:var(--mono);font-size:11px;padding:4px 8px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);margin-bottom:12px;max-width:100%}
+.tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
+.tut-steps li{margin:.55rem 0;padding-left:.25rem}
+.tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
 </style>
 </head>
 <body>
@@ -165,6 +204,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </select>
   </div>
   <span class="pill p-rdy" id="st">READY</span>
+  <button type="button" class="b" onclick="openDocPanel('isa')" title="NT-16 ISA ve mimari rehberi">ISA / Rehber</button>
+  <button type="button" class="b" onclick="openDocPanel('tutorial')" title="Örnek programlar satır satır">Öğretici</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -179,11 +220,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="mem">Load / Store</option>
         <option value="sort">Bubble sort</option>
       </select>
+      <span class="eh-hint">Sol numara: breakpoint · mavi = sıradaki komut (PC)</span>
     </div>
     <div class="ew">
-      <div class="ln" id="lns">1</div>
+      <div class="ln" id="lns" aria-label="Satır numaraları"></div>
       <div class="ed-wrap">
         <pre class="ed-hl" id="edHl" aria-hidden="true"><code id="edH"></code></pre>
+        <div class="ed-line-hi" id="edLineHi" aria-hidden="true"></div>
         <textarea id="ed" spellcheck="false" autocomplete="off"></textarea>
       </div>
     </div>
@@ -211,7 +254,222 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
   </div></div>
 </div>
+
+<div id="docOv" class="doc-ov" hidden role="dialog" aria-modal="true" aria-labelledby="docDlgTitle">
+  <div class="doc-panel">
+    <div class="doc-panel-hd">
+      <h2 id="docDlgTitle">NT-16 — Dokümantasyon</h2>
+      <button type="button" class="b" onclick="closeDocPanel()">Kapat (Esc)</button>
+    </div>
+    <div class="doc-tabs" role="tablist">
+      <button type="button" class="doc-tab on" id="tabIsa" role="tab" aria-selected="true" onclick="setDocTab('isa')">ISA &amp; mimari</button>
+      <button type="button" class="doc-tab" id="tabTut" role="tab" aria-selected="false" onclick="setDocTab('tutorial')">Öğretici</button>
+    </div>
+    <div class="doc-scroll">
+      <article id="paneIsa"></article>
+      <div id="paneTut" class="doc-pane-tut" hidden>
+        <label for="tutSel">Örnek program</label>
+        <select id="tutSel" onchange="renderTutorial()">
+          <option value="sum">Sum 1..5</option>
+          <option value="fib">Fibonacci</option>
+          <option value="fact">Factorial(5)</option>
+          <option value="call">Subroutine</option>
+          <option value="mem">Load / Store</option>
+          <option value="sort">Bubble sort</option>
+        </select>
+        <div id="tutOut"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+// ===== DOKÜMANTASYON PANELİ =====
+const ISA_DOC_HTML=`<h3>Genel bakış</h3>
+<p>NT-16, Brey / Tanenbaum çizgisinde yapılandırılmış bir <strong>16 bit</strong>, <strong>sözcük adresli</strong>, <strong>yazmaç tabanlı</strong> pedagojik oyuncak bilgisayardır. Bu sayfadaki sanal makine aynı assembly sözdizimini çalıştırır; <strong>16 bit makine kodu eşlemesi</strong> aşağıda &ldquo;Bu emülatör&rdquo; tablosunda verilmiştir (taslak ISA PDF&rsquo;indeki opcode numaralarından farklı olabilir).</p>
+<table><tr><th>Parametre</th><th>Değer</th></tr>
+<tr><td>Sözcük</td><td>16 bit</td></tr>
+<tr><td>Bellek</td><td>2¹⁶ sözcük (65&nbsp;536 kelime)</td></tr>
+<tr><td>Komut genişliği</td><td>16 bit (sabit)</td></tr>
+<tr><td>I/O</td><td>Bellek eşlemeli (tasarım)</td></tr></table>
+
+<h3>Yazmaçlar</h3>
+<h4>Genel yazmaçlar (GPR)</h4>
+<table><tr><th>Yazmaç</th><th>Kullanım</th></tr>
+<tr><td><code>R0</code></td><td>Sabit sıfır — okuma 0, yazmalar yok sayılır</td></tr>
+<tr><td><code>R1</code>&ndash;<code>R5</code></td><td>Genel amaçlı</td></tr>
+<tr><td><code>R6</code> / <code>SP</code></td><td>Yığın göstergesi (yazılım anlaşması)</td></tr>
+<tr><td><code>R7</code> / <code>LR</code></td><td>Dönüş adresi (CALL/RET)</td></tr></table>
+<p><code>R6</code> ve <code>R7</code> donanımda diğerleriyle aynıdır; SP/LR rolleri anlaşmadır.</p>
+
+<h4>Özel</h4>
+<table><tr><th>Ad</th><th>Açıklama</th></tr>
+<tr><td><code>PC</code></td><td>Bir sonraki komutun adresi</td></tr>
+<tr><td><code>FLAGS</code></td><td>Z, C, N, V (sıfır, elde, işaret taşıma, işaretli taşma)</td></tr></table>
+<pre>Bit:  3   2   1   0
+    [ V ][ N ][ C ][ Z ]</pre>
+
+<h3>Komut biçimleri (16 bit)</h3>
+<p>Üst <strong>5 bit</strong> her zaman opcode alanıdır (emülatördeki gerçek kodlama altta özetlenir).</p>
+<h4>R-türü — ALU</h4>
+<pre>15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func</pre>
+<h4>I-kısa — LOAD/STORE</h4>
+<pre>15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (işaretli, -16..+15)</pre>
+<h4>I-geniş — anında aritmetik / yükleme</h4>
+<pre>15..11 opcode | 10..8 Rd | 7..0 imm8</pre>
+<h4>J — dallanma / sıçrama</h4>
+<pre>15..11 opcode | 10..0 offset11 (PC-göreli, işaretli, yaklaşık ±1023 sözcük)</pre>
+<p>Dallanma hedefi: <code>PC ← PC + 1 + sign_ext(offset11)</code> (dal komutundan sonra PC zaten artmıştır).</p>
+
+<h3>ALU komutları (R-türü)</h3>
+<table><tr><th>Mnemonic</th><th>İşlem</th><th>Bayraklar</th></tr>
+<tr><td>ADD Rd, Rs, Rt</td><td>Rd = Rs + Rt</td><td>Z,C,N,V</td></tr>
+<tr><td>SUB Rd, Rs, Rt</td><td>Rd = Rs - Rt</td><td>Z,C,N,V</td></tr>
+<tr><td>AND, OR, XOR</td><td>Bitwise</td><td>Z,N (+C,V uygun değil)</td></tr>
+<tr><td>NOT Rd, Rs</td><td>Rd = ~Rs</td><td>Z,N</td></tr>
+<tr><td>SHL, SHR, SRA</td><td>Kaydırma (Rt düşük 4 bit)</td><td>Z,C,N</td></tr>
+<tr><td>CMP Rs, Rt</td><td>Rs−Rt → sadece bayraklar</td><td>Z,C,N,V</td></tr></table>
+
+<h3>Anında komutlar (I-geniş)</h3>
+<table><tr><th>Mnemonic</th><th>İşlem</th><th>Not</th></tr>
+<tr><td>ADDI Rd, #imm</td><td>Rd += imm8</td><td>işaretli</td></tr>
+<tr><td>ANDI, ORI</td><td>Rd &= / |= imm8</td><td>sıfır genişletme (maske)</td></tr>
+<tr><td>LI Rd, #imm</td><td>Rd = imm8</td><td>işaretli</td></tr>
+<tr><td>LUI Rd, #imm</td><td>Rd = imm8 &lt;&lt; 8</td><td>üst bayt</td></tr>
+<tr><td>CMPI Rd, #imm</td><td>Rd−imm → bayraklar</td><td>işaretli</td></tr></table>
+<p>16 bit sabit için örnek: <code>LUI R1, #0x3F</code> sonra <code>ORI R1, #0x7A</code>.</p>
+
+<h3>Bellek ve yığın</h3>
+<table><tr><th>Komut</th><th>Anlam</th></tr>
+<tr><td>LOAD Rd, [Rs+off]</td><td>Rd = Mem[Rs+imm5]</td></tr>
+<tr><td>STORE Rd, [Rs+off]</td><td>Mem[Rs+imm5] = Rd</td></tr>
+<tr><td>PUSH Rd</td><td>SP--; Mem[SP]=Rd</td></tr>
+<tr><td>POP Rd</td><td>Rd=Mem[SP]; SP++</td></tr></table>
+<p>Yığın bu VM&rsquo;de aşağı doğru büyür; örnek izleme penceresi <code>0x02F8</code>&ndash;<code>0x02FF</code> civarındadır.</p>
+
+<h3>Kontrol akışı</h3>
+<table><tr><th>Komut</th><th>Koşul / işlem</th></tr>
+<tr><td>BEQ, BNE</td><td>Z=1 / Z=0</td></tr>
+<tr><td>BLT, BGE</td><td>işaretli &lt; / ≥ (N≠V / N=V)</td></tr>
+<tr><td>BCS, BCC</td><td>C=1 / C=0 (işaretsiz)</td></tr>
+<tr><td>JMP</td><td>Koşulsuz</td></tr>
+<tr><td>CALL</td><td>LR=PC+1; sıçra</td></tr>
+<tr><td>RET</td><td>PC=LR</td></tr>
+<tr><td>HALT</td><td>Durdur</td></tr></table>
+<p>İç içe çağrıda genelde önce <code>PUSH LR</code>, sonra <code>CALL</code> gerekir.</p>
+
+<h3>Sözde komutlar</h3>
+<table><tr><th>Sözde</th><th>Genişleme / etki</th></tr>
+<tr><td>NOP</td><td>ADD R0,R0,R0</td></tr>
+<tr><td>MOV Rd, Rs</td><td>ADD Rd, Rs, R0</td></tr>
+<tr><td>NEG Rd, Rs</td><td>SUB Rd, R0, Rs</td></tr>
+<tr><td>CLR Rd</td><td>Bu VM: ADD Rd,R0,R0 → 0 (taslakta LI #0 da önerilir)</td></tr></table>
+<p><code>SUBI</code> ayrı opcode değildir; <code>ADDI Rd, #-k</code> kullanın.</p>
+
+<div class="doc-note"><strong>Bu emülatördeki 5 bit opcode</strong> (üst bitler 15..11; makine koduyle uyumludur): R-grubu 0&ndash;2 (func ile alt seçim); <code>ADDI</code>=8 &hellip; <code>CMPI</code>=13; <code>LOAD</code>=16, <code>STORE</code>=17, <code>PUSH</code>=18, <code>POP</code>=19; <code>RET</code>=20, <code>HALT</code>=21; <code>BEQ</code>=24 &hellip; <code>CALL</code>=31. Ayrıntı için kaynak kodundaki <code>INS</code> nesnesine bakın.</div>
+<p><strong>Simülatör:</strong> Derlemeden sonra <code>PC</code>, bir <em>sonraki yürütülecek</em> komutun bellek adresini gösterir; kaynakta vurgulanan satır da buna karşılık gelir. Sol satır numarasına tıklayarak <strong>breakpoint</strong> koyabilirsiniz; <strong>Run</strong> o satırdaki komut çalıştırılmadan durur (Step ile devam).</p>
+
+<h3>Tasarım özeti</h3>
+<table><tr><th>Karar</th><th>Seçim</th></tr>
+<tr><td>R0</td><td>Sabit sıfır → MOV/NOP/NEG kolay</td></tr>
+<tr><td>SP, LR</td><td>R6, R7 içinde; tek yazmaç dosyası</td></tr>
+<tr><td>Dallanma</td><td>PC-göreli 11 bit</td></tr>
+<tr><td>Alt yordam</td><td>CALL/RET + LR; iç içe için yığın</td></tr></table>
+<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tözenbilek, March 2026.</em> Metin bu rehbere dayanır; opcode sayıları yukarıdaki notta emülatörle hizalanmıştır.</p>`;
+
+const TUTORIAL_HTML={
+sum:`<h3>Sum 1..5 — toplam 15</h3><ol class="tut-steps">
+<li><code>LI R1, #5</code> — Sayaç 5.</li>
+<li><code>LI R2, #0</code> — Toplam 0&rsquo;dan başlar.</li>
+<li><code>loop:</code> — Döngü giriş etiketi.</li>
+<li><code>ADD R2, R2, R1</code> — <code>R2 += R1</code> (5+4+3+2+1).</li>
+<li><code>ADDI R1, #-1</code> — Sayaç bir azalır.</li>
+<li><code>BNE loop</code> — Sıfır değilse başa dön; sıfırda bir sonraki komuta geçer.</li>
+<li><code>HALT</code> — Durdur; sonuç <code>R2=15</code>.</li>
+</ol>`,
+fib:`<h3>Fibonacci — fib(7)=13</h3><ol class="tut-steps">
+<li><code>LI R1,#0</code>, <code>LI R2,#1</code> — Ardışık iki Fibonacci değeri (F<sub>n</sub>, F<sub>n+1</sub>).</li>
+<li><code>LI R4,#6</code> — Kaç adım ilerlenecek (7&rsquo;ye kadar gitmek için 6 güncelleme).</li>
+<li>Döngüde <code>ADD R3,R1,R2</code> — Bir sonraki terim.</li>
+<li><code>MOV R1,R2</code> ve <code>MOV R2,R3</code> — Çifti kaydır (eski R2 yeni R1 olur).</li>
+<li><code>ADDI R4,#-1</code>, <code>BNE loop</code> — Sayacı azalt; bitmeden devam.</li>
+<li><code>HALT</code> — <code>R2</code> hedef değeri (13) içerir.</li>
+</ol>`,
+fact:`<h3>Faktöriyel(5) = 120</h3><ol class="tut-steps">
+<li><code>LI R1,#5</code> — n; <code>LI R2,#1</code> — sonuç çarpanı.</li>
+<li>Dış <code>loop:</code> — Her n için iç çarpma.</li>
+<li>İç <code>mul:</code> — <code>R3</code>&rsquo;ü 0&rsquo;la; <code>R4</code> ile <code>R2</code> kadar <code>ADD R3,R3,R2</code> (işaretsiz çarpma).</li>
+<li><code>MOV R2,R3</code> — Yeni sonuç; <code>ADDI R1,#-1</code> — n azalt.</li>
+<li><code>CMPI R1,#1</code>, <code>BGE loop</code> — n≥1 iken tekrarla.</li>
+<li><code>HALT</code> — <code>R2=120</code>.</li>
+</ol>`,
+call:`<h3>Alt yordam — çağrı ve dönüş</h3><ol class="tut-steps">
+<li><code>LI R1,#7</code> — Argüman benzeri değer.</li>
+<li><code>CALL double</code> — <code>LR</code> bir sonraki komut adresini alır; <code>double</code>&rsquo;a sıçrar.</li>
+<li><code>HALT</code> — Dönüşten sonra burada durur.</li>
+<li><code>double:</code> — Alt program: <code>ADD R1,R1,R1</code> (ör. iki katı).</li>
+<li><code>RET</code> — <code>PC = LR</code> ile çağırana dönüş.</li>
+</ol>`,
+mem:`<h3>Yükle / sakla / yığın</h3><ol class="tut-steps">
+<li><code>LI R1,#42</code> — Yazılacak sabit.</li>
+<li><code>LUI R2,#1</code> — Taban adres ≈ <code>0x0100</code> (üst bayt).</li>
+<li><code>STORE R1,[R2]</code> — Belleğe yaz.</li>
+<li><code>LOAD R3,[R2]</code> — Geri oku; <code>R3=42</code>.</li>
+<li><code>PUSH R3</code> / <code>POP R3</code> — Yığın üzerinde deneme (SP değişimini sağ panelde izleyin).</li>
+<li><code>HALT</code>.</li>
+</ol>`,
+sort:`<h3>Kabarcık sıralama</h3><ol class="tut-steps">
+<li><code>LUI R2,#1</code> ile taban <code>0x0100</code>; ardışık <code>STORE</code> ile dizi yerleştirilir.</li>
+<li><code>outer</code> — Geçiş sayısı <code>R5</code>; her turda bir eleman yerine oturur.</li>
+<li><code>inner</code> — Komşu çiftleri <code>LOAD</code> ile oku, <code>CMP</code> ile karşılaştır.</li>
+<li><code>BGE noswap</code> — Zaten sıralıysa (R1≥R3) değiştirmeden geç.</li>
+<li><code>JMP skip</code> — Değişim bloğunu atla; etiket isimleri örneğe bağlıdır (mantığı adım adım izleyin).</li>
+<li><code>noswap</code> / <code>skip</code> — Yer değiştirme veya atlayış; indeks <code>ADDI R2,#1</code> ile artar.</li>
+<li><code>BLT inner</code> — İç döngü; dışta <code>R5</code> azaltılıp <code>BNE outer</code> ile tekrarlanır.</li>
+</ol>`
+};
+
+function openDocPanel(which){
+  const ov=document.getElementById('docOv');
+  ov.hidden=false;
+  document.body.style.overflow='hidden';
+  if(which==='tutorial')setDocTab('tutorial');
+  else setDocTab('isa');
+  if(which==='tutorial'){
+    const exv=document.getElementById('ex').value;
+    if(exv&&TUTORIAL_HTML[exv])document.getElementById('tutSel').value=exv;
+    renderTutorial();
+  }
+}
+function closeDocPanel(){
+  const ov=document.getElementById('docOv');
+  ov.hidden=true;
+  document.body.style.overflow='';
+}
+function setDocTab(id){
+  const isa=id==='isa';
+  document.getElementById('tabIsa').classList.toggle('on',isa);
+  document.getElementById('tabIsa').setAttribute('aria-selected',isa);
+  document.getElementById('tabTut').classList.toggle('on',!isa);
+  document.getElementById('tabTut').setAttribute('aria-selected',!isa);
+  document.getElementById('paneIsa').hidden=!isa;
+  document.getElementById('paneTut').hidden=isa;
+  if(isa){
+    const p=document.getElementById('paneIsa');
+    if(!p.dataset.filled){p.innerHTML=ISA_DOC_HTML;p.dataset.filled='1'}
+  }else renderTutorial();
+}
+function renderTutorial(){
+  const k=document.getElementById('tutSel').value;
+  document.getElementById('tutOut').innerHTML=TUTORIAL_HTML[k]||'<p>Bu örnek için özet yok.</p>';
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&!document.getElementById('docOv').hidden)closeDocPanel();
+});
+document.getElementById('docOv').addEventListener('click',function(e){
+  if(e.target===this)closeDocPanel();
+});
+
 // ===== ASSEMBLER =====
 const INS={
   ADD:{t:'R',o:0b00000,f:0},SUB:{t:'R',o:0b00000,f:1},AND:{t:'R',o:0b00000,f:2},OR:{t:'R',o:0b00000,f:3},
@@ -233,6 +491,7 @@ let PC=0,MAR=0,MDR=0,IR=0,A=0,ALUO=0;
 let FL={Z:0,C:0,N:0,V:0};
 let cy=0,ic=0,halt=false,run=false,tmr=null;
 let pLen=0,labels={},aLines=[];
+let breakpoints=new Set();
 let pR_=new Uint16Array(8),pPC=0,pFL={Z:0,C:0,N:0,V:0};
 let chg=new Set(),bus={s:'—',v:'—',d:'—',a:'—'},curI=null,curDesc='';
 
@@ -266,6 +525,8 @@ function doAssemble(){
   resetState();
   for(let i=0;i<bin.length;i++)mem[i]=bin[i];
   pLen=bin.length;labels=lbl;aLines=ils;
+  let maxLn=lines.length;
+  breakpoints=new Set([...breakpoints].filter(n=>n>=1&&n<=maxLn));
   sLog(`Assembled ${bin.length} instructions.`,0);sSt('READY');renderAll()
 }
 
@@ -312,7 +573,12 @@ function detect(){
 }
 
 function execOne(){
-  if(halt)return;savePrev();
+  if(halt)return;
+  if(run&&breakpoints.size&&pLen&&PC<pLen){
+    let lnBp=aLines[PC].ln;
+    if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: satır '+lnBp+' (henüz çalıştırılmadı)',0);renderAll();return}
+  }
+  savePrev();
   MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
   let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
   curI=dis(IR);let op=d.op;
@@ -361,7 +627,7 @@ function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();star
 function doToggleRun(){if(run)stopR();else startR()}
 function startR(){if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
   let dl=spd>=9999?1:Math.max(1,Math.floor(1000/spd)),bt=spd>=9999?200:1;
-  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}},dl)}
+  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}},dl)}
 function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getElementById('runBtn').textContent='Run';document.getElementById('runBtn').className='b bg';if(!halt)sSt('READY')}
 
 // ===== RENDER =====
@@ -401,6 +667,7 @@ function renderAll(){
   for(let c=0;c<8;c++){let ad=sBase+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===R[6])cl+=' sp';
     h+=`<span class="${cl}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}
   document.getElementById('mS').innerHTML=h;
+  updateDebugLineUI();
 }
 
 // Satır numaraları + sözdizimi rengi (arka katman #edH, üstte şeffaf #ed)
@@ -408,6 +675,34 @@ const ed=document.getElementById('ed');
 const edH=document.getElementById('edH');
 const lns=document.getElementById('lns');
 const ew=document.querySelector('.ew');
+
+function activeSourceLine(){
+  if(!pLen||!aLines.length)return null;
+  if(PC<pLen)return aLines[PC].ln;
+  return aLines[pLen-1].ln;
+}
+function lineMetrics(){
+  const cs=getComputedStyle(ed);
+  let lh=parseFloat(cs.lineHeight);
+  if(isNaN(lh)||cs.lineHeight==='normal')lh=(parseFloat(cs.fontSize)||11.5)*1.65;
+  return{lh,pt:parseFloat(cs.paddingTop)||8}
+}
+function updateLineHighlight(){
+  const wrap=document.getElementById('edLineHi');
+  if(!wrap)return;
+  const ln=activeSourceLine();
+  if(ln==null||!pLen){wrap.innerHTML='';return}
+  const{lh,pt}=lineMetrics();
+  const top=pt+(ln-1)*lh-ed.scrollTop;
+  wrap.innerHTML='<div class="ed-line-hi-bar" style="top:'+top+'px;height:'+lh+'px"></div>';
+}
+function updateDebugLineUI(){
+  updateLineHighlight();
+  const cur=activeSourceLine();
+  document.querySelectorAll('#lns .ln-row').forEach(function(span){
+    span.classList.toggle('ln-cur',cur!==null&&+span.dataset.line===cur);
+  });
+}
 const MNEM=new Set(['ADD','SUB','AND','OR','XOR','NOT','SHL','SHR','SRA','CMP','ADDI','ANDI','ORI','LI','LUI','CMPI','LOAD','STORE','PUSH','POP','RET','HALT','BEQ','BNE','BLT','BGE','BCS','BCC','JMP','CALL','NOP','MOV','NEG','CLR']);
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function gapAfterLabel(code){return code.replace(/([A-Za-z_][\w]*):(?=[A-Za-z])/g,'$1: ')}
@@ -462,8 +757,8 @@ function updHl(){
 }
 function syncHlScroll(){edH.style.transform='translate('+(-ed.scrollLeft)+'px,'+(-ed.scrollTop)+'px)'}
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
-function syncAllScroll(){syncLnScroll();syncHlScroll()}
-ed.addEventListener('input',function(){updLn();updHl()});
+function syncAllScroll(){syncLnScroll();syncHlScroll();updateLineHighlight()}
+ed.addEventListener('input',function(){updLn();updHl();updateDebugLineUI()});
 ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){
   if(e.target===ed)return;
@@ -472,9 +767,27 @@ ew.addEventListener('wheel',function(e){
   if(e.deltaX)ed.scrollLeft+=e.deltaX;
   syncAllScroll();
 },{passive:false});
-function updLn(){let n=ed.value.split('\n').length,h='';for(let i=1;i<=n;i++)h+=i+'\n';lns.textContent=h;syncLnScroll()}
+function updLn(){
+  let n=ed.value.split('\n').length,h='',cur=activeSourceLine();
+  for(let i=1;i<=n;i++){
+    let cl='ln-row';
+    if(breakpoints.has(i))cl+=' ln-bp';
+    if(cur!==null&&i===cur)cl+=' ln-cur';
+    h+='<span class="'+cl+'" data-line="'+i+'" title="Breakpoint: tıkla / kaldır">'+i+'</span>';
+  }
+  lns.innerHTML=h;
+  syncLnScroll();
+}
+lns.addEventListener('click',function(e){
+  const row=e.target.closest('.ln-row');
+  if(!row)return;
+  let line=+row.dataset.line;
+  if(!line)return;
+  if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);
+  updLn();updateLineHighlight();
+});
 ed.addEventListener('keydown',function(e){
-  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl()}
+  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl();updateLineHighlight()}
   else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}
 });
 
@@ -574,7 +887,9 @@ skip:
     BNE  outer
     HALT`
 };
-function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();updHl();doReset()}}
+function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();updHl();doReset()}
+  const ov=document.getElementById('docOv'),tut=document.getElementById('paneTut');
+  if(s&&!ov.hidden&&!tut.hidden){document.getElementById('tutSel').value=s;renderTutorial()}}
 
 // Init
 ed.value=EX.sum;updLn();updHl();doAssemble();renderAll();
