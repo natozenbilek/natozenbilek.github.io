@@ -38,10 +38,10 @@
   --red:#e86060;--red-l:#3a1e1e;
 }}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;height:100vh;overflow:hidden}
-.home-back{position:fixed;top:8px;left:12px;z-index:200;font-family:var(--sans);font-size:11px;color:var(--text2);text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
-.home-back:hover{color:var(--text);border-bottom-color:var(--text3)}
-.hd{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 88px;border-bottom:1px solid var(--brd);background:var(--bg2);height:42px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;min-height:100vh;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.home-lnk{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text2);text-decoration:none;padding:4px 9px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);white-space:nowrap;flex-shrink:0;transition:background .1s,color .1s,border-color .1s}
+.home-lnk:hover{background:var(--bg);color:var(--text);border-color:var(--text3)}
+.hd{display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid var(--brd);background:var(--bg2);min-height:42px;flex-wrap:wrap;flex-shrink:0}
 .hd h1{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-.02em}
 .hd h1 b{color:var(--acc);font-weight:600}
 .sep{width:1px;height:18px;background:var(--brd)}
@@ -59,13 +59,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .p-hlt{background:var(--amb-l);color:var(--amb)}
 .p-err{background:var(--red-l);color:var(--red)}
 
-.mn{display:flex;height:calc(100vh - 42px)}
+.mn{display:flex;flex:1;min-height:0}
 .ep{width:50%;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--brd)}
 .eh{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--brd);background:var(--bg2);font-size:10px}
 .eh span{color:var(--text2)}.eh select{font-family:var(--mono);font-size:10px;padding:1px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
-.ew{flex:1;display:flex;overflow:hidden}
-.ln{padding:8px 0;background:var(--bg-ed);color:#5a5a6a;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;padding-right:6px;padding-left:6px;user-select:none;overflow:hidden;min-width:32px}
-#ed{flex:1;background:var(--bg-ed);color:#cdd6f4;font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:8px 10px;border:none;outline:none;resize:none;tab-size:4;white-space:pre;overflow:auto}
+.ew{flex:1;display:flex;overflow:hidden;min-height:0}
+.ln{padding:8px 6px 8px 8px;background:var(--bg-ed);color:#6c6c7e;font-family:var(--mono);font-size:11.5px;line-height:1.65;text-align:right;user-select:none;overflow:hidden;overflow-y:auto;min-width:2.75rem;white-space:pre;tab-size:4;border-right:1px solid rgba(255,255,255,.06)}
+#ed{flex:1;background:var(--bg-ed);color:#cdd6f4;font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:8px 10px;border:none;outline:none;resize:none;tab-size:4;white-space:pre;overflow:auto;min-width:0}
 #ed::placeholder{color:#585868}
 .lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto}
 .le{color:var(--red)}.ls{color:var(--grn)}
@@ -103,12 +103,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
-@media(max-width:720px){.home-back{position:static;display:block;padding:6px 14px;background:var(--bg2);border-bottom:1px solid var(--brd)}.hd{padding-left:14px}}
+@media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 </style>
 </head>
 <body>
-<a class="home-back" href="index.html">← Ana sayfa</a>
 <div class="hd">
+  <a class="home-lnk" href="index.html">Ana sayfa</a>
+  <div class="sep"></div>
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="sep"></div>
   <div class="ctrls">
