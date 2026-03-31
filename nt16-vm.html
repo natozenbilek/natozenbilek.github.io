@@ -75,8 +75,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ln-row.ln-bp.ln-cur{box-shadow:inset 3px 0 0 #e87070;background:rgba(180,140,200,.18)}
 .ed-line-hi{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;border-radius:0}
 .ed-line-hi-bar{position:absolute;left:0;right:0;background:rgba(137,180,250,.14);border-left:3px solid rgba(137,180,250,.65);box-sizing:border-box}
-.ed-wrap{flex:1;position:relative;min-width:0;min-height:0;align-self:stretch;background:var(--bg-ed)}
-.ed-hl,.ed-hl code,#ed{
+.ed-wrap{flex:1;display:flex;flex-direction:column;position:relative;min-width:0;min-height:0;align-self:stretch;background:var(--bg-ed)}
+#ed{
+  flex:1;min-height:120px;min-width:0;width:100%;box-sizing:border-box;position:relative;z-index:1;margin:0;
   font-family:var(--mono),ui-monospace,Courier New,monospace;
   font-size:var(--ed-fs);
   line-height:var(--ed-lh);
@@ -87,21 +88,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   tab-size:4;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
+  background:var(--bg-ed);color:#cdd6f4;caret-color:#89dceb;
+  padding:var(--ed-pad-t) var(--ed-pad-x);
+  border:none;outline:none;resize:none;appearance:none;-webkit-appearance:none;border-radius:0;
+  white-space:pre;overflow:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:rgba(205,214,244,.35) var(--bg-ed)
 }
-.ed-hl{position:absolute;inset:0;margin:0;padding:var(--ed-pad-t) var(--ed-pad-x);white-space:pre;overflow:hidden;pointer-events:none;z-index:0;color:#cdd6f4;border-radius:0}
-.ed-hl code{display:block;margin:0;padding:0;border:0;font:inherit;white-space:pre;tab-size:inherit;transform-origin:0 0;will-change:transform}
-.ed-hl span{vertical-align:baseline;font-weight:inherit}
-.hl-op{color:#cba6f7}
-.hl-reg{color:#89dceb}
-.hl-imm{color:#fab387}
-.hl-num{color:#a6e3a1}
-.hl-hash{color:#f5a97a}
-.hl-bracket{color:#b4befe;opacity:.92}
-.hl-lbl{color:#f9e2af}
-.hl-ref{color:#94e2d5}
-.hl-cmnt{color:#7f849c;opacity:.92}
-.hl-ph{color:#585868}
-#ed{position:absolute;inset:0;z-index:1;width:100%;height:100%;box-sizing:border-box;margin:0;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#cdd6f4;padding:var(--ed-pad-t) var(--ed-pad-x);border:none;outline:none;resize:none;appearance:none;-webkit-appearance:none;border-radius:0;white-space:pre;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(205,214,244,.35) var(--bg-ed)}
+#ed::placeholder{color:#585868;opacity:1}
 #ed::selection{background:rgba(137,180,250,.35)}
 #ed::-webkit-scrollbar{width:10px;height:10px}
 #ed::-webkit-scrollbar-track{background:var(--bg-ed)}
@@ -161,32 +154,45 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 }
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 
-.doc-ov{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px 14px;overflow:auto;background:rgba(26,26,30,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.doc-ov{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px 14px;overflow:hidden;overscroll-behavior:none;background:rgba(26,26,30,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .doc-ov[hidden]{display:none!important}
-.doc-panel{max-width:min(56rem,100%);width:100%;max-height:min(92vh,100%);margin:auto;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden}
+.doc-panel{max-width:min(56rem,100%);width:100%;max-height:min(92dvh,92vh);margin:auto;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain}
 .doc-panel-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
 .doc-panel-hd h2{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin:0;flex:1}
 .doc-panel-hd .b{padding:4px 10px}
-.doc-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.doc-hint{font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap}
+@media(max-width:640px){.doc-hint{display:none}}
+.doc-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0;align-items:center}
 .doc-tab{font-family:var(--mono);font-size:10px;padding:6px 11px;border:1px solid transparent;border-radius:var(--r);cursor:pointer;background:transparent;color:var(--text2);transition:background .12s,border-color .12s,color .12s}
 .doc-tab:hover{color:var(--text);background:var(--bg2)}
 .doc-tab.on{background:var(--bg2);border-color:var(--brd);color:var(--text);font-weight:600}
-.doc-scroll{overflow-y:auto;padding:0 16px 20px;flex:1;min-height:0}
-.doc-scroll article{max-width:100%;padding-top:14px;font-family:var(--sans);font-size:12.5px;line-height:1.58;color:var(--text)}
-.doc-scroll h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem;color:var(--text)}
-.doc-scroll h3:first-child{margin-top:0}
-.doc-scroll h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1rem 0 .35rem}
-.doc-scroll p{margin:.45rem 0}
-.doc-scroll table{border-collapse:collapse;width:100%;font-size:11px;margin:.55rem 0}
-.doc-scroll th,.doc-scroll td{border:1px solid var(--brd);padding:5px 7px;text-align:left;vertical-align:top}
-.doc-scroll th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text2)}
-.doc-scroll code{font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--acc)}
-.doc-scroll pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
+.doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;padding:0}
+.doc-isa-split,.doc-tut-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0}
+.doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:background .12s,color .12s,border-color .12s}
+.doc-subtab:hover{color:var(--text);background:var(--bg3)}
+.doc-subtab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
+.doc-isa-scroll,.doc-tut-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 20px;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.doc-isa-scroll::-webkit-scrollbar,.doc-tut-scroll::-webkit-scrollbar{width:9px}
+.doc-isa-scroll::-webkit-scrollbar-track,.doc-tut-scroll::-webkit-scrollbar-track{background:transparent}
+.doc-isa-scroll::-webkit-scrollbar-thumb,.doc-tut-scroll::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg2)}
+.doc-isa-scroll::-webkit-scrollbar-thumb:hover,.doc-tut-scroll::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.doc-scroll-article{max-width:100%;padding-top:14px;font-family:var(--sans);font-size:12.5px;line-height:1.58;color:var(--text)}
+.doc-scroll-article h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem;color:var(--text)}
+.doc-scroll-article h3:first-child{margin-top:0}
+.doc-scroll-article h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1rem 0 .35rem}
+.doc-scroll-article p{margin:.45rem 0}
+.doc-scroll-article ol{margin:.45rem 0;padding-left:1.25rem}
+.doc-scroll-article table{border-collapse:collapse;width:100%;font-size:11px;margin:.55rem 0}
+.doc-scroll-article th,.doc-scroll-article td{border:1px solid var(--brd);padding:5px 7px;text-align:left;vertical-align:top}
+.doc-scroll-article th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text2)}
+.doc-scroll-article code{font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--acc)}
+.doc-scroll-article pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
+.doc-tut-bar{flex-shrink:0;padding:10px 16px 8px;border-bottom:1px solid var(--brd);background:var(--bg)}
 .doc-note{font-size:11.5px;color:var(--text2);border-left:3px solid var(--blu);padding:8px 12px;background:var(--blu-l);margin:12px 0;border-radius:0 var(--r) var(--r) 0}
 @media(prefers-color-scheme:dark){.doc-note{background:var(--blu-l);color:var(--text)}}
-.doc-pane-tut{padding-top:12px}
 .doc-pane-tut label{display:block;font-size:10px;font-family:var(--mono);color:var(--text2);margin-bottom:4px}
-.doc-pane-tut select{font-family:var(--mono);font-size:11px;padding:4px 8px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);margin-bottom:12px;max-width:100%}
+.doc-pane-tut select{font-family:var(--mono);font-size:11px;padding:4px 8px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);width:100%;max-width:min(100%,24rem)}
 .tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
 .tut-steps li{margin:.55rem 0;padding-left:.25rem}
 .tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
@@ -216,7 +222,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </select>
   </div>
   <span class="pill p-rdy" id="st">READY</span>
-  <button type="button" class="b" onclick="openDocPanel('isa')" title="NT-16 ISA ve mimari rehberi">ISA / Rehber</button>
+  <button type="button" class="b" onclick="openDocPanel('isa')" title="ISA / Rehber (F1)">ISA / Rehber</button>
   <button type="button" class="b" onclick="openDocPanel('tutorial')" title="Örnek programlar satır satır">Öğretici</button>
 </div>
 <div class="mn">
@@ -237,9 +243,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <div class="ew">
       <div class="ln" id="lns" aria-label="Satır numaraları"></div>
       <div class="ed-wrap">
-        <pre class="ed-hl" id="edHl" aria-hidden="true"><code id="edH"></code></pre>
         <div class="ed-line-hi" id="edLineHi" aria-hidden="true"></div>
-        <textarea id="ed" spellcheck="false" autocomplete="off"></textarea>
+        <textarea id="ed" spellcheck="false" autocomplete="off" placeholder="; NT-16 assembly"></textarea>
       </div>
     </div>
     <div class="lb" id="log">Ready.</div>
@@ -271,25 +276,33 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   <div class="doc-panel">
     <div class="doc-panel-hd">
       <h2 id="docDlgTitle">NT-16 — Dokümantasyon</h2>
-      <button type="button" class="b" onclick="closeDocPanel()">Kapat (Esc)</button>
+      <span class="doc-hint">F1 · Esc kapatır</span>
+      <button type="button" class="b" onclick="closeDocPanel()">Kapat</button>
     </div>
     <div class="doc-tabs" role="tablist">
       <button type="button" class="doc-tab on" id="tabIsa" role="tab" aria-selected="true" onclick="setDocTab('isa')">ISA &amp; mimari</button>
       <button type="button" class="doc-tab" id="tabTut" role="tab" aria-selected="false" onclick="setDocTab('tutorial')">Öğretici</button>
     </div>
     <div class="doc-scroll">
-      <article id="paneIsa"></article>
-      <div id="paneTut" class="doc-pane-tut" hidden>
-        <label for="tutSel">Örnek program</label>
-        <select id="tutSel" onchange="renderTutorial()">
-          <option value="sum">Sum 1..5</option>
-          <option value="fib">Fibonacci</option>
-          <option value="fact">Factorial(5)</option>
-          <option value="call">Subroutine</option>
-          <option value="mem">Load / Store</option>
-          <option value="sort">Bubble sort</option>
-        </select>
-        <div id="tutOut"></div>
+      <div id="wrapIsa" class="doc-isa-split">
+        <nav class="doc-isa-nav" id="isaNav" role="tablist" aria-label="ISA bölümleri"></nav>
+        <div class="doc-isa-scroll" id="isaScrollRegion">
+          <article id="paneIsaBody" class="doc-scroll-article"></article>
+        </div>
+      </div>
+      <div id="paneTut" class="doc-tut-split doc-pane-tut" hidden>
+        <div class="doc-tut-bar">
+          <label for="tutSel">Örnek program</label>
+          <select id="tutSel" onchange="renderTutorial()">
+            <option value="sum">Sum 1..5</option>
+            <option value="fib">Fibonacci</option>
+            <option value="fact">Factorial(5)</option>
+            <option value="call">Subroutine</option>
+            <option value="mem">Load / Store</option>
+            <option value="sort">Bubble sort</option>
+          </select>
+        </div>
+        <div class="doc-tut-scroll"><div id="tutOut" class="doc-scroll-article"></div></div>
       </div>
     </div>
   </div>
@@ -297,15 +310,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 
 <script>
 // ===== DOKÜMANTASYON PANELİ =====
-const ISA_DOC_HTML=`<h3>Genel bakış</h3>
-<p>NT-16, Brey / Tanenbaum çizgisinde yapılandırılmış bir <strong>16 bit</strong>, <strong>sözcük adresli</strong>, <strong>yazmaç tabanlı</strong> pedagojik oyuncak bilgisayardır. Bu sayfadaki sanal makine aynı assembly sözdizimini çalıştırır; <strong>16 bit makine kodu eşlemesi</strong> aşağıda &ldquo;Bu emülatör&rdquo; tablosunda verilmiştir (taslak ISA PDF&rsquo;indeki opcode numaralarından farklı olabilir).</p>
+const ISA_SECTIONS=[
+{id:'genel',label:'Genel',html:`<h3>Genel bakış</h3>
+<p>NT-16, Brey / Tanenbaum çizgisinde yapılandırılmış bir <strong>16 bit</strong>, <strong>sözcük adresli</strong>, <strong>yazmaç tabanlı</strong> pedagojik oyuncak bilgisayardır. Bu sayfadaki sanal makine aynı assembly sözdizimini çalıştırır; <strong>16 bit makine kodu eşlemesi</strong> &ldquo;Emülatör&rdquo; bölümündeki tabloda verilmiştir (taslak ISA PDF&rsquo;indeki opcode numaralarından farklı olabilir).</p>
 <table><tr><th>Parametre</th><th>Değer</th></tr>
 <tr><td>Sözcük</td><td>16 bit</td></tr>
 <tr><td>Bellek</td><td>2¹⁶ sözcük (65&nbsp;536 kelime)</td></tr>
 <tr><td>Komut genişliği</td><td>16 bit (sabit)</td></tr>
-<tr><td>I/O</td><td>Bellek eşlemeli (tasarım)</td></tr></table>
-
-<h3>Yazmaçlar</h3>
+<tr><td>I/O</td><td>Bellek eşlemeli (tasarım)</td></tr></table>`},
+{id:'yazmac',label:'Yazmaçlar',html:`<h3>Yazmaçlar</h3>
 <h4>Genel yazmaçlar (GPR)</h4>
 <table><tr><th>Yazmaç</th><th>Kullanım</th></tr>
 <tr><td><code>R0</code></td><td>Sabit sıfır — okuma 0, yazmalar yok sayılır</td></tr>
@@ -313,16 +326,14 @@ const ISA_DOC_HTML=`<h3>Genel bakış</h3>
 <tr><td><code>R6</code> / <code>SP</code></td><td>Yığın göstergesi (yazılım anlaşması)</td></tr>
 <tr><td><code>R7</code> / <code>LR</code></td><td>Dönüş adresi (CALL/RET)</td></tr></table>
 <p><code>R6</code> ve <code>R7</code> donanımda diğerleriyle aynıdır; SP/LR rolleri anlaşmadır.</p>
-
 <h4>Özel</h4>
 <table><tr><th>Ad</th><th>Açıklama</th></tr>
 <tr><td><code>PC</code></td><td>Bir sonraki komutun adresi</td></tr>
 <tr><td><code>FLAGS</code></td><td>Z, C, N, V (sıfır, elde, işaret taşıma, işaretli taşma)</td></tr></table>
 <pre>Bit:  3   2   1   0
-    [ V ][ N ][ C ][ Z ]</pre>
-
-<h3>Komut biçimleri (16 bit)</h3>
-<p>Üst <strong>5 bit</strong> her zaman opcode alanıdır (emülatördeki gerçek kodlama altta özetlenir).</p>
+    [ V ][ N ][ C ][ Z ]</pre>`},
+{id:'bicimler',label:'Biçimler',html:`<h3>Komut biçimleri (16 bit)</h3>
+<p>Üst <strong>5 bit</strong> her zaman opcode alanıdır (emülatördeki gerçek kodlama &ldquo;Emülatör&rdquo; bölümünde özetlenir).</p>
 <h4>R-türü — ALU</h4>
 <pre>15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func</pre>
 <h4>I-kısa — LOAD/STORE</h4>
@@ -331,35 +342,31 @@ const ISA_DOC_HTML=`<h3>Genel bakış</h3>
 <pre>15..11 opcode | 10..8 Rd | 7..0 imm8</pre>
 <h4>J — dallanma / sıçrama</h4>
 <pre>15..11 opcode | 10..0 offset11 (PC-göreli, işaretli, yaklaşık ±1023 sözcük)</pre>
-<p>Dallanma hedefi: <code>PC ← PC + 1 + sign_ext(offset11)</code> (dal komutundan sonra PC zaten artmıştır).</p>
-
-<h3>ALU komutları (R-türü)</h3>
+<p>Dallanma hedefi: <code>PC ← PC + 1 + sign_ext(offset11)</code> (dal komutundan sonra PC zaten artmıştır).</p>`},
+{id:'alu',label:'ALU',html:`<h3>ALU komutları (R-türü)</h3>
 <table><tr><th>Mnemonic</th><th>İşlem</th><th>Bayraklar</th></tr>
 <tr><td>ADD Rd, Rs, Rt</td><td>Rd = Rs + Rt</td><td>Z,C,N,V</td></tr>
 <tr><td>SUB Rd, Rs, Rt</td><td>Rd = Rs - Rt</td><td>Z,C,N,V</td></tr>
 <tr><td>AND, OR, XOR</td><td>Bitwise</td><td>Z,N (+C,V uygun değil)</td></tr>
 <tr><td>NOT Rd, Rs</td><td>Rd = ~Rs</td><td>Z,N</td></tr>
 <tr><td>SHL, SHR, SRA</td><td>Kaydırma (Rt düşük 4 bit)</td><td>Z,C,N</td></tr>
-<tr><td>CMP Rs, Rt</td><td>Rs−Rt → sadece bayraklar</td><td>Z,C,N,V</td></tr></table>
-
-<h3>Anında komutlar (I-geniş)</h3>
+<tr><td>CMP Rs, Rt</td><td>Rs−Rt → sadece bayraklar</td><td>Z,C,N,V</td></tr></table>`},
+{id:'iimm',label:'Anında',html:`<h3>Anında komutlar (I-geniş)</h3>
 <table><tr><th>Mnemonic</th><th>İşlem</th><th>Not</th></tr>
 <tr><td>ADDI Rd, #imm</td><td>Rd += imm8</td><td>işaretli</td></tr>
 <tr><td>ANDI, ORI</td><td>Rd &= / |= imm8</td><td>sıfır genişletme (maske)</td></tr>
 <tr><td>LI Rd, #imm</td><td>Rd = imm8</td><td>işaretli</td></tr>
 <tr><td>LUI Rd, #imm</td><td>Rd = imm8 &lt;&lt; 8</td><td>üst bayt</td></tr>
 <tr><td>CMPI Rd, #imm</td><td>Rd−imm → bayraklar</td><td>işaretli</td></tr></table>
-<p>16 bit sabit için örnek: <code>LUI R1, #0x3F</code> sonra <code>ORI R1, #0x7A</code>.</p>
-
-<h3>Bellek ve yığın</h3>
+<p>16 bit sabit için örnek: <code>LUI R1, #0x3F</code> sonra <code>ORI R1, #0x7A</code>.</p>`},
+{id:'bellek',label:'Bellek',html:`<h3>Bellek ve yığın</h3>
 <table><tr><th>Komut</th><th>Anlam</th></tr>
 <tr><td>LOAD Rd, [Rs+off]</td><td>Rd = Mem[Rs+imm5]</td></tr>
 <tr><td>STORE Rd, [Rs+off]</td><td>Mem[Rs+imm5] = Rd</td></tr>
 <tr><td>PUSH Rd</td><td>SP--; Mem[SP]=Rd</td></tr>
 <tr><td>POP Rd</td><td>Rd=Mem[SP]; SP++</td></tr></table>
-<p>Yığın bu VM&rsquo;de aşağı doğru büyür; örnek izleme penceresi <code>0x02F8</code>&ndash;<code>0x02FF</code> civarındadır.</p>
-
-<h3>Kontrol akışı</h3>
+<p>Yığın bu VM&rsquo;de aşağı doğru büyür; örnek izleme penceresi <code>0x02F8</code>&ndash;<code>0x02FF</code> civarındadır.</p>`},
+{id:'akis',label:'Akış',html:`<h3>Kontrol akışı</h3>
 <table><tr><th>Komut</th><th>Koşul / işlem</th></tr>
 <tr><td>BEQ, BNE</td><td>Z=1 / Z=0</td></tr>
 <tr><td>BLT, BGE</td><td>işaretli &lt; / ≥ (N≠V / N=V)</td></tr>
@@ -368,26 +375,52 @@ const ISA_DOC_HTML=`<h3>Genel bakış</h3>
 <tr><td>CALL</td><td>LR=PC+1; sıçra</td></tr>
 <tr><td>RET</td><td>PC=LR</td></tr>
 <tr><td>HALT</td><td>Durdur</td></tr></table>
-<p>İç içe çağrıda genelde önce <code>PUSH LR</code>, sonra <code>CALL</code> gerekir.</p>
-
-<h3>Sözde komutlar</h3>
+<p>İç içe çağrıda genelde önce <code>PUSH LR</code>, sonra <code>CALL</code> gerekir.</p>`},
+{id:'sozde',label:'Sözde',html:`<h3>Sözde komutlar</h3>
 <table><tr><th>Sözde</th><th>Genişleme / etki</th></tr>
 <tr><td>NOP</td><td>ADD R0,R0,R0</td></tr>
 <tr><td>MOV Rd, Rs</td><td>ADD Rd, Rs, R0</td></tr>
 <tr><td>NEG Rd, Rs</td><td>SUB Rd, R0, Rs</td></tr>
 <tr><td>CLR Rd</td><td>Bu VM: ADD Rd,R0,R0 → 0 (taslakta LI #0 da önerilir)</td></tr></table>
-<p><code>SUBI</code> ayrı opcode değildir; <code>ADDI Rd, #-k</code> kullanın.</p>
-
+<p><code>SUBI</code> ayrı opcode değildir; <code>ADDI Rd, #-k</code> kullanın.</p>`},
+{id:'emul',label:'Emülatör',html:`<h3>Emülatör ve simülatör</h3>
 <div class="doc-note"><strong>Bu emülatördeki 5 bit opcode</strong> (üst bitler 15..11; makine koduyle uyumludur): R-grubu 0&ndash;2 (func ile alt seçim); <code>ADDI</code>=8 &hellip; <code>CMPI</code>=13; <code>LOAD</code>=16, <code>STORE</code>=17, <code>PUSH</code>=18, <code>POP</code>=19; <code>RET</code>=20, <code>HALT</code>=21; <code>BEQ</code>=24 &hellip; <code>CALL</code>=31. Ayrıntı için kaynak kodundaki <code>INS</code> nesnesine bakın.</div>
-<p><strong>Simülatör:</strong> Derlemeden sonra <code>PC</code>, bir <em>sonraki yürütülecek</em> komutun bellek adresini gösterir; kaynakta vurgulanan satır da buna karşılık gelir. Sol satır numarasına tıklayarak <strong>breakpoint</strong> koyabilirsiniz; <strong>Run</strong> o satırdaki komut çalıştırılmadan durur (Step ile devam).</p>
-
-<h3>Tasarım özeti</h3>
+<p><strong>Simülatör:</strong> Derlemeden sonra <code>PC</code>, bir <em>sonraki yürütülecek</em> komutun bellek adresini gösterir; kaynakta vurgulanan satır da buna karşılık gelir. Sol satır numarasına tıklayarak <strong>breakpoint</strong> koyabilirsiniz; <strong>Run</strong> o satırdaki komut çalıştırılmadan durur (Step ile devam).</p>`},
+{id:'tasarim',label:'Tasarım',html:`<h3>Tasarım özeti</h3>
 <table><tr><th>Karar</th><th>Seçim</th></tr>
 <tr><td>R0</td><td>Sabit sıfır → MOV/NOP/NEG kolay</td></tr>
 <tr><td>SP, LR</td><td>R6, R7 içinde; tek yazmaç dosyası</td></tr>
 <tr><td>Dallanma</td><td>PC-göreli 11 bit</td></tr>
 <tr><td>Alt yordam</td><td>CALL/RET + LR; iç içe için yığın</td></tr></table>
-<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tözenbilek, March 2026.</em> Metin bu rehbere dayanır; opcode sayıları yukarıdaki notta emülatörle hizalanmıştır.</p>`;
+<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tözenbilek, March 2026.</em> Metin bu rehbere dayanır; opcode sayıları Emülatör bölümündeki notla hizalanmıştır.</p>`}
+];
+let isaNavBuilt=false;
+function setIsaSection(id){
+  const sec=ISA_SECTIONS.find(function(s){return s.id===id});
+  if(!sec)return;
+  document.getElementById('paneIsaBody').innerHTML=sec.html;
+  document.querySelectorAll('#isaNav .doc-subtab').forEach(function(btn){
+    var on=btn.getAttribute('data-isa')===id;
+    btn.classList.toggle('on',on);
+    btn.setAttribute('aria-selected',on?'true':'false');
+  });
+  var sc=document.getElementById('isaScrollRegion');
+  if(sc)sc.scrollTop=0;
+}
+function ensureIsaNav(){
+  if(isaNavBuilt)return;
+  var nav=document.getElementById('isaNav');
+  nav.innerHTML=ISA_SECTIONS.map(function(s,i){
+    return '<button type="button" role="tab" class="doc-subtab'+(i===0?' on':'')+'" data-isa="'+s.id+'" aria-selected="'+(i===0?'true':'false')+'">'+s.label+'</button>';
+  }).join('');
+  nav.onclick=function(e){
+    var b=e.target.closest('[data-isa]');
+    if(!b)return;
+    setIsaSection(b.getAttribute('data-isa'));
+  };
+  isaNavBuilt=true;
+  setIsaSection(ISA_SECTIONS[0].id);
+}
 
 const TUTORIAL_HTML={
 sum:`<h3>Sum 1..5 — toplam 15</h3><ol class="tut-steps">
@@ -464,19 +497,30 @@ function setDocTab(id){
   document.getElementById('tabIsa').setAttribute('aria-selected',isa);
   document.getElementById('tabTut').classList.toggle('on',!isa);
   document.getElementById('tabTut').setAttribute('aria-selected',!isa);
-  document.getElementById('paneIsa').hidden=!isa;
+  document.getElementById('wrapIsa').hidden=!isa;
   document.getElementById('paneTut').hidden=isa;
-  if(isa){
-    const p=document.getElementById('paneIsa');
-    if(!p.dataset.filled){p.innerHTML=ISA_DOC_HTML;p.dataset.filled='1'}
-  }else renderTutorial();
+  if(isa)ensureIsaNav();
+  else renderTutorial();
 }
 function renderTutorial(){
   const k=document.getElementById('tutSel').value;
   document.getElementById('tutOut').innerHTML=TUTORIAL_HTML[k]||'<p>Bu örnek için özet yok.</p>';
+  var ts=document.querySelector('.doc-tut-scroll');
+  if(ts)ts.scrollTop=0;
 }
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&!document.getElementById('docOv').hidden)closeDocPanel();
+  var ov=document.getElementById('docOv');
+  if(e.key==='Escape'&&!ov.hidden){closeDocPanel();return}
+  if(e.key==='F1'){
+    e.preventDefault();
+    if(ov.hidden)openDocPanel('isa');
+    else setDocTab('isa');
+    return
+  }
+  if(ov.hidden&&e.key==='?'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+    var t=e.target&&e.target.tagName;
+    if(t!=='TEXTAREA'&&t!=='INPUT'&&t!=='SELECT')openDocPanel('isa');
+  }
 });
 document.getElementById('docOv').addEventListener('click',function(e){
   if(e.target===this)closeDocPanel();
@@ -682,9 +726,8 @@ function renderAll(){
   updateDebugLineUI();
 }
 
-// Satır numaraları + sözdizimi rengi (arka katman #edH, üstte şeffaf #ed)
+// Satır numaraları + editör (tek katman textarea — imleç hizası güvenilir)
 const ed=document.getElementById('ed');
-const edH=document.getElementById('edH');
 const lns=document.getElementById('lns');
 const ew=document.querySelector('.ew');
 
@@ -715,62 +758,9 @@ function updateDebugLineUI(){
     span.classList.toggle('ln-cur',cur!==null&&+span.dataset.line===cur);
   });
 }
-const MNEM=new Set(['ADD','SUB','AND','OR','XOR','NOT','SHL','SHR','SRA','CMP','ADDI','ANDI','ORI','LI','LUI','CMPI','LOAD','STORE','PUSH','POP','RET','HALT','BEQ','BNE','BLT','BGE','BCS','BCC','JMP','CALL','NOP','MOV','NEG','CLR']);
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function gapAfterLabel(code){return code.replace(/([A-Za-z_][\w]*):(?=[A-Za-z])/g,'$1: ')}
-function hlHashImm(raw){
-  if(!raw||raw[0]!=='#')return null;
-  const rest=raw.slice(1);
-  if(/^([+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|\d+))$/.test(rest))
-    return'<span class="hl-hash">#</span><span class="hl-num">'+esc(rest)+'</span>';
-  return'<span class="hl-imm">'+esc(raw)+'</span>';
-}
-function hlBrackets(raw){
-  if(!raw||raw.length<2||raw[0]!=='['||raw[raw.length-1]!==']')return null;
-  const inner=raw.slice(1,-1).replace(/\s+/g,'');
-  const m=inner.match(/^(R[0-7]|SP|LR)([+-]\d+)?$/i);
-  if(m)
-    return'<span class="hl-bracket">[</span><span class="hl-reg">'+esc(m[1])+'</span>'+
-      (m[2]?'<span class="hl-num">'+esc(m[2])+'</span>':'')+
-      '<span class="hl-bracket">]</span>';
-  return'<span class="hl-imm">'+esc(raw)+'</span>';
-}
-function hlTok(p){
-  if(/^\s+$/.test(p)||p==='')return p;
-  const raw=p,t=p.replace(/,/g,''),up=t.toUpperCase();
-  let x=hlHashImm(p);if(x)return x;
-  x=hlBrackets(p);if(x)return x;
-  if(MNEM.has(up))return'<span class="hl-op">'+esc(raw)+'</span>';
-  if(/^[A-Za-z_][\w]*:$/.test(t))return'<span class="hl-lbl">'+esc(raw)+'</span>';
-  if(/^[Rr][0-7]$|^SP$|^LR$/i.test(t))return'<span class="hl-reg">'+esc(raw)+'</span>';
-  if(/^#/.test(t)||/^\[/.test(t))return'<span class="hl-imm">'+esc(raw)+'</span>';
-  if(/^[+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|\d+)$/.test(t))return'<span class="hl-num">'+esc(raw)+'</span>';
-  if(/^[A-Za-z_][\w]*$/.test(t))return'<span class="hl-ref">'+esc(raw)+'</span>';
-  return esc(raw);
-}
-function hlCode(c){if(!c)return'';return c.split(/(\s+)/).map(p=>hlTok(p)).join('')}
-function hlLine(line){
-  line=line.replace(/\r/g,'');
-  const i=line.indexOf(';');
-  if(i>=0){
-    const left=gapAfterLabel(line.slice(0,i));
-    return hlCode(left)+'<span class="hl-cmnt">;'+esc(line.slice(i+1))+'</span>';
-  }
-  return hlCode(gapAfterLabel(line));
-}
-function highlightAsm(src){
-  if(!src)return'';
-  return src.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').map(hlLine).join('\n');
-}
-function updHl(){
-  const v=ed.value;
-  edH.innerHTML=!v.length?'<span class="hl-ph">; NT-16 assembly</span>':highlightAsm(v);
-  syncHlScroll();
-}
-function syncHlScroll(){edH.style.transform='translate('+(-ed.scrollLeft)+'px,'+(-ed.scrollTop)+'px)'}
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
-function syncAllScroll(){syncLnScroll();syncHlScroll();updateLineHighlight()}
-ed.addEventListener('input',function(){updLn();updHl();updateDebugLineUI()});
+function syncAllScroll(){syncLnScroll();updateLineHighlight()}
+ed.addEventListener('input',function(){updLn();updateDebugLineUI()});
 ed.addEventListener('scroll',syncAllScroll);
 ew.addEventListener('wheel',function(e){
   if(e.target===ed)return;
@@ -799,7 +789,7 @@ lns.addEventListener('click',function(e){
   updLn();updateLineHighlight();
 });
 ed.addEventListener('keydown',function(e){
-  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl();updateLineHighlight()}
+  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updateLineHighlight()}
   else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}
 });
 
@@ -899,12 +889,12 @@ skip:
     BNE  outer
     HALT`
 };
-function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();updHl();doReset()}
+function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}
   const ov=document.getElementById('docOv'),tut=document.getElementById('paneTut');
   if(s&&!ov.hidden&&!tut.hidden){document.getElementById('tutSel').value=s;renderTutorial()}}
 
 // Init
-ed.value=EX.sum;updLn();updHl();doAssemble();renderAll();
+ed.value=EX.sum;updLn();doAssemble();renderAll();
 </script>
 </body>
 </html>
