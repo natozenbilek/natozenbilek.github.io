@@ -133,7 +133,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bd{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
 
-.ir{font-family:var(--mono);font-size:9px;padding:2px 4px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:100%}
+.ir{font-family:var(--mono);font-size:9px;padding:2px 4px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
 .ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
@@ -177,14 +177,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 }
 
 /* ===== MICROCODE VIEWER ===== */
-.uc-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9.5px;line-height:1.45}
+.uc-tbl{width:100%;min-width:620px;border-collapse:collapse;font-family:var(--mono);font-size:9.5px;line-height:1.45;table-layout:fixed}
 .uc-tbl th{background:var(--bg3);border:1px solid var(--brd);padding:3px 6px;text-align:left;font-weight:600;color:var(--text2);position:sticky;top:0;z-index:1}
 .uc-tbl td{border:1px solid var(--brd);padding:3px 6px;color:var(--text2)}
+.uc-tbl th:nth-child(1),.uc-tbl td:nth-child(1){width:72px}
+.uc-tbl th:nth-child(2),.uc-tbl td:nth-child(2){width:86px}
+.uc-tbl th:nth-child(3),.uc-tbl td:nth-child(3){width:260px}
+.uc-tbl th:nth-child(4),.uc-tbl td:nth-child(4){width:170px}
+.uc-tbl th,.uc-tbl td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uc-tbl tr.uc-act{background:var(--grn-l)!important}
 .uc-tbl tr.uc-act td{color:var(--grn);font-weight:600}
 .uc-tbl tr.uc-done{background:var(--bg3)}
 .uc-tbl tr.uc-done td{color:var(--text3)}
-.uc-wrap{max-height:180px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.uc-wrap{max-height:180px;overflow-x:auto;overflow-y:scroll;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .uc-wrap::-webkit-scrollbar{width:6px}.uc-wrap::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 
 /* ===== EXPORT MODAL ===== */
@@ -355,12 +360,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Phase: <b id="phN">—</b></span>
     </div>
     <div class="rw rw-irbus">
-      <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
-      <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
+      <div class="cd"><div class="ch">Current instruction + Bus transfer + Description</div><div class="cb" style="display:flex;flex-direction:column;gap:6px">
+        <div class="ir" id="irD">—</div>
         <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
+        <div class="ms" id="desc">—</div>
       </div></div>
     </div>
-    <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
     <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
     <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
