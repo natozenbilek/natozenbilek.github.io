@@ -133,7 +133,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bd{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
 
-.ir{font-family:var(--mono);font-size:10px;padding:3px 5px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:100%}
+.ir{font-family:var(--mono);font-size:9px;padding:2px 4px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:100%}
 
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
 .ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
@@ -324,7 +324,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     <div class="eh">
       <span>Program:</span>
       <select id="ex" onchange="loadEx()">
-        <option value="">— custom —</option>
         <option value="helloout" selected>Hello output</option>
         <option value="alphasout">Alphabet output (A-Z)</option>
         <option value="sumout">Sum 1..5 + output</option>
@@ -1044,14 +1043,14 @@ function renderOutput(){
     meta.textContent='Range: 0xFF00–0xFFFF · Mode: char + hex';
     return;
   }
-  let chars='',rows=[];
+  let chars='';
   for(let i=0;i<outLog.length;i++){
     let o=outLog[i];
-    chars+=o.ch;
-    rows.push(o.ch+'  '+f16(o.v)+' @ '+f16(o.ad));
+    chars+=o.ch==='.'?('\\\\x'+(o.v&0xFF).toString(16).toUpperCase().padStart(2,'0')):o.ch;
   }
-  box.textContent='chars: '+chars+'\\n\\ntrace:\\n'+rows.join('\\n');
-  meta.textContent='Range: 0xFF00–0xFFFF · writes: '+outLog.length;
+  let last=outLog[outLog.length-1];
+  box.textContent=chars;
+  meta.textContent='Range: 0xFF00–0xFFFF · writes: '+outLog.length+' · last: '+f16(last.v)+' @ '+f16(last.ad);
 }
 
 function renderDatapath(){
