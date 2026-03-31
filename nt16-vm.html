@@ -162,21 +162,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-panel-hd .b{padding:4px 10px}
 .doc-hint{font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap}
 @media(max-width:640px){.doc-hint{display:none}}
-.doc-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0;align-items:center}
-.doc-tab{font-family:var(--mono);font-size:10px;padding:6px 11px;border:1px solid transparent;border-radius:var(--r);cursor:pointer;background:transparent;color:var(--text2);transition:background .12s,border-color .12s,color .12s}
-.doc-tab:hover{color:var(--text);background:var(--bg2)}
-.doc-tab.on{background:var(--bg2);border-color:var(--brd);color:var(--text);font-weight:600}
 .doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;padding:0}
-.doc-isa-split,.doc-tut-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
-.doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0}
+.doc-isa-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0;align-content:flex-start}
+.doc-nav-group{flex-basis:100%;width:100%;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:8px 4px 2px;margin:0;border:none;pointer-events:none;user-select:none}
 .doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:background .12s,color .12s,border-color .12s}
 .doc-subtab:hover{color:var(--text);background:var(--bg3)}
 .doc-subtab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
-.doc-isa-scroll,.doc-tut-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 20px;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
-.doc-isa-scroll::-webkit-scrollbar,.doc-tut-scroll::-webkit-scrollbar{width:9px}
-.doc-isa-scroll::-webkit-scrollbar-track,.doc-tut-scroll::-webkit-scrollbar-track{background:transparent}
-.doc-isa-scroll::-webkit-scrollbar-thumb,.doc-tut-scroll::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg2)}
-.doc-isa-scroll::-webkit-scrollbar-thumb:hover,.doc-tut-scroll::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.doc-isa-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 20px;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.doc-isa-scroll::-webkit-scrollbar{width:9px}
+.doc-isa-scroll::-webkit-scrollbar-track{background:transparent}
+.doc-isa-scroll::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg2)}
+.doc-isa-scroll::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .doc-scroll-article{max-width:100%;padding-top:14px;font-family:var(--sans);font-size:12.5px;line-height:1.58;color:var(--text)}
 .doc-scroll-article h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem;color:var(--text)}
 .doc-scroll-article h3:first-child{margin-top:0}
@@ -188,11 +185,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-scroll-article th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text2)}
 .doc-scroll-article code{font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--acc)}
 .doc-scroll-article pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
-.doc-tut-bar{flex-shrink:0;padding:10px 16px 8px;border-bottom:1px solid var(--brd);background:var(--bg)}
 .doc-note{font-size:11.5px;color:var(--text2);border-left:3px solid var(--blu);padding:8px 12px;background:var(--blu-l);margin:12px 0;border-radius:0 var(--r) var(--r) 0}
 @media(prefers-color-scheme:dark){.doc-note{background:var(--blu-l);color:var(--text)}}
-.doc-pane-tut label{display:block;font-size:10px;font-family:var(--mono);color:var(--text2);margin-bottom:4px}
-.doc-pane-tut select{font-family:var(--mono);font-size:11px;padding:4px 8px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);width:100%;max-width:min(100%,24rem)}
 .tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
 .tut-steps li{margin:.55rem 0;padding-left:.25rem}
 .tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
@@ -223,7 +217,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   </div>
   <span class="pill p-rdy" id="st">READY</span>
   <button type="button" class="b" onclick="openDocPanel('isa')" title="ISA / Rehber (F1)">ISA / Rehber</button>
-  <button type="button" class="b" onclick="openDocPanel('tutorial')" title="Örnek programlar satır satır">Öğretici</button>
+  <button type="button" class="b" onclick="openDocPanel('tutorial')" title="Rehberde öğretici bölümü (seçili örnek)">Öğretici</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -275,34 +269,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 <div id="docOv" class="doc-ov" hidden role="dialog" aria-modal="true" aria-labelledby="docDlgTitle">
   <div class="doc-panel">
     <div class="doc-panel-hd">
-      <h2 id="docDlgTitle">NT-16 — Dokümantasyon</h2>
+      <h2 id="docDlgTitle">NT-16 — ISA, mimari ve öğretici</h2>
       <span class="doc-hint">F1 · Esc kapatır</span>
       <button type="button" class="b" onclick="closeDocPanel()">Kapat</button>
     </div>
-    <div class="doc-tabs" role="tablist">
-      <button type="button" class="doc-tab on" id="tabIsa" role="tab" aria-selected="true" onclick="setDocTab('isa')">ISA &amp; mimari</button>
-      <button type="button" class="doc-tab" id="tabTut" role="tab" aria-selected="false" onclick="setDocTab('tutorial')">Öğretici</button>
-    </div>
     <div class="doc-scroll">
       <div id="wrapIsa" class="doc-isa-split">
-        <nav class="doc-isa-nav" id="isaNav" role="tablist" aria-label="ISA bölümleri"></nav>
+        <nav class="doc-isa-nav" id="docNav" role="tablist" aria-label="ISA ve öğretici bölümleri"></nav>
         <div class="doc-isa-scroll" id="isaScrollRegion">
           <article id="paneIsaBody" class="doc-scroll-article"></article>
         </div>
-      </div>
-      <div id="paneTut" class="doc-tut-split doc-pane-tut" hidden>
-        <div class="doc-tut-bar">
-          <label for="tutSel">Örnek program</label>
-          <select id="tutSel" onchange="renderTutorial()">
-            <option value="sum">Sum 1..5</option>
-            <option value="fib">Fibonacci</option>
-            <option value="fact">Factorial(5)</option>
-            <option value="call">Subroutine</option>
-            <option value="mem">Load / Store</option>
-            <option value="sort">Bubble sort</option>
-          </select>
-        </div>
-        <div class="doc-tut-scroll"><div id="tutOut" class="doc-scroll-article"></div></div>
       </div>
     </div>
   </div>
@@ -394,33 +370,6 @@ const ISA_SECTIONS=[
 <tr><td>Alt yordam</td><td>CALL/RET + LR; iç içe için yığın</td></tr></table>
 <p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tözenbilek, March 2026.</em> Metin bu rehbere dayanır; opcode sayıları Emülatör bölümündeki notla hizalanmıştır.</p>`}
 ];
-let isaNavBuilt=false;
-function setIsaSection(id){
-  const sec=ISA_SECTIONS.find(function(s){return s.id===id});
-  if(!sec)return;
-  document.getElementById('paneIsaBody').innerHTML=sec.html;
-  document.querySelectorAll('#isaNav .doc-subtab').forEach(function(btn){
-    var on=btn.getAttribute('data-isa')===id;
-    btn.classList.toggle('on',on);
-    btn.setAttribute('aria-selected',on?'true':'false');
-  });
-  var sc=document.getElementById('isaScrollRegion');
-  if(sc)sc.scrollTop=0;
-}
-function ensureIsaNav(){
-  if(isaNavBuilt)return;
-  var nav=document.getElementById('isaNav');
-  nav.innerHTML=ISA_SECTIONS.map(function(s,i){
-    return '<button type="button" role="tab" class="doc-subtab'+(i===0?' on':'')+'" data-isa="'+s.id+'" aria-selected="'+(i===0?'true':'false')+'">'+s.label+'</button>';
-  }).join('');
-  nav.onclick=function(e){
-    var b=e.target.closest('[data-isa]');
-    if(!b)return;
-    setIsaSection(b.getAttribute('data-isa'));
-  };
-  isaNavBuilt=true;
-  setIsaSection(ISA_SECTIONS[0].id);
-}
 
 const TUTORIAL_HTML={
 sum:`<h3>Sum 1..5 — toplam 15</h3><ol class="tut-steps">
@@ -474,39 +423,67 @@ sort:`<h3>Kabarcık sıralama</h3><ol class="tut-steps">
 </ol>`
 };
 
+const TUTORIAL_NAV=[
+  {id:'sum',label:'Sum 1..5'},
+  {id:'fib',label:'Fibonacci'},
+  {id:'fact',label:'Faktöriyel'},
+  {id:'call',label:'Alt yordam'},
+  {id:'mem',label:'Load / Store'},
+  {id:'sort',label:'Kabarcık sıra'}
+];
+const DOC_SECTIONS=ISA_SECTIONS.concat(TUTORIAL_NAV.map(function(o){
+  return{id:o.id,label:o.label,html:TUTORIAL_HTML[o.id]};
+}));
+let docNavBuilt=false;
+function setDocSection(id){
+  var sec=DOC_SECTIONS.find(function(s){return s.id===id});
+  if(!sec)return;
+  document.getElementById('paneIsaBody').innerHTML=sec.html;
+  document.querySelectorAll('#docNav .doc-subtab').forEach(function(btn){
+    var on=btn.getAttribute('data-isa')===id;
+    btn.classList.toggle('on',on);
+    btn.setAttribute('aria-selected',on?'true':'false');
+  });
+  var sc=document.getElementById('isaScrollRegion');
+  if(sc)sc.scrollTop=0;
+}
+function ensureDocNav(){
+  if(docNavBuilt)return;
+  var nav=document.getElementById('docNav');
+  var firstId=ISA_SECTIONS[0].id;
+  var html=ISA_SECTIONS.map(function(s){
+    var on=s.id===firstId;
+    return '<button type="button" role="tab" class="doc-subtab'+(on?' on':'')+'" data-isa="'+s.id+'" aria-selected="'+(on?'true':'false')+'">'+s.label+'</button>';
+  }).join('');
+  html+='<span class="doc-nav-group" role="presentation">Öğretici — örnek programlar</span>';
+  html+=TUTORIAL_NAV.map(function(s){
+    return '<button type="button" role="tab" class="doc-subtab" data-isa="'+s.id+'" aria-selected="false">'+s.label+'</button>';
+  }).join('');
+  nav.innerHTML=html;
+  nav.onclick=function(e){
+    var b=e.target.closest('[data-isa]');
+    if(!b)return;
+    setDocSection(b.getAttribute('data-isa'));
+  };
+  docNavBuilt=true;
+  setDocSection(firstId);
+}
 function openDocPanel(which){
-  const ov=document.getElementById('docOv');
+  var ov=document.getElementById('docOv');
   ov.hidden=false;
   document.body.style.overflow='hidden';
-  if(which==='tutorial')setDocTab('tutorial');
-  else setDocTab('isa');
+  ensureDocNav();
   if(which==='tutorial'){
-    const exv=document.getElementById('ex').value;
-    if(exv&&TUTORIAL_HTML[exv])document.getElementById('tutSel').value=exv;
-    renderTutorial();
+    var exv=document.getElementById('ex').value;
+    setDocSection(exv&&TUTORIAL_HTML[exv]?exv:'sum');
+  }else{
+    setDocSection(ISA_SECTIONS[0].id);
   }
 }
 function closeDocPanel(){
-  const ov=document.getElementById('docOv');
+  var ov=document.getElementById('docOv');
   ov.hidden=true;
   document.body.style.overflow='';
-}
-function setDocTab(id){
-  const isa=id==='isa';
-  document.getElementById('tabIsa').classList.toggle('on',isa);
-  document.getElementById('tabIsa').setAttribute('aria-selected',isa);
-  document.getElementById('tabTut').classList.toggle('on',!isa);
-  document.getElementById('tabTut').setAttribute('aria-selected',!isa);
-  document.getElementById('wrapIsa').hidden=!isa;
-  document.getElementById('paneTut').hidden=isa;
-  if(isa)ensureIsaNav();
-  else renderTutorial();
-}
-function renderTutorial(){
-  const k=document.getElementById('tutSel').value;
-  document.getElementById('tutOut').innerHTML=TUTORIAL_HTML[k]||'<p>Bu örnek için özet yok.</p>';
-  var ts=document.querySelector('.doc-tut-scroll');
-  if(ts)ts.scrollTop=0;
 }
 document.addEventListener('keydown',function(e){
   var ov=document.getElementById('docOv');
@@ -514,7 +491,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='F1'){
     e.preventDefault();
     if(ov.hidden)openDocPanel('isa');
-    else setDocTab('isa');
+    else setDocSection(ISA_SECTIONS[0].id);
     return
   }
   if(ov.hidden&&e.key==='?'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
@@ -889,9 +866,9 @@ skip:
     BNE  outer
     HALT`
 };
-function loadEx(){let s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}
-  const ov=document.getElementById('docOv'),tut=document.getElementById('paneTut');
-  if(s&&!ov.hidden&&!tut.hidden){document.getElementById('tutSel').value=s;renderTutorial()}}
+function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}
+  var ov=document.getElementById('docOv');
+  if(s&&!ov.hidden&&TUTORIAL_HTML[s])setDocSection(s);}
 
 // Init
 ed.value=EX.sum;updLn();doAssemble();renderAll();
