@@ -102,6 +102,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cp::-webkit-scrollbar{width:9px}.cp::-webkit-scrollbar-track{background:transparent}
 .cp::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg)}
 .ci{padding:6px 10px;display:flex;flex-direction:column;gap:6px}
+.cp-grid{display:grid;grid-template-columns:1fr;gap:6px}
+.cp-col{display:flex;flex-direction:column;gap:6px;min-width:0}
 .rw{display:flex;flex-direction:column;gap:6px}
 .rw > .cd{min-width:0}
 .cd{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
@@ -137,6 +139,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
 @media(min-width:860px){.rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}}
 @media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
+@media(min-width:1280px){.cp-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){.mn{flex-direction:column}.ep{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--brd)}}
 
@@ -244,7 +247,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-fig svg{width:100%;height:auto;display:block}
 .doc-fig text{font-family:var(--mono);font-size:10px;fill:var(--text)}
 .doc-fig .bx{fill:var(--bg2);stroke:var(--text2);stroke-width:1}
-.doc-fig .ln{stroke:var(--text2);stroke-width:1.5;fill:none;marker-end:url(#arr)}
+.doc-fig .ln{stroke:var(--text2);stroke-width:1.5;fill:none}
 .doc-fig .mut{fill:var(--text2)}
 .doc-dispatch{margin-top:.15rem}
 .doc-dispatch .dd-sec{margin:1.15rem 0 .5rem;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding-bottom:4px;border-bottom:1px solid var(--brd)}
@@ -328,10 +331,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
-
-    <!-- DATAPATH ANIMATION SVG -->
-    <div class="cd"><div class="ch">Datapath</div><div class="cb" style="padding:4px">
-      <svg id="dpSvg" class="dp-svg" viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
+    <div class="cp-grid">
+      <div class="cp-col">
+        <div class="rw rw-irbus">
+          <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
+          <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
+            <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
+          </div></div>
+        </div>
+        <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
+        <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
+        <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
+        <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
+      </div>
+      <div class="cp-col">
+        <!-- DATAPATH ANIMATION SVG -->
+        <div class="cd"><div class="ch">Datapath</div><div class="cb" style="padding:4px">
+          <svg id="dpSvg" class="dp-svg" viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="dpArr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5z" class="dp-arrow"/></marker>
           <marker id="dpArrAct" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5z" class="dp-arrow-act"/></marker>
@@ -398,29 +414,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <text id="dpPh2" class="dp-label" x="415" y="178" text-anchor="middle" font-size="9" font-weight="600">EXECUTE</text>
         <text id="dpPh3" class="dp-label" x="575" y="178" text-anchor="middle" font-size="9" font-weight="600">WRITEBACK</text>
         <rect id="dpPhBar" x="18" y="162" width="140" height="26" rx="3" fill="var(--blu-l)" stroke="var(--blu)" stroke-width="1" opacity=".7"/>
-      </svg>
-    </div></div>
-
-    <div class="rw rw-irbus">
-    <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
-    <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
-      <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
-    </div></div>
+          </svg>
+        </div></div>
+        <!-- MICROCODE VIEWER -->
+        <div class="cd"><div class="ch">Microcode · control store <span class="ch-sub" id="ucAddr">—</span></div><div class="cb" style="padding:0"><div class="uc-wrap" id="ucWrap">
+          <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
+        </div></div></div>
+        <div class="rw rw-mem">
+          <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
+          <div class="cd"><div class="ch">Stack <span class="ch-sub">0x02F8&ndash;0x02FF · SP</span></div><div class="cb"><div class="mg" id="mS"></div></div></div>
+        </div>
+      </div>
     </div>
-
-    <!-- MICROCODE VIEWER -->
-    <div class="cd"><div class="ch">Microcode · control store <span class="ch-sub" id="ucAddr">—</span></div><div class="cb" style="padding:0"><div class="uc-wrap" id="ucWrap">
-      <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
-    </div></div></div>
-
-    <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
-    <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
-    <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
-    <div class="rw rw-mem">
-    <div class="cd"><div class="ch">Memory &mdash; program</div><div class="cb"><div class="mg" id="mP"></div></div></div>
-    <div class="cd"><div class="ch">Stack <span class="ch-sub">0x02F8&ndash;0x02FF · SP</span></div><div class="cb"><div class="mg" id="mS"></div></div></div>
-    </div>
-    <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
   </div></div>
 
   <!-- ISA SIDEBAR -->
@@ -594,16 +599,16 @@ function dlExport(){
 document.getElementById('expOv').addEventListener('click',function(e){if(e.target===this)closeExport()});
 
 // ===== DOCUMENTATION PANEL =====
-const ISA_SECTIONS=[
-{id:'genel',label:'Overview',html:`<h3>Overview</h3>
+const DOC_HTML={
+overview:`<h3>Overview</h3>
 <p>NT-16 is a pedagogical 16-bit, word-addressed, register-based processor in the Brey/Tanenbaum tradition. It features <strong>30 instructions</strong> across <strong>4 encoding formats</strong>.</p>
 <table><tr><th>Parameter</th><th>Value</th></tr>
 <tr><td>Word</td><td>16-bit</td></tr>
 <tr><td>Memory</td><td>2\u00b9\u2076 words (65,536)</td></tr>
 <tr><td>Addressing</td><td>Word-addressed</td></tr>
 <tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
-<tr><td>I/O</td><td>Memory-mapped</td></tr></table>`},
-{id:'yazmac',label:'Registers',html:`<h3>Registers</h3>
+<tr><td>I/O</td><td>Memory-mapped</td></tr></table>`,
+registers:`<h3>Registers</h3>
 <h4>General purpose registers</h4>
 <table><tr><th>Register</th><th>Encoding</th><th>Use</th></tr>
 <tr><td><code>R0</code></td><td><code>000</code></td><td>Hard-wired zero</td></tr>
@@ -612,8 +617,8 @@ const ISA_SECTIONS=[
 <tr><td><code>R7/LR</code></td><td><code>111</code></td><td>Link register (convention)</td></tr></table>
 <h4>FLAGS layout</h4>
 <pre>Bit:   3    2    1    0
-     [ V ][ N ][ C ][ Z ]</pre>`},
-{id:'kodlama_dispatch',label:'Encoding & Dispatch',html:`<h3>Instruction encoding</h3>
+     [ V ][ N ][ C ][ Z ]</pre>`,
+encodingDispatch:`<h3>Instruction encoding</h3>
 <pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
 I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (signed)
 I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
@@ -642,8 +647,8 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
 <tr><td>22</td><td><code>10110</code></td><td>JMP</td></tr>
 <tr><td>23</td><td><code>10111</code></td><td>CALL</td></tr>
 <tr><td>24</td><td><code>11000</code></td><td>RET</td></tr>
-<tr><td>31</td><td><code>11111</code></td><td>HALT</td></tr></table></div>`},
-{id:'alu_imm',label:'ALU & Immediate',html:`<h3>ALU and immediate</h3>
+<tr><td>31</td><td><code>11111</code></td><td>HALT</td></tr></table></div>`,
+aluImmediate:`<h3>ALU and immediate</h3>
 <h4>Immediate extension rules</h4>
 <table><tr><th>Inst</th><th>Width</th><th>Extension</th></tr>
 <tr><td>ADDI,CMPI</td><td>imm8</td><td>Sign-extend</td></tr>
@@ -651,8 +656,8 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
 <tr><td>LI</td><td>imm8</td><td>Sign-extend</td></tr>
 <tr><td>LUI</td><td>imm8</td><td>imm8\u00AB8</td></tr>
 <tr><td>LOAD,STORE</td><td>imm5</td><td>Sign-extend</td></tr></table>
-<p class="doc-note">SUBI is not a separate opcode; use ADDI Rd,#-k.</p>`},
-{id:'bellek_akis',label:'Memory & Flow',html:`<h3>Memory and control flow</h3>
+<p class="doc-note">SUBI is not a separate opcode; use ADDI Rd,#-k.</p>`,
+memoryFlow:`<h3>Memory and control flow</h3>
 <h4>Stack</h4>
 <p>Stack grows downward. PUSH: pre-decrement SP. POP: post-increment SP. SP is auto-initialized to 0x0300.</p>
 <h4>Branches</h4>
@@ -660,8 +665,8 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
 <tr><td>BEQ/BNE</td><td>Z=1/Z=0</td></tr>
 <tr><td>BLT/BGE</td><td>N\u2260V / N=V (signed)</td></tr>
 <tr><td>BCS/BCC</td><td>C=1/C=0 (unsigned)</td></tr></table>
-<p>Typical nested-call: PUSH LR \u2192 CALL \u2192 POP LR \u2192 RET</p>`},
-{id:'emul_tasarim',label:'Emulator & Design',html:`<h3>Emulator</h3>
+<p>Typical nested-call: PUSH LR \u2192 CALL \u2192 POP LR \u2192 RET</p>`,
+emulatorDesign:`<h3>Emulator</h3>
 <p>SP auto-initialized to 0x0300. Click line numbers for breakpoints. Run stops before executing a breakpoint line.</p>
 <h4>Design</h4>
 <table><tr><th>Decision</th><th>Choice</th></tr>
@@ -669,7 +674,15 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
 <tr><td>SP,LR</td><td>Inside GPR file (R6,R7)</td></tr>
 <tr><td>Branches</td><td>PC-relative 11-bit</td></tr>
 <tr><td>Formats</td><td>4 types (R, I-short, I-wide, J)</td></tr></table>
-<p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`}
+<p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`
+};
+const ISA_SECTIONS=[
+{id:'genel',label:'Overview',html:DOC_HTML.overview},
+{id:'yazmac',label:'Registers',html:DOC_HTML.registers},
+{id:'kodlama_dispatch',label:'Encoding & Dispatch',html:DOC_HTML.encodingDispatch},
+{id:'alu_imm',label:'ALU & Immediate',html:DOC_HTML.aluImmediate},
+{id:'bellek_akis',label:'Memory & Flow',html:DOC_HTML.memoryFlow},
+{id:'emul_tasarim',label:'Emulator & Design',html:DOC_HTML.emulatorDesign}
 ];
 const TUTORIAL_HTML={
 sum:`<h3>Sum 1..5</h3><ol class="tut-steps"><li><code>LI R1,#5</code> counter, <code>LI R2,#0</code> accumulator.</li><li><code>ADD R2,R2,R1</code> loop body.</li><li><code>ADDI R1,#-1</code> + <code>BNE loop</code> control.</li><li>Result: R2=15.</li></ol>`,
