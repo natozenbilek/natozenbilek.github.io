@@ -50,10 +50,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .b:hover{background:var(--bg3)}.b:active{transform:scale(.97)}
 .bp{background:var(--acc);color:#fff;border-color:var(--acc)}.bp:hover{opacity:.9;background:var(--acc)}
 .bg{background:var(--grn);color:#fff;border-color:var(--grn)}.bg:hover{opacity:.9;background:var(--grn)}
+.b-blu{background:var(--blu);color:#fff;border-color:var(--blu)}.b-blu:hover{opacity:.9;background:var(--blu)}
 .spd{display:flex;align-items:center;gap:4px;margin-left:6px}
 .spd label{font-size:10px;color:var(--text2);font-family:var(--mono)}
 .spd select{font-family:var(--mono);font-size:10px;padding:2px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
-.pill{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:auto}
+.pill{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:10px;font-weight:600}
 .p-rdy{background:var(--blu-l);color:var(--blu)}
 .p-run{background:var(--grn-l);color:var(--grn)}
 .p-hlt{background:var(--amb-l);color:var(--amb)}
@@ -79,17 +80,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 #ed{
   flex:1;min-height:120px;min-width:0;width:100%;box-sizing:border-box;position:relative;z-index:1;margin:0;
   font-family:var(--mono),ui-monospace,Courier New,monospace;
-  font-size:var(--ed-fs);
-  line-height:var(--ed-lh);
-  font-weight:400;
-  font-synthesis:none;
-  letter-spacing:0;
-  font-variant-ligatures:none;
-  tab-size:4;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  background:var(--bg-ed);color:#cdd6f4;caret-color:#89dceb;
-  padding:var(--ed-pad-t) var(--ed-pad-x);
+  font-size:var(--ed-fs);line-height:var(--ed-lh);font-weight:400;font-synthesis:none;letter-spacing:0;
+  font-variant-ligatures:none;tab-size:4;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background:var(--bg-ed);color:#cdd6f4;caret-color:#89dceb;padding:var(--ed-pad-t) var(--ed-pad-x);
   border:none;outline:none;resize:none;appearance:none;-webkit-appearance:none;border-radius:0;
   white-space:pre;overflow:auto;overscroll-behavior:contain;
   scrollbar-width:thin;scrollbar-color:rgba(205,214,244,.35) var(--bg-ed)
@@ -102,15 +95,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 #ed::-webkit-scrollbar-thumb:hover{background:rgba(205,214,244,.45)}
 #ed::-webkit-scrollbar-corner{background:var(--bg-ed)}
 .lb{padding:4px 10px;font-family:var(--mono);font-size:10px;border-top:1px solid var(--brd);background:var(--bg2);color:var(--text2);min-height:22px;max-height:64px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) var(--bg2)}
-.lb::-webkit-scrollbar{width:6px}
-.lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
+.lb::-webkit-scrollbar{width:6px}.lb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 .le{color:var(--red)}.ls{color:var(--grn)}
 
 .cp{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg);min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
-.cp::-webkit-scrollbar{width:9px}
-.cp::-webkit-scrollbar-track{background:transparent}
+.cp::-webkit-scrollbar{width:9px}.cp::-webkit-scrollbar-track{background:transparent}
 .cp::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg)}
-.cp::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .ci{padding:6px 10px;display:flex;flex-direction:column;gap:6px}
 .rw{display:flex;flex-direction:column;gap:6px}
 .rw > .cd{min-width:0}
@@ -138,22 +128,80 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
 .ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
 .mv{text-align:center;padding:1px;border-radius:2px;color:var(--text3);transition:all .15s}
-.mv.nz{color:var(--text)}.mv.act{background:var(--blu-l);color:var(--blu);font-weight:600}
-.mv.pc{background:var(--grn-l);color:var(--grn);font-weight:600}
+.mv.nz{color:var(--text)}.mv.pc{background:var(--grn-l);color:var(--grn);font-weight:600}
 .mv.sp{background:var(--amb-l);color:var(--amb);font-weight:600}
 
 .cyc{display:flex;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--text2);padding:2px 0}
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
-@media(min-width:860px){
-  .rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}
-}
-@media(min-width:1080px){
-  .rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}
-}
+@media(min-width:860px){.rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}}
+@media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
+@media(max-width:640px){.mn{flex-direction:column}.ep{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--brd)}}
 
+/* ===== DATAPATH SVG ===== */
+.dp-svg{width:100%;height:auto;display:block}
+.dp-svg text{font-family:var(--mono);fill:var(--text)}
+.dp-svg .dp-box{fill:var(--bg3);stroke:var(--brd);stroke-width:1.5;rx:4;ry:4}
+.dp-svg .dp-box-act{fill:var(--blu-l);stroke:var(--blu);stroke-width:2}
+.dp-svg .dp-bus{stroke:var(--brd);stroke-width:2;fill:none}
+.dp-svg .dp-bus-act{stroke:var(--acc);stroke-width:2.5;fill:none}
+.dp-svg .dp-label{font-size:8px;fill:var(--text3);font-weight:500}
+.dp-svg .dp-val{font-size:9px;fill:var(--acc);font-weight:600}
+.dp-svg .dp-title{font-size:10px;fill:var(--text);font-weight:600}
+.dp-svg .dp-arrow{fill:var(--text3)}
+.dp-svg .dp-arrow-act{fill:var(--acc)}
+.dp-svg .dp-dot{r:3;fill:var(--acc);opacity:0}
+.dp-svg .dp-dot.on{opacity:1;animation:dp-pulse .6s ease-in-out}
+@keyframes dp-pulse{0%{opacity:0;r:2}50%{opacity:1;r:4}100%{opacity:.7;r:3}}
+@media(prefers-color-scheme:dark){
+  .dp-svg .dp-box{fill:var(--bg3);stroke:var(--brd)}
+  .dp-svg .dp-box-act{fill:rgba(106,176,232,.15);stroke:var(--blu)}
+}
+
+/* ===== MICROCODE VIEWER ===== */
+.uc-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px;line-height:1.4}
+.uc-tbl th{background:var(--bg3);border:1px solid var(--brd);padding:2px 5px;text-align:left;font-weight:600;color:var(--text2);position:sticky;top:0;z-index:1}
+.uc-tbl td{border:1px solid var(--brd);padding:2px 5px;color:var(--text2)}
+.uc-tbl tr.uc-act{background:var(--grn-l)!important}
+.uc-tbl tr.uc-act td{color:var(--grn);font-weight:600}
+.uc-tbl tr.uc-done{background:var(--bg3)}
+.uc-tbl tr.uc-done td{color:var(--text3)}
+.uc-wrap{max-height:180px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.uc-wrap::-webkit-scrollbar{width:6px}.uc-wrap::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
+
+/* ===== EXPORT MODAL ===== */
+.exp-ov{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(26,26,30,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.exp-ov[hidden]{display:none!important}
+.exp-pan{max-width:560px;width:100%;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;box-shadow:0 16px 48px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+.exp-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--brd);background:var(--bg3)}
+.exp-hd h3{font-family:var(--serif);font-size:1rem;font-weight:600;flex:1}
+.exp-body{padding:12px 14px;overflow-y:auto;flex:1}
+.exp-tabs{display:flex;gap:4px;margin-bottom:10px}
+.exp-tab{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
+.exp-tab:hover{background:var(--bg3)}.exp-tab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
+.exp-out{font-family:var(--mono);font-size:10px;line-height:1.6;background:var(--bg-ed);color:#cdd6f4;padding:10px 12px;border-radius:var(--r);border:1px solid var(--brd);white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;user-select:all;cursor:text}
+.exp-foot{padding:8px 14px;border-top:1px solid var(--brd);display:flex;gap:6px;justify-content:flex-end}
+
+/* ===== ISA SIDEBAR ===== */
+.isa-side{width:0;overflow:hidden;transition:width .25s ease;border-left:0 solid var(--brd);background:var(--bg2);display:flex;flex-direction:column;flex-shrink:0}
+.isa-side.open{width:min(320px,35vw);border-left-width:1px}
+@media(max-width:900px){.isa-side.open{width:min(280px,40vw)}}
+@media(max-width:640px){.isa-side.open{position:fixed;right:0;top:0;bottom:0;width:85vw;z-index:400;box-shadow:-4px 0 24px rgba(0,0,0,.15)}}
+.isa-sh{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
+.isa-sh h3{font-family:var(--serif);font-size:13px;font-weight:600;flex:1}
+.isa-sb{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 10px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brd) transparent;font-size:11px;line-height:1.55}
+.isa-sb::-webkit-scrollbar{width:6px}.isa-sb::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
+.isa-sb h4{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:10px 0 4px;padding-bottom:2px;border-bottom:1px solid var(--brd)}
+.isa-sb h4:first-child{margin-top:0}
+.isa-sb table{border-collapse:collapse;width:100%;font-size:9.5px;margin:4px 0}
+.isa-sb th,.isa-sb td{border:1px solid var(--brd);padding:2px 5px;text-align:left}
+.isa-sb th{background:var(--bg3);font-family:var(--mono);font-size:8.5px;font-weight:600;color:var(--text2)}
+.isa-sb code{font-family:var(--mono);font-size:9px;padding:0 3px;background:var(--bg3);border-radius:2px;color:var(--acc)}
+.isa-sb .isa-note{font-size:10px;color:var(--text2);border-left:2px solid var(--blu);padding:4px 8px;background:var(--blu-l);margin:6px 0;border-radius:0 2px 2px 0}
+
+/* ===== DOC MODAL (kept from original) ===== */
 .doc-ov{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px 14px;overflow:hidden;overscroll-behavior:none;background:rgba(26,26,30,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .doc-ov[hidden]{display:none!important}
 .doc-panel{max-width:min(56rem,100%);width:100%;max-height:min(92dvh,92vh);margin:auto;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain}
@@ -162,26 +210,24 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-panel-hd .b{padding:4px 10px}
 .doc-hint{font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap}
 @media(max-width:640px){.doc-hint{display:none}}
-.doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;padding:0}
+.doc-scroll{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .doc-isa-split{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
-.doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0;align-content:flex-start}
-.doc-nav-group{flex-basis:100%;width:100%;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:8px 4px 2px;margin:0;border:none;pointer-events:none;user-select:none}
-.doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:background .12s,color .12s,border-color .12s}
+.doc-isa-nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg);flex-shrink:0}
+.doc-nav-group{flex-basis:100%;width:100%;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:8px 4px 2px}
+.doc-subtab{font-family:var(--mono);font-size:9.5px;padding:5px 9px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .12s}
 .doc-subtab:hover{color:var(--text);background:var(--bg3)}
 .doc-subtab.on{background:var(--bg3);border-color:var(--text3);color:var(--text);font-weight:600}
 .doc-isa-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 20px;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
-.doc-isa-scroll::-webkit-scrollbar{width:9px}
-.doc-isa-scroll::-webkit-scrollbar-track{background:transparent}
+.doc-isa-scroll::-webkit-scrollbar{width:9px}.doc-isa-scroll::-webkit-scrollbar-track{background:transparent}
 .doc-isa-scroll::-webkit-scrollbar-thumb{background:var(--brd);border-radius:5px;border:2px solid var(--bg2)}
-.doc-isa-scroll::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .doc-scroll-article{max-width:100%;padding-top:14px;font-family:var(--sans);font-size:12.5px;line-height:1.58;color:var(--text)}
-.doc-scroll-article h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem;color:var(--text)}
+.doc-scroll-article h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:1.15rem 0 .45rem}
 .doc-scroll-article h3:first-child{margin-top:0}
 .doc-scroll-article h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1rem 0 .35rem}
 .doc-scroll-article p{margin:.45rem 0}
 .doc-scroll-article ol{margin:.45rem 0;padding-left:1.25rem}
 .doc-scroll-article table{border-collapse:collapse;width:100%;font-size:11px;margin:.55rem 0}
-.doc-scroll-article th,.doc-scroll-article td{border:1px solid var(--brd);padding:5px 7px;text-align:left;vertical-align:top}
+.doc-scroll-article th,.doc-scroll-article td{border:1px solid var(--brd);padding:5px 7px;text-align:left}
 .doc-scroll-article th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text2)}
 .doc-scroll-article code{font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--acc)}
 .doc-scroll-article pre{font-family:var(--mono);font-size:10px;line-height:1.5;padding:10px 12px;border-radius:var(--r);background:var(--bg-ed);color:#cdd6f4;overflow-x:auto;margin:.6rem 0;border:1px solid var(--brd)}
@@ -200,7 +246,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .doc-fig .bx{fill:var(--bg2);stroke:var(--text2);stroke-width:1}
 .doc-fig .ln{stroke:var(--text2);stroke-width:1.5;fill:none;marker-end:url(#arr)}
 .doc-fig .mut{fill:var(--text2)}
-
 .doc-dispatch{margin-top:.15rem}
 .doc-dispatch .dd-sec{margin:1.15rem 0 .5rem;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding-bottom:4px;border-bottom:1px solid var(--brd)}
 .doc-dispatch .dd-sec:first-child{margin-top:0}
@@ -248,7 +293,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </select>
   </div>
   <span class="pill p-rdy" id="st">READY</span>
-  <button type="button" class="b" onclick="openDocPanel()" title="ISA, architecture and tutorial (F1)">Guide</button>
+  <div class="sep"></div>
+  <button type="button" class="b" onclick="openExport()" title="Export binary/hex">Export</button>
+  <button type="button" class="b" onclick="toggleIsaSidebar()" id="isaBtn" title="ISA quick reference (F2)">ISA</button>
+  <button type="button" class="b" onclick="openDocPanel()" title="Full guide and tutorials (F1)">Guide</button>
 </div>
 <div class="mn">
   <div class="ep">
@@ -263,7 +311,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="mem">Load / Store</option>
         <option value="sort">Bubble sort</option>
       </select>
-      <span class="eh-hint">Left number: breakpoint · blue = next instruction (PC)</span>
+      <span class="eh-hint">Click line no. for breakpoint · blue = PC</span>
     </div>
     <div class="ew">
       <div class="ln" id="lns" aria-label="Line numbers"></div>
@@ -280,12 +328,91 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <span>Instr: <b id="inN">0</b></span>
       <span>Phase: <b id="phN">—</b></span>
     </div>
+
+    <!-- DATAPATH ANIMATION SVG -->
+    <div class="cd"><div class="ch">Datapath</div><div class="cb" style="padding:4px">
+      <svg id="dpSvg" class="dp-svg" viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="dpArr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5z" class="dp-arrow"/></marker>
+          <marker id="dpArrAct" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5z" class="dp-arrow-act"/></marker>
+        </defs>
+        <!-- PC -->
+        <rect id="dpPC" class="dp-box" x="8" y="10" width="60" height="36"/>
+        <text class="dp-title" x="28" y="24" text-anchor="middle" font-size="8" dx="10">PC</text>
+        <text id="dpPCv" class="dp-val" x="38" y="38" text-anchor="middle">0000</text>
+        <!-- Memory -->
+        <rect id="dpMem" class="dp-box" x="110" y="10" width="80" height="36"/>
+        <text class="dp-title" x="150" y="24" text-anchor="middle" font-size="8">Memory</text>
+        <text id="dpMemV" class="dp-val" x="150" y="38" text-anchor="middle">—</text>
+        <!-- IR -->
+        <rect id="dpIR" class="dp-box" x="230" y="10" width="70" height="36"/>
+        <text class="dp-title" x="265" y="24" text-anchor="middle" font-size="8">IR</text>
+        <text id="dpIRv" class="dp-val" x="265" y="38" text-anchor="middle">—</text>
+        <!-- Decode -->
+        <rect id="dpDec" class="dp-box" x="340" y="10" width="70" height="36"/>
+        <text class="dp-title" x="375" y="24" text-anchor="middle" font-size="8">Decode</text>
+        <text id="dpDecV" class="dp-val" x="375" y="38" text-anchor="middle" font-size="7">—</text>
+        <!-- Register File -->
+        <rect id="dpRF" class="dp-box" x="110" y="75" width="100" height="50"/>
+        <text class="dp-title" x="160" y="92" text-anchor="middle" font-size="8">Register File</text>
+        <text id="dpRFa" class="dp-val" x="140" y="112" text-anchor="middle" font-size="8">—</text>
+        <text id="dpRFb" class="dp-val" x="185" y="112" text-anchor="middle" font-size="8">—</text>
+        <text class="dp-label" x="130" y="120" text-anchor="middle">A</text>
+        <text class="dp-label" x="175" y="120" text-anchor="middle">B</text>
+        <!-- ALU -->
+        <rect id="dpALU" class="dp-box" x="290" y="75" width="90" height="50"/>
+        <text class="dp-title" x="335" y="92" text-anchor="middle" font-size="8">ALU</text>
+        <text id="dpALUop" class="dp-val" x="335" y="108" text-anchor="middle" font-size="9">—</text>
+        <text id="dpALUr" class="dp-val" x="335" y="120" text-anchor="middle" font-size="7" fill="var(--grn)">—</text>
+        <!-- FLAGS -->
+        <rect id="dpFL" class="dp-box" x="420" y="75" width="70" height="50"/>
+        <text class="dp-title" x="455" y="92" text-anchor="middle" font-size="8">FLAGS</text>
+        <text id="dpFLv" class="dp-val" x="455" y="112" text-anchor="middle" font-size="8">----</text>
+        <!-- Writeback / Dest -->
+        <rect id="dpWB" class="dp-box" x="500" y="10" width="80" height="36"/>
+        <text class="dp-title" x="540" y="24" text-anchor="middle" font-size="8">Writeback</text>
+        <text id="dpWBv" class="dp-val" x="540" y="38" text-anchor="middle" font-size="8">—</text>
+        <!-- MEM access -->
+        <rect id="dpMA" class="dp-box" x="500" y="75" width="80" height="50"/>
+        <text class="dp-title" x="540" y="92" text-anchor="middle" font-size="8">Mem I/O</text>
+        <text id="dpMAv" class="dp-val" x="540" y="112" text-anchor="middle" font-size="8">—</text>
+        <!-- Bus lines -->
+        <line id="busPC2M" class="dp-bus" x1="68" y1="28" x2="110" y2="28" marker-end="url(#dpArr)"/>
+        <line id="busM2IR" class="dp-bus" x1="190" y1="28" x2="230" y2="28" marker-end="url(#dpArr)"/>
+        <line id="busIR2D" class="dp-bus" x1="300" y1="28" x2="340" y2="28" marker-end="url(#dpArr)"/>
+        <line id="busD2RF" class="dp-bus" x1="355" y1="46" x2="210" y2="80" marker-end="url(#dpArr)"/>
+        <line id="busRF2A" class="dp-bus" x1="210" y1="100" x2="290" y2="95" marker-end="url(#dpArr)"/>
+        <line id="busALU2F" class="dp-bus" x1="380" y1="100" x2="420" y2="100" marker-end="url(#dpArr)"/>
+        <line id="busALU2WB" class="dp-bus" x1="375" y1="80" x2="500" y2="28" marker-end="url(#dpArr)"/>
+        <line id="busD2MA" class="dp-bus" x1="400" y1="46" x2="500" y2="90" marker-end="url(#dpArr)"/>
+        <line id="busWB2RF" class="dp-bus" x1="500" y1="40" x2="160" y2="75" marker-end="url(#dpArr)"/>
+        <!-- Animated dots -->
+        <circle id="dotFetch" class="dp-dot" cx="90" cy="28"/>
+        <circle id="dotDecode" class="dp-dot" cx="320" cy="28"/>
+        <circle id="dotExec" class="dp-dot" cx="335" cy="95"/>
+        <circle id="dotWB" class="dp-dot" cx="440" cy="50"/>
+        <!-- Phase indicator -->
+        <rect x="8" y="155" width="644" height="38" rx="4" fill="var(--bg3)" stroke="var(--brd)" stroke-width="1"/>
+        <text id="dpPh0" class="dp-label" x="85" y="178" text-anchor="middle" font-size="9" font-weight="600">FETCH</text>
+        <text id="dpPh1" class="dp-label" x="250" y="178" text-anchor="middle" font-size="9" font-weight="600">DECODE</text>
+        <text id="dpPh2" class="dp-label" x="415" y="178" text-anchor="middle" font-size="9" font-weight="600">EXECUTE</text>
+        <text id="dpPh3" class="dp-label" x="575" y="178" text-anchor="middle" font-size="9" font-weight="600">WRITEBACK</text>
+        <rect id="dpPhBar" x="18" y="162" width="140" height="26" rx="3" fill="var(--blu-l)" stroke="var(--blu)" stroke-width="1" opacity=".7"/>
+      </svg>
+    </div></div>
+
     <div class="rw rw-irbus">
     <div class="cd"><div class="ch">Current instruction</div><div class="cb"><div class="ir" id="irD">—</div></div></div>
     <div class="cd"><div class="ch">Bus transfer</div><div class="cb">
       <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
     </div></div>
     </div>
+
+    <!-- MICROCODE VIEWER -->
+    <div class="cd"><div class="ch">Microcode · control store <span class="ch-sub" id="ucAddr">—</span></div><div class="cb" style="padding:0"><div class="uc-wrap" id="ucWrap">
+      <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
+    </div></div></div>
+
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
     <div class="cd"><div class="ch">Flags</div><div class="cb"><div class="fr" id="flG"></div></div></div>
     <div class="cd"><div class="ch">Control</div><div class="cb"><div class="rg" id="ctG" style="grid-template-columns:repeat(3,1fr)"></div></div></div>
@@ -295,8 +422,38 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </div>
     <div class="cd"><div class="ch">Description</div><div class="cb"><div class="ms" id="desc">—</div></div></div>
   </div></div>
+
+  <!-- ISA SIDEBAR -->
+  <div id="isaSide" class="isa-side">
+    <div class="isa-sh">
+      <h3>ISA Reference</h3>
+      <button class="b" onclick="toggleIsaSidebar()" style="font-size:9px;padding:2px 6px">✕</button>
+    </div>
+    <div class="isa-sb" id="isaBody"></div>
+  </div>
 </div>
 
+<!-- EXPORT MODAL -->
+<div id="expOv" class="exp-ov" hidden>
+  <div class="exp-pan">
+    <div class="exp-hd"><h3>Export program</h3><button class="b" onclick="closeExport()">Close</button></div>
+    <div class="exp-body">
+      <div class="exp-tabs" id="expTabs">
+        <button class="exp-tab on" onclick="setExpFmt('hex',this)">Hex</button>
+        <button class="exp-tab" onclick="setExpFmt('bin',this)">Binary</button>
+        <button class="exp-tab" onclick="setExpFmt('asm',this)">Listing</button>
+        <button class="exp-tab" onclick="setExpFmt('c',this)">C array</button>
+      </div>
+      <pre class="exp-out" id="expOut"></pre>
+    </div>
+    <div class="exp-foot">
+      <button class="b b-blu" onclick="copyExport()">Copy</button>
+      <button class="b" onclick="dlExport()">Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- DOC MODAL (unchanged structure) -->
 <div id="docOv" class="doc-ov" hidden role="dialog" aria-modal="true" aria-labelledby="docDlgTitle">
   <div class="doc-panel">
     <div class="doc-panel-hd">
@@ -306,7 +463,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
     </div>
     <div class="doc-scroll">
       <div id="wrapIsa" class="doc-isa-split">
-        <nav class="doc-isa-nav" id="docNav" role="tablist" aria-label="ISA and tutorial sections"></nav>
+        <nav class="doc-isa-nav" id="docNav" role="tablist" aria-label="ISA sections"></nav>
         <div class="doc-isa-scroll" id="isaScrollRegion">
           <article id="paneIsaBody" class="doc-scroll-article"></article>
         </div>
@@ -316,424 +473,242 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 </div>
 
 <script>
+// ===== ISA SIDEBAR CONTENT =====
+function buildIsaSidebar(){
+  document.getElementById('isaBody').innerHTML=`
+<h4>Registers</h4>
+<table><tr><th>Reg</th><th>Use</th></tr>
+<tr><td><code>R0</code></td><td>Zero (hardwired)</td></tr>
+<tr><td><code>R1-R5</code></td><td>General purpose</td></tr>
+<tr><td><code>R6/SP</code></td><td>Stack pointer</td></tr>
+<tr><td><code>R7/LR</code></td><td>Link register</td></tr></table>
+
+<h4>ALU (R-type)</h4>
+<table><tr><th>Op</th><th>Fmt</th><th>Flags</th></tr>
+<tr><td><code>ADD</code></td><td>Rd,Rs,Rt</td><td>ZCNV</td></tr>
+<tr><td><code>SUB</code></td><td>Rd,Rs,Rt</td><td>ZCNV</td></tr>
+<tr><td><code>AND</code></td><td>Rd,Rs,Rt</td><td>ZN</td></tr>
+<tr><td><code>OR</code></td><td>Rd,Rs,Rt</td><td>ZN</td></tr>
+<tr><td><code>XOR</code></td><td>Rd,Rs,Rt</td><td>ZN</td></tr>
+<tr><td><code>NOT</code></td><td>Rd,Rs</td><td>ZN</td></tr>
+<tr><td><code>SHL</code></td><td>Rd,Rs,Rt</td><td>ZCN</td></tr>
+<tr><td><code>SHR</code></td><td>Rd,Rs,Rt</td><td>ZCN</td></tr>
+<tr><td><code>SRA</code></td><td>Rd,Rs,Rt</td><td>ZCN</td></tr>
+<tr><td><code>CMP</code></td><td>Rs,Rt</td><td>ZCNV</td></tr></table>
+
+<h4>Immediate (I-wide)</h4>
+<table><tr><th>Op</th><th>Action</th><th>Ext</th></tr>
+<tr><td><code>ADDI</code></td><td>Rd+=imm8</td><td>sign</td></tr>
+<tr><td><code>ANDI</code></td><td>Rd&=imm8</td><td>zero</td></tr>
+<tr><td><code>ORI</code></td><td>Rd|=imm8</td><td>zero</td></tr>
+<tr><td><code>LI</code></td><td>Rd=imm8</td><td>sign</td></tr>
+<tr><td><code>LUI</code></td><td>Rd=imm8<<8</td><td>—</td></tr>
+<tr><td><code>CMPI</code></td><td>flags only</td><td>sign</td></tr></table>
+
+<h4>Memory</h4>
+<table><tr><th>Op</th><th>Action</th></tr>
+<tr><td><code>LOAD Rd,[Rs+off]</code></td><td>Rd=Mem[Rs+imm5]</td></tr>
+<tr><td><code>STORE Rd,[Rs+off]</code></td><td>Mem[Rs+imm5]=Rd</td></tr>
+<tr><td><code>PUSH Rd</code></td><td>SP--; Mem[SP]=Rd</td></tr>
+<tr><td><code>POP Rd</code></td><td>Rd=Mem[SP]; SP++</td></tr></table>
+
+<h4>Branches (J-type)</h4>
+<table><tr><th>Op</th><th>Cond</th></tr>
+<tr><td><code>BEQ/BNE</code></td><td>Z=1 / Z=0</td></tr>
+<tr><td><code>BLT/BGE</code></td><td>N≠V / N=V</td></tr>
+<tr><td><code>BCS/BCC</code></td><td>C=1 / C=0</td></tr>
+<tr><td><code>JMP</code></td><td>always</td></tr>
+<tr><td><code>CALL</code></td><td>LR=PC; jump</td></tr>
+<tr><td><code>RET</code></td><td>PC=LR</td></tr>
+<tr><td><code>HALT</code></td><td>stop</td></tr></table>
+
+<h4>Pseudo-instructions</h4>
+<table><tr><th>Pseudo</th><th>Expands to</th></tr>
+<tr><td><code>NOP</code></td><td>ADD R0,R0,R0</td></tr>
+<tr><td><code>MOV Rd,Rs</code></td><td>ADD Rd,Rs,R0</td></tr>
+<tr><td><code>NEG Rd,Rs</code></td><td>SUB Rd,R0,Rs</td></tr>
+<tr><td><code>SUBI Rd,#k</code></td><td>ADDI Rd,#(-k)</td></tr>
+<tr><td><code>CLR Rd</code></td><td>LI Rd,#0</td></tr></table>
+
+<div class="isa-note">16-bit constant: <code>LUI Rd,#hi</code> then <code>ORI Rd,#lo</code></div>
+
+<h4>Encoding formats</h4>
+<table><tr><th>Fmt</th><th>Layout</th></tr>
+<tr><td>R</td><td>op[5] Rd[3] Rs[3] Rt[3] fn[2]</td></tr>
+<tr><td>I-short</td><td>op[5] Rd[3] Rs[3] imm5[5]</td></tr>
+<tr><td>I-wide</td><td>op[5] Rd[3] imm8[8]</td></tr>
+<tr><td>J</td><td>op[5] off11[11]</td></tr></table>`;
+}
+
+function toggleIsaSidebar(){
+  var s=document.getElementById('isaSide');
+  s.classList.toggle('open');
+  if(s.classList.contains('open')&&!s.dataset.built){buildIsaSidebar();s.dataset.built='1'}
+}
+
+// ===== EXPORT =====
+let expFmt='hex';
+function openExport(){document.getElementById('expOv').hidden=false;genExport()}
+function closeExport(){document.getElementById('expOv').hidden=true}
+function setExpFmt(f,btn){expFmt=f;document.querySelectorAll('.exp-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');genExport()}
+function genExport(){
+  let out='';
+  if(!pLen){document.getElementById('expOut').textContent='No program assembled.';return}
+  if(expFmt==='hex'){
+    out='; NT-16 Hex dump — '+pLen+' words\n';
+    for(let i=0;i<pLen;i++){
+      if(i%8===0)out+=f16(i)+': ';
+      out+=mem[i].toString(16).toUpperCase().padStart(4,'0')+' ';
+      if(i%8===7||i===pLen-1)out+='\n';
+    }
+  }else if(expFmt==='bin'){
+    out='// NT-16 Binary dump — '+pLen+' words\n';
+    for(let i=0;i<pLen;i++){
+      out+=f16(i)+': '+mem[i].toString(2).padStart(16,'0')+' // '+dis(mem[i])+'\n';
+    }
+  }else if(expFmt==='asm'){
+    out='; NT-16 Assembly listing\n; Addr  Hex    Instruction\n';
+    for(let i=0;i<pLen;i++){
+      let lbl='';
+      for(let[k,v]of Object.entries(labels))if(v===i)lbl=k+':';
+      if(lbl)out+=lbl+'\n';
+      out+='  '+f16(i)+'  '+mem[i].toString(16).toUpperCase().padStart(4,'0')+'  '+dis(mem[i])+'\n';
+    }
+  }else if(expFmt==='c'){
+    out='// NT-16 program — '+pLen+' words\nconst uint16_t program['+pLen+'] = {\n';
+    for(let i=0;i<pLen;i++){
+      out+='  0x'+mem[i].toString(16).toUpperCase().padStart(4,'0');
+      if(i<pLen-1)out+=',';
+      out+='  /* '+f16(i)+': '+dis(mem[i])+' */\n';
+    }
+    out+='};\n';
+  }
+  document.getElementById('expOut').textContent=out;
+}
+function copyExport(){navigator.clipboard.writeText(document.getElementById('expOut').textContent).then(()=>{sLog('Copied to clipboard.',0)}).catch(()=>{sLog('Copy failed — select manually.',1)})}
+function dlExport(){
+  let ext={hex:'.hex',bin:'.bin',asm:'.lst',c:'.h'}[expFmt]||'.txt';
+  let blob=new Blob([document.getElementById('expOut').textContent],{type:'text/plain'});
+  let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nt16_program'+ext;a.click();URL.revokeObjectURL(a.href);
+}
+document.getElementById('expOv').addEventListener('click',function(e){if(e.target===this)closeExport()});
+
 // ===== DOCUMENTATION PANEL =====
 const ISA_SECTIONS=[
 {id:'genel',label:'Overview',html:`<h3>Overview</h3>
-<p>NT-16 is a pedagogical processor model in the Brey / Tanenbaum tradition: <strong>16-bit</strong>, <strong>word-addressed</strong>, and <strong>register-based</strong>. This VM runs the same assembly syntax and makes the ISA side visible together with micro-address level behavior.</p>
+<p>NT-16 is a pedagogical 16-bit, word-addressed, register-based processor in the Brey/Tanenbaum tradition. It features <strong>30 instructions</strong> across <strong>4 encoding formats</strong>.</p>
 <table><tr><th>Parameter</th><th>Value</th></tr>
 <tr><td>Word</td><td>16-bit</td></tr>
-<tr><td>Memory</td><td>2¹⁶ words (65&nbsp;536 words)</td></tr>
+<tr><td>Memory</td><td>2\u00b9\u2076 words (65,536)</td></tr>
+<tr><td>Addressing</td><td>Word-addressed</td></tr>
 <tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
-<tr><td>I/O</td><td>Memory-mapped (design)</td></tr></table>
-<h4>Figure — high-level flow</h4>
-<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="High-level VM flow">
-<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
-<rect class="bx" x="10" y="28" width="130" height="48" rx="3"></rect><text x="26" y="56">Assembly source</text>
-<path class="ln" d="M140 52 L190 52"></path>
-<rect class="bx" x="190" y="28" width="110" height="48" rx="3"></rect><text x="216" y="56">Assembler</text>
-<path class="ln" d="M300 52 L350 52"></path>
-<rect class="bx" x="350" y="28" width="150" height="48" rx="3"></rect><text x="372" y="56">Memory image</text>
-<path class="ln" d="M500 52 L550 52"></path>
-<rect class="bx" x="550" y="28" width="200" height="48" rx="3"></rect><text x="567" y="49">Fetch / Decode / Execute</text><text class="mut" x="584" y="64">+ Reg/Flags/Memory update</text>
-</svg></figure>`},
+<tr><td>I/O</td><td>Memory-mapped</td></tr></table>`},
 {id:'yazmac',label:'Registers',html:`<h3>Registers</h3>
-<h4>General purpose registers (GPR)</h4>
-<table><tr><th>Register</th><th>Use</th></tr>
-<tr><td><code>R0</code></td><td>Hard-wired zero — reads as 0, writes are ignored</td></tr>
-<tr><td><code>R1</code>&ndash;<code>R5</code></td><td>General purpose</td></tr>
-<tr><td><code>R6</code> / <code>SP</code></td><td>Stack pointer (software convention)</td></tr>
-<tr><td><code>R7</code> / <code>LR</code></td><td>Link register / return address (CALL/RET)</td></tr></table>
-<p><code>R6</code> and <code>R7</code> are hardware-wise identical to others; SP/LR roles are software conventions.</p>
-<h4>Special registers / flags</h4>
-<table><tr><th>Name</th><th>Description</th></tr>
-<tr><td><code>PC</code></td><td>Address of the next instruction</td></tr>
-<tr><td><code>FLAGS</code></td><td>Z, C, N, V (zero, carry, negative, overflow)</td></tr></table>
-<h4>Figure — status word</h4>
-<figure class="doc-fig"><svg viewBox="0 0 760 90" role="img" aria-label="FLAGS bit layout">
-<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
-<rect class="bx" x="180" y="24" width="70" height="32" rx="3"></rect><text x="211" y="44">V</text>
-<rect class="bx" x="250" y="24" width="70" height="32" rx="3"></rect><text x="281" y="44">N</text>
-<rect class="bx" x="320" y="24" width="70" height="32" rx="3"></rect><text x="351" y="44">C</text>
-<rect class="bx" x="390" y="24" width="70" height="32" rx="3"></rect><text x="421" y="44">Z</text>
-<text class="mut" x="205" y="74">bit3</text><text class="mut" x="275" y="74">bit2</text><text class="mut" x="345" y="74">bit1</text><text class="mut" x="415" y="74">bit0</text>
-</svg></figure>`},
-{id:'kodlama_dispatch',label:'Encoding & Dispatch',html:`<h3>Instruction encoding and dispatch</h3>
-<p>Instruction encoding is 16-bit; primary decode uses the upper <strong>5-bit opcode</strong>. In <strong>R-type</strong> instructions, a second selection uses the <code>func</code> field (IR[1:0]); therefore opcodes <code>00000</code>, <code>00001</code>, <code>00010</code> go to router micro-addresses rather than direct execute entries.</p>
-<p class="doc-note">Branch offsets are PC-relative to the already incremented PC (PC points to the next instruction after fetch).</p>
-<h4>Instruction formats</h4>
+<h4>General purpose registers</h4>
+<table><tr><th>Register</th><th>Encoding</th><th>Use</th></tr>
+<tr><td><code>R0</code></td><td><code>000</code></td><td>Hard-wired zero</td></tr>
+<tr><td><code>R1-R5</code></td><td><code>001-101</code></td><td>General purpose</td></tr>
+<tr><td><code>R6/SP</code></td><td><code>110</code></td><td>Stack pointer (convention)</td></tr>
+<tr><td><code>R7/LR</code></td><td><code>111</code></td><td>Link register (convention)</td></tr></table>
+<h4>FLAGS layout</h4>
+<pre>Bit:   3    2    1    0
+     [ V ][ N ][ C ][ Z ]</pre>`},
+{id:'kodlama_dispatch',label:'Encoding & Dispatch',html:`<h3>Instruction encoding</h3>
 <pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
 I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (signed)
 I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
-J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
-<h4>Figure — DECODE path</h4>
-<figure class="doc-fig"><svg viewBox="0 0 760 130" role="img" aria-label="Decode and dispatch path">
-<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
-<rect class="bx" x="16" y="45" width="115" height="40" rx="3"></rect><text x="33" y="69">IR[15:11]</text>
-<path class="ln" d="M131 65 L190 65"></path>
-<rect class="bx" x="190" y="45" width="130" height="40" rx="3"></rect><text x="217" y="69">dispatch LUT</text>
-<path class="ln" d="M320 65 L390 35"></path>
-<rect class="bx" x="390" y="14" width="150" height="42" rx="3"></rect><text x="408" y="39">R-group router</text>
-<path class="ln" d="M540 35 L720 35"></path><text class="mut" x="593" y="29">IR[1:0]</text>
-<path class="ln" d="M320 65 L390 95"></path>
-<rect class="bx" x="390" y="74" width="150" height="42" rx="3"></rect><text x="414" y="99">non-R execute</text>
-<rect class="bx" x="580" y="14" width="160" height="42" rx="3"></rect><text x="602" y="39">execute entry</text>
-<rect class="bx" x="580" y="74" width="160" height="42" rx="3"></rect><text x="602" y="99">execute entry</text>
-</svg></figure>
-<div class="doc-dispatch">
-<h4 class="dd-sec">Primary dispatch (opcode → micro-address)</h4>
-<table><tr><th>Opcode</th><th>Binary</th><th>Format</th><th>Instruction</th><th>Micro addr.</th><th>Execute</th></tr>
-<tr class="dd-hi"><td><code>0x00</code></td><td><code>00000</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 0</td><td><code>0x08</code></td><td>→ func router</td></tr>
-<tr class="dd-hi"><td><code>0x01</code></td><td><code>00001</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 1</td><td><code>0x0C</code></td><td>→ func router</td></tr>
-<tr class="dd-hi"><td><code>0x02</code></td><td><code>00010</code></td><td><span class="fmt fmt-r">R</span></td><td>R-type group 2</td><td><code>0x0E</code></td><td>→ func router</td></tr>
-<tr><td><code>0x08</code></td><td><code>01000</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ADDI</td><td><code>0x30</code></td><td>3</td></tr>
-<tr><td><code>0x09</code></td><td><code>01001</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ANDI</td><td><code>0x33</code></td><td>3</td></tr>
-<tr><td><code>0x0A</code></td><td><code>01010</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>ORI</td><td><code>0x36</code></td><td>3</td></tr>
-<tr><td><code>0x0B</code></td><td><code>01011</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>LI</td><td><code>0x39</code></td><td>1</td></tr>
-<tr><td><code>0x0C</code></td><td><code>01100</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>LUI</td><td><code>0x3A</code></td><td>2</td></tr>
-<tr><td><code>0x0D</code></td><td><code>01101</code></td><td><span class="fmt fmt-iw">I-wide</span></td><td>CMPI</td><td><code>0x3C</code></td><td>2</td></tr>
-<tr><td><code>0x10</code></td><td><code>10000</code></td><td><span class="fmt fmt-is">I-short</span></td><td>LOAD</td><td><code>0x40</code></td><td>4</td></tr>
-<tr><td><code>0x11</code></td><td><code>10001</code></td><td><span class="fmt fmt-is">I-short</span></td><td>STORE</td><td><code>0x44</code></td><td>4</td></tr>
-<tr><td><code>0x12</code></td><td><code>10010</code></td><td><span class="fmt fmt-sp">Special</span></td><td>PUSH</td><td><code>0x48</code></td><td>4</td></tr>
-<tr><td><code>0x13</code></td><td><code>10011</code></td><td><span class="fmt fmt-sp">Special</span></td><td>POP</td><td><code>0x4C</code></td><td>4</td></tr>
-<tr><td><code>0x14</code></td><td><code>10100</code></td><td><span class="fmt fmt-sp">Special</span></td><td>RET</td><td><code>0x67</code></td><td>1</td></tr>
-<tr><td><code>0x15</code></td><td><code>10101</code></td><td><span class="fmt fmt-sp">Special</span></td><td>HALT</td><td><code>0x70</code></td><td>1</td></tr>
-<tr><td><code>0x18</code></td><td><code>11000</code></td><td><span class="fmt fmt-j">J</span></td><td>BEQ</td><td><code>0x50</code></td><td>2–5</td></tr>
-<tr><td><code>0x19</code></td><td><code>11001</code></td><td><span class="fmt fmt-j">J</span></td><td>BNE</td><td><code>0x53</code></td><td>2–5</td></tr>
-<tr><td><code>0x1A</code></td><td><code>11010</code></td><td><span class="fmt fmt-j">J</span></td><td>BLT</td><td><code>0x56</code></td><td>2–5</td></tr>
-<tr><td><code>0x1B</code></td><td><code>11011</code></td><td><span class="fmt fmt-j">J</span></td><td>BGE</td><td><code>0x59</code></td><td>2–5</td></tr>
-<tr><td><code>0x1C</code></td><td><code>11100</code></td><td><span class="fmt fmt-j">J</span></td><td>BCS</td><td><code>0x5C</code></td><td>2–5</td></tr>
-<tr><td><code>0x1D</code></td><td><code>11101</code></td><td><span class="fmt fmt-j">J</span></td><td>BCC</td><td><code>0x5F</code></td><td>2–5</td></tr>
-<tr><td><code>0x1E</code></td><td><code>11110</code></td><td><span class="fmt fmt-j">J</span></td><td>JMP</td><td><code>0x60</code></td><td>3</td></tr>
-<tr><td><code>0x1F</code></td><td><code>11111</code></td><td><span class="fmt fmt-j">J</span></td><td>CALL</td><td><code>0x63</code></td><td>4</td></tr>
-</table>
-<p class="dd-note">Unused opcodes (<code>0x03</code>&ndash;<code>0x07</code>, <code>0x0E</code>&ndash;<code>0x0F</code>, <code>0x16</code>&ndash;<code>0x17</code>) can be defined as illegal trap or NOP behavior.</p>
-<h4 class="dd-sec">R-type func router (secondary dispatch)</h4>
-<p class="dd-note">In <code>FUNC_DISPATCH</code> mode, the router microstep branches 4 ways based on IR[1:0].</p>
-<div class="dd-router"><h4>Opcode <code>00000</code> → router @ <code>0x08</code></h4>
-<table><tr><th>Func</th><th>Instruction</th><th>Micro addr.</th><th>ALU</th></tr>
-<tr><td><code>00</code></td><td>ADD</td><td><code>0x10</code></td><td><code>ADD</code></td></tr>
-<tr><td><code>01</code></td><td>SUB</td><td><code>0x13</code></td><td><code>SUB</code></td></tr>
-<tr><td><code>10</code></td><td>AND</td><td><code>0x16</code></td><td><code>AND</code></td></tr>
-<tr><td><code>11</code></td><td>OR</td><td><code>0x19</code></td><td><code>OR</code></td></tr>
-</table></div>
-</div>`},
-{id:'alu_imm',label:'ALU & Immediate',html:`<h3>ALU and immediate instructions</h3>
-<table><tr><th>Mnemonic</th><th>Operation</th><th>Flags / Note</th></tr>
-<tr><td>ADD / SUB</td><td>Addition / subtraction</td><td>Z,C,N,V</td></tr>
-<tr><td>AND / OR / XOR</td><td>Bitwise logic</td><td>Z,N</td></tr>
-<tr><td>NOT</td><td>Bit inversion</td><td>Z,N</td></tr>
-<tr><td>SHL / SHR / SRA</td><td>Shift (low 4 bits of Rt)</td><td>Z,C,N</td></tr>
-<tr><td>CMP / CMPI</td><td>Updates flags only</td><td>Z,C,N,V</td></tr>
-<tr><td>ADDI / ANDI / ORI / LI / LUI</td><td>Immediate (imm8) operations</td><td>sign/zero extension depends on instruction</td></tr></table>
-<p>16-bit constant loading pattern: <code>LUI R1,#0x3F</code> then <code>ORI R1,#0x7A</code>. <code>SUBI</code> is not a separate opcode; use <code>ADDI Rd,#-k</code>.</p>
-<p class="doc-note">Common pitfall: <code>CMPI</code> and <code>CMP</code> do not write a destination register; they only update flags.</p>
-<div class="doc-card">
-<h4>Immediate extension rules (quick reference)</h4>
-<table><tr><th>Instruction</th><th>Immediate width</th><th>Extension behavior</th><th>Example</th></tr>
-<tr><td>ADDI, CMPI</td><td>imm8</td><td>Sign-extend to 16-bit</td><td><code>ADDI R1,#-1</code> → adds <code>0xFFFF</code></td></tr>
-<tr><td>LOAD, STORE</td><td>imm5</td><td>Sign-extend to 16-bit offset</td><td><code>LOAD R1,[R2-1]</code> is valid via <code>imm5</code></td></tr>
-<tr><td>ANDI, ORI</td><td>imm8</td><td>Zero-extend logical mask</td><td><code>ANDI R1,#0x0F</code> masks low nibble</td></tr>
-<tr><td>LI</td><td>imm8</td><td>Sign-extend into destination</td><td><code>LI R1,#-5</code> → <code>0xFFFB</code></td></tr>
-<tr><td>LUI</td><td>imm8</td><td>Placed at high byte (<code>imm8 &lt;&lt; 8</code>)</td><td><code>LUI R1,#0x12</code> → <code>0x1200</code></td></tr></table>
-</div>
-<h4>Figure — ALU datapath</h4>
-<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="ALU datapath">
-<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
-<rect class="bx" x="300" y="36" width="120" height="52" rx="3"></rect><text x="346" y="66">ALU</text>
-<rect class="bx" x="30" y="12" width="85" height="30" rx="3"></rect><text x="62" y="32">Rs</text>
-<rect class="bx" x="30" y="78" width="85" height="30" rx="3"></rect><text x="62" y="98">Rt</text>
-<rect class="bx" x="30" y="45" width="85" height="30" rx="3"></rect><text x="50" y="64">imm8</text>
-<path class="ln" d="M115 27 L300 48"></path>
-<path class="ln" d="M115 93 L300 76"></path>
-<path class="ln" d="M115 60 L250 60"></path><text class="mut" x="176" y="54">immediate path</text>
-<rect class="bx" x="490" y="45" width="95" height="32" rx="3"></rect><text x="530" y="65">Rd</text>
-<path class="ln" d="M420 62 L490 62"></path>
-</svg></figure>`},
-{id:'bellek_akis',label:'Memory & Flow',html:`<h3>Memory, stack, and control flow</h3>
-<h4>Memory / stack</h4>
-<table><tr><th>Instruction</th><th>Meaning</th></tr>
-<tr><td>LOAD Rd,[Rs+off]</td><td>Rd = Mem[Rs+imm5]</td></tr>
-<tr><td>STORE Rd,[Rs+off]</td><td>Mem[Rs+imm5] = Rd</td></tr>
-<tr><td>PUSH Rd</td><td>SP--; Mem[SP]=Rd</td></tr>
-<tr><td>POP Rd</td><td>Rd=Mem[SP]; SP++</td></tr></table>
-<p>The stack grows downward; the example watch window is the <code>0x02F8</code>&ndash;<code>0x02FF</code> range.</p>
-<h4>Branch / call / return</h4>
-<table><tr><th>Instruction</th><th>Condition / action</th></tr>
-<tr><td>BEQ, BNE</td><td>Z=1 / Z=0</td></tr>
-<tr><td>BLT, BGE</td><td>signed &lt; / ≥ (N≠V / N=V)</td></tr>
-<tr><td>BCS, BCC</td><td>C=1 / C=0 (unsigned)</td></tr>
-<tr><td>JMP</td><td>Unconditional</td></tr>
-<tr><td>CALL</td><td>LR=PC+1; jump</td></tr>
-<tr><td>RET</td><td>PC=LR</td></tr>
-<tr><td>HALT</td><td>Stop</td></tr></table>
-<p>Typical nested-call pattern: <code>PUSH LR</code> → <code>CALL</code> → <code>POP LR</code> → <code>RET</code>.</p>
-<div class="doc-card doc-card-warn">
-<h4>Signed vs unsigned branches</h4>
-<table><tr><th>Family</th><th>Uses flags</th><th>Interpretation</th><th>When to use</th></tr>
-<tr><td>BLT / BGE</td><td>N and V</td><td>Signed compare (<code>&lt;</code>, <code>≥</code>)</td><td>Values represent signed integers</td></tr>
-<tr><td>BCS / BCC</td><td>C</td><td>Unsigned carry/borrow logic</td><td>Values are raw magnitudes/addresses</td></tr></table>
-<table><tr><th>Operands compared</th><th>Result meaning</th><th>Recommended branch</th></tr>
-<tr><td><code>R1=0xFFFF</code>, <code>R2=0x0001</code></td><td>signed: -1 &lt; 1, unsigned: 65535 &gt; 1</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr>
-<tr><td><code>R1=0x8000</code>, <code>R2=0x7FFF</code></td><td>signed: -32768 &lt; 32767, unsigned: 32768 &gt; 32767</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr></table>
-</div>
-<h4>Figure — shared branch-taken routine</h4>
-<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="Shared branch-taken routine">
-<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
-<rect class="bx" x="20" y="38" width="130" height="40" rx="3"></rect><text x="34" y="62">cond true ?</text>
-<rect class="bx" x="220" y="10" width="150" height="32" rx="3"></rect><text x="244" y="30">0x80: A &lt;- PC</text>
-<rect class="bx" x="220" y="46" width="230" height="32" rx="3"></rect><text x="234" y="66">0x81: A &lt;- A + sign_ext(off11)</text>
-<rect class="bx" x="220" y="82" width="150" height="32" rx="3"></rect><text x="244" y="102">0x82: PC &lt;- A</text>
-<path class="ln" d="M150 58 L220 26"></path>
-<path class="ln" d="M370 26 L370 46"></path>
-<path class="ln" d="M370 78 L370 82"></path>
-</svg></figure>`},
-{id:'emul_tasarim',label:'Emulator & Design',html:`<h3>Emulator behavior and design notes</h3>
-<p><strong>Simulator:</strong> After assemble, <code>PC</code> points to the next instruction to execute; the highlighted source line corresponds to it. You can click a line number on the left to set a breakpoint; <strong>Run</strong> stops before executing that line.</p>
-<h4>Design choices</h4>
+J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
+<div class="doc-dispatch"><h4 class="dd-sec">Complete opcode map (spec v0.1)</h4>
+<table><tr><th>Op</th><th>Binary</th><th>Instruction</th></tr>
+<tr class="dd-hi"><td>0</td><td><code>00000</code></td><td>ADD,SUB,AND,OR</td></tr>
+<tr class="dd-hi"><td>1</td><td><code>00001</code></td><td>XOR,NOT,SHL,SHR</td></tr>
+<tr class="dd-hi"><td>2</td><td><code>00010</code></td><td>SRA,CMP</td></tr>
+<tr><td>4</td><td><code>00100</code></td><td>ADDI</td></tr>
+<tr><td>5</td><td><code>00101</code></td><td>ANDI</td></tr>
+<tr><td>6</td><td><code>00110</code></td><td>ORI</td></tr>
+<tr><td>7</td><td><code>00111</code></td><td>LI</td></tr>
+<tr><td>8</td><td><code>01000</code></td><td>LUI</td></tr>
+<tr><td>9</td><td><code>01001</code></td><td>CMPI</td></tr>
+<tr><td>10</td><td><code>01010</code></td><td>LOAD</td></tr>
+<tr><td>11</td><td><code>01011</code></td><td>STORE</td></tr>
+<tr><td>12</td><td><code>01100</code></td><td>PUSH</td></tr>
+<tr><td>13</td><td><code>01101</code></td><td>POP</td></tr>
+<tr><td>16</td><td><code>10000</code></td><td>BEQ</td></tr>
+<tr><td>17</td><td><code>10001</code></td><td>BNE</td></tr>
+<tr><td>18</td><td><code>10010</code></td><td>BLT</td></tr>
+<tr><td>19</td><td><code>10011</code></td><td>BGE</td></tr>
+<tr><td>20</td><td><code>10100</code></td><td>BCS</td></tr>
+<tr><td>21</td><td><code>10101</code></td><td>BCC</td></tr>
+<tr><td>22</td><td><code>10110</code></td><td>JMP</td></tr>
+<tr><td>23</td><td><code>10111</code></td><td>CALL</td></tr>
+<tr><td>24</td><td><code>11000</code></td><td>RET</td></tr>
+<tr><td>31</td><td><code>11111</code></td><td>HALT</td></tr></table></div>`},
+{id:'alu_imm',label:'ALU & Immediate',html:`<h3>ALU and immediate</h3>
+<h4>Immediate extension rules</h4>
+<table><tr><th>Inst</th><th>Width</th><th>Extension</th></tr>
+<tr><td>ADDI,CMPI</td><td>imm8</td><td>Sign-extend</td></tr>
+<tr><td>ANDI,ORI</td><td>imm8</td><td>Zero-extend</td></tr>
+<tr><td>LI</td><td>imm8</td><td>Sign-extend</td></tr>
+<tr><td>LUI</td><td>imm8</td><td>imm8\u00AB8</td></tr>
+<tr><td>LOAD,STORE</td><td>imm5</td><td>Sign-extend</td></tr></table>
+<p class="doc-note">SUBI is not a separate opcode; use ADDI Rd,#-k.</p>`},
+{id:'bellek_akis',label:'Memory & Flow',html:`<h3>Memory and control flow</h3>
+<h4>Stack</h4>
+<p>Stack grows downward. PUSH: pre-decrement SP. POP: post-increment SP. SP is auto-initialized to 0x0300.</p>
+<h4>Branches</h4>
+<table><tr><th>Op</th><th>Condition</th></tr>
+<tr><td>BEQ/BNE</td><td>Z=1/Z=0</td></tr>
+<tr><td>BLT/BGE</td><td>N\u2260V / N=V (signed)</td></tr>
+<tr><td>BCS/BCC</td><td>C=1/C=0 (unsigned)</td></tr></table>
+<p>Typical nested-call: PUSH LR \u2192 CALL \u2192 POP LR \u2192 RET</p>`},
+{id:'emul_tasarim',label:'Emulator & Design',html:`<h3>Emulator</h3>
+<p>SP auto-initialized to 0x0300. Click line numbers for breakpoints. Run stops before executing a breakpoint line.</p>
+<h4>Design</h4>
 <table><tr><th>Decision</th><th>Choice</th></tr>
-<tr><td>R0</td><td>Hard-wired zero → simplifies MOV/NOP/NEG</td></tr>
-<tr><td>SP, LR</td><td>Inside R6, R7; single register file</td></tr>
-<tr><td>Branching</td><td>PC-relative 11-bit offset</td></tr>
-<tr><td>Subroutine</td><td>CALL/RET + LR; stack for nesting</td></tr></table>
-<h4>Figure — control store map</h4>
-<table><tr><th>Range</th><th>Usage</th><th>~Lines</th></tr>
-<tr><td><code>0x00</code> – <code>0x03</code></td><td>Fetch</td><td>4</td></tr>
-<tr><td><code>0x08</code> – <code>0x0F</code></td><td>R-type router</td><td>~8</td></tr>
-<tr><td><code>0x10</code> – <code>0x2B</code></td><td>R-type ALU execute</td><td>~28</td></tr>
-<tr><td><code>0x30</code> – <code>0x3D</code></td><td>I-wide execute</td><td>~14</td></tr>
-<tr><td><code>0x40</code> – <code>0x4F</code></td><td>Memory ops execute</td><td>~16</td></tr>
-<tr><td><code>0x50</code> – <code>0x66</code></td><td>Branch/control execute</td><td>~23</td></tr>
-<tr><td><code>0x80</code> – <code>0x82</code></td><td>Shared branch taken</td><td>3</td></tr>
-<tr><td><code>0x83</code> – <code>0xFF</code></td><td>Expansion area</td><td>125</td></tr></table>
-<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tozenbilek, March 2026.</em> The opcode mapping table’s single source of truth is the <strong>Encoding & Dispatch</strong> tab.</p>`}
+<tr><td>R0</td><td>Hardwired zero</td></tr>
+<tr><td>SP,LR</td><td>Inside GPR file (R6,R7)</td></tr>
+<tr><td>Branches</td><td>PC-relative 11-bit</td></tr>
+<tr><td>Formats</td><td>4 types (R, I-short, I-wide, J)</td></tr></table>
+<p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`}
 ];
-
 const TUTORIAL_HTML={
-sum:`<h3>Loop + branch basics — Sum 1..5</h3><ol class="tut-steps">
-<li><code>LI R1,#5</code> sets the counter, <code>LI R2,#0</code> sets the accumulator (running sum).</li>
-<li><code>loop:</code> is the backward branch target label.</li>
-<li><code>ADD R2,R2,R1</code> computes the loop body.</li>
-<li><code>ADDI R1,#-1</code> decrements the counter.</li>
-<li><code>BNE loop</code> returns control flow with a conditional branch.</li>
-<li>At <code>HALT</code>, <code>R2=15</code>.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #5
-LI   R2, #0
-loop:
-ADD  R2, R2, R1
-ADDI R1, #-1
-BNE  loop
-HALT</pre>`,
-fib:`<h3>Data-flow practice — Fibonacci fib(7)=13</h3><ol class="tut-steps">
-<li>The <code>R1,R2</code> pair carries state <code>(F_n, F_{n+1})</code>.</li>
-<li><code>ADD R3,R1,R2</code> produces the next term; then state is shifted with <code>MOV</code>.</li>
-<li><code>R4</code> is the iteration counter; the loop continues with <code>BNE</code>.</li>
-<li>This example makes the register-renaming idea (old/new value separation) visible.</li>
-<li>At <code>HALT</code>, <code>R2=13</code>.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #0
-LI   R2, #1
-LI   R4, #6
-loop:
-ADD  R3, R1, R2
-MOV  R1, R2
-MOV  R2, R3
-ADDI R4, #-1
-BNE  loop
-HALT</pre>`,
-fact:`<h3>Nested loop + comparison — Factorial(5)</h3><ol class="tut-steps">
-<li>The outer loop decreases <code>n</code>; the inner loop performs multiplication by repeated addition.</li>
-<li>The <code>CMPI</code> + <code>BGE</code> combination shows the signed-comparison path.</li>
-<li>This pattern teaches software-level multiplication when ISA has no hardware MUL.</li>
-<li>At <code>HALT</code>, <code>R2=120</code>.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #5
-LI   R2, #1
-loop:
-LI   R3, #0
-MOV  R4, R1
-mul:
-ADD  R3, R3, R2
-ADDI R4, #-1
-BNE  mul
-MOV  R2, R3
-ADDI R1, #-1
-CMPI R1, #1
-BGE  loop
-HALT</pre>`,
-call:`<h3>CALL/RET + LR protection</h3><ol class="tut-steps">
-<li><code>main</code> calls the subroutine via <code>CALL inc2</code>.</li>
-<li>Since <code>inc2</code> will perform another <code>CALL</code>, it first saves return address with <code>PUSH LR</code>.</li>
-<li>After <code>CALL double</code>, <code>ADDI R1,#1</code> is applied.</li>
-<li><code>POP LR</code> + <code>RET</code> returns to the correct caller.</li>
-<li>This shows why an LR/stack protocol is required in nested-call situations.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #7
-CALL inc2
-HALT
-inc2:
-PUSH LR
-CALL double
-ADDI R1, #1
-POP  LR
-RET
-double:
-ADD  R1, R1, R1
-RET</pre>`,
-mem:`<h3>Memory access and pointer basics</h3><ol class="tut-steps">
-<li><code>LUI R2,#1</code> builds the data-region base (<code>0x0100</code>).</li>
-<li>The <code>STORE</code> / <code>LOAD</code> pair verifies persistence and read-back from memory.</li>
-<li><code>PUSH</code>/<code>POP</code> makes stack pointer movement visible.</li>
-<li>This pattern demonstrates address calculation and data access clearly.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #42
-LI   R2, #0
-LUI  R2, #1
-STORE R1, [R2]
-LI   R3, #0
-LOAD R3, [R2]
-PUSH R3
-LI   R3, #0
-POP  R3
-HALT</pre>`,
-sort:`<h3>Array scan + branch-heavy example: Bubble sort</h3><ol class="tut-steps">
-<li>The array is written to memory at base <code>0x0100</code> (array-in-memory model).</li>
-<li>The <code>inner</code> loop <code>LOAD</code>s two adjacent elements and compares with <code>CMP</code>.</li>
-<li>The <code>BGE</code>/<code>JMP</code> path decides swap behavior; ideal for control-flow tracing.</li>
-<li>Outer/inner loop counters are useful for observing branch prediction and loop behavior.</li>
-</ol>
-<h4>Code</h4>
-<pre>LI   R1, #5
-LI   R2, #0
-LUI  R2, #1
-STORE R1, [R2]
-LI   R1, #3
-STORE R1, [R2+1]
-LI   R1, #1
-STORE R1, [R2+2]
-LI   R1, #4
-STORE R1, [R2+3]
-LI   R1, #2
-STORE R1, [R2+4]
-LI   R5, #4
-outer:
-LI   R4, #0
-LI   R2, #0
-LUI  R2, #1
-inner:
-LOAD R1, [R2]
-LOAD R3, [R2+1]
-CMP  R1, R3
-BGE  noswap
-JMP  skip
-noswap:
-STORE R3, [R2]
-STORE R1, [R2+1]
-skip:
-ADDI R2, #1
-ADDI R4, #1
-CMP  R4, R5
-BLT  inner
-ADDI R5, #-1
-CMPI R5, #0
-BNE  outer
-HALT</pre>`
+sum:`<h3>Sum 1..5</h3><ol class="tut-steps"><li><code>LI R1,#5</code> counter, <code>LI R2,#0</code> accumulator.</li><li><code>ADD R2,R2,R1</code> loop body.</li><li><code>ADDI R1,#-1</code> + <code>BNE loop</code> control.</li><li>Result: R2=15.</li></ol>`,
+fib:`<h3>Fibonacci fib(7)=13</h3><ol class="tut-steps"><li>R1,R2 carry F_n, F_{n+1}.</li><li><code>ADD R3,R1,R2</code> next term; shift with MOV.</li><li>R4 iteration counter. Result: R2=13.</li></ol>`,
+fact:`<h3>Factorial(5)</h3><ol class="tut-steps"><li>Outer loop decreases n; inner loop multiplies by repeated addition.</li><li><code>CMPI</code>+<code>BGE</code> shows signed comparison.</li><li>Result: R2=120.</li></ol>`,
+call:`<h3>CALL/RET + LR save</h3><ol class="tut-steps"><li><code>CALL inc2</code> from main.</li><li><code>inc2</code> saves LR with PUSH, calls <code>double</code>.</li><li>POP LR + RET returns correctly. Result: R1=15.</li></ol>`,
+mem:`<h3>Load / Store</h3><ol class="tut-steps"><li>LUI builds base 0x0100.</li><li>STORE/LOAD verify memory persistence.</li><li>PUSH/POP show stack pointer movement.</li></ol>`,
+sort:`<h3>Bubble sort</h3><ol class="tut-steps"><li>Array [5,3,1,4,2] at 0x0100.</li><li>Inner loop LOADs adjacent pairs, CMP decides swap.</li><li>Outer/inner counters drive full sort.</li></ol>`
 };
-
-const TUTORIAL_NAV=[
-  {id:'sum',label:'Sum 1..5'},
-  {id:'fib',label:'Fibonacci'},
-  {id:'fact',label:'Factorial'},
-  {id:'call',label:'Subroutine'},
-  {id:'mem',label:'Load / Store'},
-  {id:'sort',label:'Bubble sort'}
-];
-const DOC_SECTIONS=ISA_SECTIONS.concat(TUTORIAL_NAV.map(function(o){
-  return{id:o.id,label:o.label,html:TUTORIAL_HTML[o.id]};
-}));
+const TUTORIAL_NAV=[{id:'sum',label:'Sum 1..5'},{id:'fib',label:'Fibonacci'},{id:'fact',label:'Factorial'},{id:'call',label:'Subroutine'},{id:'mem',label:'Load / Store'},{id:'sort',label:'Bubble sort'}];
+const DOC_SECTIONS=ISA_SECTIONS.concat(TUTORIAL_NAV.map(o=>({id:o.id,label:o.label,html:TUTORIAL_HTML[o.id]})));
 let docNavBuilt=false;
-function setDocSection(id){
-  var sec=DOC_SECTIONS.find(function(s){return s.id===id});
-  if(!sec)return;
-  document.getElementById('paneIsaBody').innerHTML=sec.html;
-  document.querySelectorAll('#docNav .doc-subtab').forEach(function(btn){
-    var on=btn.getAttribute('data-isa')===id;
-    btn.classList.toggle('on',on);
-    btn.setAttribute('aria-selected',on?'true':'false');
-  });
-  var sc=document.getElementById('isaScrollRegion');
-  if(sc)sc.scrollTop=0;
-}
-function ensureDocNav(){
-  if(docNavBuilt)return;
-  var nav=document.getElementById('docNav');
-  var firstId=ISA_SECTIONS[0].id;
-  var html=ISA_SECTIONS.map(function(s){
-    var on=s.id===firstId;
-    return '<button type="button" role="tab" class="doc-subtab'+(on?' on':'')+'" data-isa="'+s.id+'" aria-selected="'+(on?'true':'false')+'">'+s.label+'</button>';
-  }).join('');
-  html+='<span class="doc-nav-group" role="presentation">Tutorial — sample programs</span>';
-  html+=TUTORIAL_NAV.map(function(s){
-    return '<button type="button" role="tab" class="doc-subtab" data-isa="'+s.id+'" aria-selected="false">'+s.label+'</button>';
-  }).join('');
-  nav.innerHTML=html;
-  nav.onclick=function(e){
-    var b=e.target.closest('[data-isa]');
-    if(!b)return;
-    setDocSection(b.getAttribute('data-isa'));
-  };
-  docNavBuilt=true;
-  setDocSection(firstId);
-}
-function openDocPanel(){
-  var ov=document.getElementById('docOv');
-  ov.hidden=false;
-  document.body.style.overflow='hidden';
-  ensureDocNav();
-  setDocSection(ISA_SECTIONS[0].id);
-}
-function closeDocPanel(){
-  var ov=document.getElementById('docOv');
-  ov.hidden=true;
-  document.body.style.overflow='';
-}
+function setDocSection(id){var sec=DOC_SECTIONS.find(s=>s.id===id);if(!sec)return;document.getElementById('paneIsaBody').innerHTML=sec.html;document.querySelectorAll('#docNav .doc-subtab').forEach(btn=>{var on=btn.getAttribute('data-isa')===id;btn.classList.toggle('on',on)});var sc=document.getElementById('isaScrollRegion');if(sc)sc.scrollTop=0}
+function ensureDocNav(){if(docNavBuilt)return;var nav=document.getElementById('docNav');var html=ISA_SECTIONS.map(s=>'<button type="button" class="doc-subtab'+(s.id==='genel'?' on':'')+'" data-isa="'+s.id+'">'+s.label+'</button>').join('');html+='<span class="doc-nav-group">Tutorial</span>';html+=TUTORIAL_NAV.map(s=>'<button type="button" class="doc-subtab" data-isa="'+s.id+'">'+s.label+'</button>').join('');nav.innerHTML=html;nav.onclick=e=>{var b=e.target.closest('[data-isa]');if(b)setDocSection(b.getAttribute('data-isa'))};docNavBuilt=true;setDocSection('genel')}
+function openDocPanel(){document.getElementById('docOv').hidden=false;document.body.style.overflow='hidden';ensureDocNav()}
+function closeDocPanel(){document.getElementById('docOv').hidden=true;document.body.style.overflow=''}
 document.addEventListener('keydown',function(e){
-  var ov=document.getElementById('docOv');
-  if(e.key==='Escape'&&!ov.hidden){closeDocPanel();return}
-  if(e.key==='F1'){
-    e.preventDefault();
-    if(ov.hidden)openDocPanel();
-    else setDocSection(ISA_SECTIONS[0].id);
-    return
-  }
-  if(ov.hidden&&e.key==='?'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
-    var t=e.target&&e.target.tagName;
-    if(t!=='TEXTAREA'&&t!=='INPUT'&&t!=='SELECT')openDocPanel();
-  }
+  var dov=document.getElementById('docOv'),eov=document.getElementById('expOv');
+  if(e.key==='Escape'){if(!dov.hidden){closeDocPanel();return}if(!eov.hidden){closeExport();return}var s=document.getElementById('isaSide');if(s.classList.contains('open')){toggleIsaSidebar();return}}
+  if(e.key==='F1'){e.preventDefault();if(dov.hidden)openDocPanel();return}
+  if(e.key==='F2'){e.preventDefault();toggleIsaSidebar();return}
 });
-document.getElementById('docOv').addEventListener('click',function(e){
-  if(e.target===this)closeDocPanel();
-});
+document.getElementById('docOv').addEventListener('click',function(e){if(e.target===this)closeDocPanel()});
 
-// ===== ASSEMBLER =====
+// ===== ASSEMBLER (opcodes aligned to ISA spec v0.1) =====
 const INS={
   ADD:{t:'R',o:0b00000,f:0},SUB:{t:'R',o:0b00000,f:1},AND:{t:'R',o:0b00000,f:2},OR:{t:'R',o:0b00000,f:3},
   XOR:{t:'R',o:0b00001,f:0},NOT:{t:'N',o:0b00001,f:1},SHL:{t:'R',o:0b00001,f:2},SHR:{t:'R',o:0b00001,f:3},
   SRA:{t:'R',o:0b00010,f:0},CMP:{t:'C',o:0b00010,f:1},
-  ADDI:{t:'W',o:0b01000},ANDI:{t:'W',o:0b01001},ORI:{t:'W',o:0b01010},LI:{t:'W',o:0b01011},LUI:{t:'W',o:0b01100},CMPI:{t:'W',o:0b01101},
-  LOAD:{t:'S',o:0b10000},STORE:{t:'S',o:0b10001},PUSH:{t:'P',o:0b10010},POP:{t:'P',o:0b10011},
-  RET:{t:'Z',o:0b10100},HALT:{t:'Z',o:0b10101},
-  BEQ:{t:'J',o:0b11000},BNE:{t:'J',o:0b11001},BLT:{t:'J',o:0b11010},BGE:{t:'J',o:0b11011},
-  BCS:{t:'J',o:0b11100},BCC:{t:'J',o:0b11101},JMP:{t:'J',o:0b11110},CALL:{t:'J',o:0b11111},
+  ADDI:{t:'IWs',o:0b00100},ANDI:{t:'IWu',o:0b00101},ORI:{t:'IWu',o:0b00110},
+  LI:{t:'IWs',o:0b00111},LUI:{t:'IWu',o:0b01000},CMPI:{t:'IWs',o:0b01001},
+  LOAD:{t:'S',o:0b01010},STORE:{t:'S',o:0b01011},PUSH:{t:'P',o:0b01100},POP:{t:'P',o:0b01101},
+  BEQ:{t:'J',o:0b10000},BNE:{t:'J',o:0b10001},BLT:{t:'J',o:0b10010},BGE:{t:'J',o:0b10011},
+  BCS:{t:'J',o:0b10100},BCC:{t:'J',o:0b10101},JMP:{t:'J',o:0b10110},CALL:{t:'J',o:0b10111},
+  RET:{t:'Z',o:0b11000},HALT:{t:'Z',o:0b11111},
 };
-const PSE={NOP:a=>({m:'ADD',a:['R0','R0','R0']}),MOV:(a)=>({m:'ADD',a:[a[0],a[1],'R0']}),NEG:(a)=>({m:'SUB',a:[a[0],'R0',a[1]]}),CLR:(a)=>({m:'ADD',a:[a[0],'R0','R0']})};
+const PSE={NOP:a=>({m:'ADD',a:['R0','R0','R0']}),MOV:a=>({m:'ADD',a:[a[0],a[1],'R0']}),NEG:a=>({m:'SUB',a:[a[0],'R0',a[1]]}),CLR:a=>({m:'LI',a:[a[0],'#0']}),SUBI:a=>{let v=a[1].replace(/^#/,'');return{m:'ADDI',a:[a[0],'#'+(-parseInt(v))]}}};
 function pR(s){s=s.toUpperCase().replace(/,/g,'').trim();if(s==='SP')return 6;if(s==='LR')return 7;let m=s.match(/^R(\d)$/);if(m){let n=+m[1];if(n>=0&&n<=7)return n}return -1}
-function pI(s,b,sg){s=s.replace(/,/g,'').trim();if(s[0]==='#')s=s.slice(1);let v;if(s.match(/^0x/i))v=parseInt(s,16);else if(s.match(/^0b/i))v=parseInt(s.slice(2),2);else v=parseInt(s,10);if(isNaN(v))return null;let mx=sg?(1<<(b-1))-1:(1<<b)-1,mn=sg?-(1<<(b-1)):0;if(v<mn||v>mx)return null;return v&((1<<b)-1)}
+function pImm(s,bits,signed){s=s.replace(/,/g,'').trim();if(s[0]==='#')s=s.slice(1);let v;if(s.match(/^-?0x/i))v=parseInt(s,16);else if(s.match(/^-?0b/i)){let neg=s[0]==='-';let raw=neg?s.slice(3):s.slice(2);v=parseInt(raw,2);if(neg)v=-v}else v=parseInt(s,10);if(isNaN(v))return null;if(signed){if(v<-(1<<(bits-1))||v>((1<<(bits-1))-1))return null}else{if(v<0||v>=(1<<bits))return null}return v&((1<<bits)-1)}
 function se(v,b){let m=1<<(b-1);v=v&((1<<b)-1);return(v^m)-m}
 
 let mem=new Uint16Array(65536),R=new Uint16Array(8);
@@ -741,17 +716,20 @@ let PC=0,MAR=0,MDR=0,IR=0,A=0,ALUO=0;
 let FL={Z:0,C:0,N:0,V:0};
 let cy=0,ic=0,halt=false,run=false,tmr=null;
 let pLen=0,labels={},aLines=[];
-let breakpoints=new Set();
+let breakpoints=new Set(),instrLines=new Set();
 let pR_=new Uint16Array(8),pPC=0,pFL={Z:0,C:0,N:0,V:0};
-let chg=new Set(),bus={s:'—',v:'—',d:'—',a:'—'},curI=null,curDesc='';
+let chg=new Set(),bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'},curI=null,curDesc='';
+let ucSteps=[]; // microcode trace for current instruction
+const SP_INIT=0x0300;
 
 function doAssemble(){
   let src=document.getElementById('ed').value,lines=src.split('\n'),lbl={},ils=[],errs=[],ad=0;
+  let iLines=new Set();
   for(let i=0;i<lines.length;i++){
     let l=lines[i].replace(/;.*$/,'').trim();if(!l)continue;
     if(l.endsWith(':')){lbl[l.slice(0,-1).trim()]=ad;continue}
     if(l.includes(':')){let[lb,r]=l.split(':');lbl[lb.trim()]=ad;l=r.trim();if(!l)continue}
-    ils.push({l,ad,ln:i+1});ad++
+    ils.push({l,ad,ln:i+1});iLines.add(i+1);ad++
   }
   let bin=[];
   for(let{l,ad,ln}of ils){
@@ -760,31 +738,26 @@ function doAssemble(){
     let inf=INS[mn];if(!inf){errs.push(`Line ${ln}: Unknown "${mn}"`);bin.push(0);continue}
     let w=0;
     try{
-      if(inf.t==='R'){let d=pR(ar[0]),s=pR(ar[1]),t=pR(ar[2]);if(d<0||s<0||t<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)|(s<<5)|(t<<2)|inf.f}
-      else if(inf.t==='N'){let d=pR(ar[0]),s=pR(ar[1]);if(d<0||s<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)|(s<<5)|inf.f}
-      else if(inf.t==='C'){let s=pR(ar[0]),t=pR(ar[1]);if(s<0||t<0)throw'Bad reg';w=(inf.o<<11)|(s<<5)|(t<<2)|inf.f}
-      else if(inf.t==='W'){let d=pR(ar[0]),im=pI(ar[1],8,true);if(d<0)throw'Bad reg';if(im===null)throw'Bad imm8';w=(inf.o<<11)|(d<<8)|(im&0xFF)}
-      else if(inf.t==='S'){let d=pR(ar[0]);if(d<0)throw'Bad reg';let rest=ar.slice(1).join(' '),m=rest.match(/\[\s*(R\d|SP|LR)\s*(?:\+\s*(.+?))?\s*\]/i);if(!m)throw'Use [Rs+off]';let s=pR(m[1]);if(s<0)throw'Bad base';let im=0;if(m[2]){im=pI('#'+m[2].trim(),5,true);if(im===null)throw'Bad off5'}w=(inf.o<<11)|(d<<8)|(s<<5)|(im&0x1F)}
-      else if(inf.t==='P'){let d=pR(ar[0]);if(d<0)throw'Bad reg';w=(inf.o<<11)|(d<<8)}
+      if(inf.t==='R'){let d=pR(ar[0]),s=pR(ar[1]),t=pR(ar[2]);if(d<0||s<0||t<0)throw'Bad register';w=(inf.o<<11)|(d<<8)|(s<<5)|(t<<2)|inf.f}
+      else if(inf.t==='N'){let d=pR(ar[0]),s=pR(ar[1]);if(d<0||s<0)throw'Bad register';w=(inf.o<<11)|(d<<8)|(s<<5)|inf.f}
+      else if(inf.t==='C'){let s=pR(ar[0]),t=pR(ar[1]);if(s<0||t<0)throw'Bad register';w=(inf.o<<11)|(s<<5)|(t<<2)|inf.f}
+      else if(inf.t==='IWs'){let d=pR(ar[0]);if(d<0)throw'Bad register';let im=pImm(ar[1],8,true);if(im===null)throw'Bad imm8 (signed -128..127)';w=(inf.o<<11)|(d<<8)|(im&0xFF)}
+      else if(inf.t==='IWu'){let d=pR(ar[0]);if(d<0)throw'Bad register';let im=pImm(ar[1],8,false);if(im===null)throw'Bad imm8 (unsigned 0..255)';w=(inf.o<<11)|(d<<8)|(im&0xFF)}
+      else if(inf.t==='S'){let d=pR(ar[0]);if(d<0)throw'Bad register';let rest=ar.slice(1).join(' ');let m=rest.match(/\[\s*(R\d|SP|LR)\s*(?:([+-])\s*(\d+))?\s*\]/i);if(!m)throw'Syntax: [Rs], [Rs+off], or [Rs-off]';let s=pR(m[1]);if(s<0)throw'Bad base';let im=0;if(m[3]){let val=parseInt(m[3]);if(m[2]==='-')val=-val;im=pImm('#'+val,5,true);if(im===null)throw'Offset out of range (-16..15)'}w=(inf.o<<11)|(d<<8)|(s<<5)|(im&0x1F)}
+      else if(inf.t==='P'){let d=pR(ar[0]);if(d<0)throw'Bad register';w=(inf.o<<11)|(d<<8)}
       else if(inf.t==='Z'){w=(inf.o<<11)}
-      else if(inf.t==='J'){let tgt=ar[0],off;if(lbl[tgt]!==undefined){off=lbl[tgt]-(ad+1)}else{off=parseInt(tgt);if(isNaN(off))throw'Unknown label "'+tgt+'"'}if(off<-1024||off>1023)throw'Offset OOB';w=(inf.o<<11)|(off&0x7FF)}
+      else if(inf.t==='J'){let tgt=ar[0],off;if(lbl[tgt]!==undefined)off=lbl[tgt]-(ad+1);else{off=parseInt(tgt);if(isNaN(off))throw'Unknown label "'+tgt+'"'}if(off<-1024||off>1023)throw'Offset OOB';w=(inf.o<<11)|(off&0x7FF)}
     }catch(e){errs.push(`Line ${ln}: ${e}`);bin.push(0);continue}
     bin.push(w&0xFFFF)
   }
   if(errs.length){sLog(errs.join('\n'),1);return}
-  resetState();
-  for(let i=0;i<bin.length;i++)mem[i]=bin[i];
-  pLen=bin.length;labels=lbl;aLines=ils;
-  let maxLn=lines.length;
-  breakpoints=new Set([...breakpoints].filter(n=>n>=1&&n<=maxLn));
-  sLog(`Assembled ${bin.length} instructions.`,0);sSt('READY');renderAll()
+  resetState();for(let i=0;i<bin.length;i++)mem[i]=bin[i];
+  pLen=bin.length;labels=lbl;aLines=ils;instrLines=iLines;R[6]=SP_INIT;
+  breakpoints=new Set([...breakpoints].filter(n=>n>=1&&n<=lines.length&&instrLines.has(n)));
+  sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){
-  mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;
-  FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();
-  bus={s:'—',v:'—',d:'—',a:'—'};curI=null;curDesc=''
-}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[]}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
 
 function alu(op,a,b){
@@ -802,82 +775,136 @@ function alu(op,a,b){
   if(op==='SUB'){let sa=(a>>15)&1,sb=(b>>15)&1,sr=(r>>15)&1;v=(sa!==sb&&sb===sr)?1:0}
   return{r,z,c,n,v}
 }
-
 function dis(ir){
   let op=(ir>>11)&0x1F,rd=(ir>>8)&7,rs=(ir>>5)&7,rt=(ir>>2)&7,fn=ir&3;
-  let i5=se(ir&0x1F,5),i8=se(ir&0xFF,8),i8u=ir&0xFF,i11=se(ir&0x7FF,11);
-  let rn=i=>'R'+i;
-  if(op<=2){let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[fn];if(!nm)return'???';if(nm==='NOT')return`NOT ${rn(rd)}, ${rn(rs)}`;if(nm==='CMP')return`CMP ${rn(rs)}, ${rn(rt)}`;return`${nm} ${rn(rd)}, ${rn(rs)}, ${rn(rt)}`}
-  let iw={8:'ADDI',9:'ANDI',10:'ORI',11:'LI',12:'LUI',13:'CMPI'};if(iw[op])return`${iw[op]} ${rn(rd)}, #${i8}`;
-  if(op===16)return`LOAD ${rn(rd)}, [${rn(rs)}${i5?'+'+i5:''}]`;if(op===17)return`STORE ${rn(rd)}, [${rn(rs)}${i5?'+'+i5:''}]`;
-  if(op===18)return`PUSH ${rn(rd)}`;if(op===19)return`POP ${rn(rd)}`;if(op===20)return'RET';if(op===21)return'HALT';
-  let jn={24:'BEQ',25:'BNE',26:'BLT',27:'BGE',28:'BCS',29:'BCC',30:'JMP',31:'CALL'};if(jn[op])return`${jn[op]} ${i11>=0?'+':''}${i11}`;
-  return'???'
+  let i5=se(ir&0x1F,5),i8=se(ir&0xFF,8),i8u=ir&0xFF,i11=se(ir&0x7FF,11),rn=i=>'R'+i;
+  if(op<=2){let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[fn];if(!nm)return'ILLEGAL';if(nm==='NOT')return`NOT ${rn(rd)},${rn(rs)}`;if(nm==='CMP')return`CMP ${rn(rs)},${rn(rt)}`;return`${nm} ${rn(rd)},${rn(rs)},${rn(rt)}`}
+  let iw={4:'ADDI',5:'ANDI',6:'ORI',7:'LI',8:'LUI',9:'CMPI'};if(iw[op]){if(op===5||op===6||op===8)return`${iw[op]} ${rn(rd)},#0x${i8u.toString(16).toUpperCase().padStart(2,'0')}`;return`${iw[op]} ${rn(rd)},#${i8}`}
+  if(op===10)return`LOAD ${rn(rd)},[${rn(rs)}${i5?((i5>0?'+':'')+i5):''}]`;if(op===11)return`STORE ${rn(rd)},[${rn(rs)}${i5?((i5>0?'+':'')+i5):''}]`;
+  if(op===12)return`PUSH ${rn(rd)}`;if(op===13)return`POP ${rn(rd)}`;
+  let jn={16:'BEQ',17:'BNE',18:'BLT',19:'BGE',20:'BCS',21:'BCC',22:'JMP',23:'CALL'};if(jn[op])return`${jn[op]} ${i11>=0?'+':''}${i11}`;
+  if(op===24)return'RET';if(op===31)return'HALT';return'ILLEGAL';
 }
 
 function savePrev(){pR_=new Uint16Array(R);pPC=PC;pFL={...FL}}
-function detect(){
-  chg.clear();
-  for(let i=0;i<8;i++)if(R[i]!==pR_[i])chg.add('R'+i);
-  if(PC!==pPC)chg.add('PC');if(FL.Z!==pFL.Z)chg.add('Z');if(FL.C!==pFL.C)chg.add('C');if(FL.N!==pFL.N)chg.add('N');if(FL.V!==pFL.V)chg.add('V')
+function detect(){chg.clear();for(let i=0;i<8;i++)if(R[i]!==pR_[i])chg.add('R'+i);if(PC!==pPC)chg.add('PC');if(FL.Z!==pFL.Z)chg.add('Z');if(FL.C!==pFL.C)chg.add('C');if(FL.N!==pFL.N)chg.add('N');if(FL.V!==pFL.V)chg.add('V')}
+
+// Microcode step builder — generates trace for the current instruction
+function buildUcTrace(d,op){
+  let steps=[];
+  let addr=PC-1; // fetch address (PC already incremented)
+  // Universal FETCH phase
+  steps.push({addr:'0x00',phase:'FETCH',action:'MAR \u2190 PC',bus:'PC \u2192 MAR'});
+  steps.push({addr:'0x01',phase:'FETCH',action:'MDR \u2190 Mem[MAR]',bus:'Memory read'});
+  steps.push({addr:'0x02',phase:'FETCH',action:'IR \u2190 MDR',bus:'MDR \u2192 IR'});
+  steps.push({addr:'0x03',phase:'FETCH',action:'PC \u2190 PC + 1',bus:'PC increment'});
+  // DECODE
+  let opName=curI||'?';
+  steps.push({addr:'0x04',phase:'DECODE',action:'Decode IR[15:11]='+((IR>>11)&0x1F),bus:'opcode \u2192 dispatch'});
+  // EXECUTE (varies by instruction type)
+  if(op<=2){
+    let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};
+    let nm=m[op]?.[d.fn]||'?';
+    steps.push({addr:'0x10',phase:'EXECUTE',action:'A \u2190 R[Rs='+d.rs+']',bus:'RegFile \u2192 A'});
+    steps.push({addr:'0x11',phase:'EXECUTE',action:'B \u2190 R[Rt='+d.rt+']',bus:'RegFile \u2192 B'});
+    steps.push({addr:'0x12',phase:'EXECUTE',action:'ALU: '+nm+' A,B',bus:'A,B \u2192 ALU'});
+    if(nm!=='CMP')steps.push({addr:'0x13',phase:'WRITEBACK',action:'R[Rd='+d.rd+'] \u2190 result',bus:'ALU \u2192 RegFile'});
+    else steps.push({addr:'0x13',phase:'WRITEBACK',action:'FLAGS \u2190 result',bus:'ALU \u2192 FLAGS'});
+  }else if(op>=4&&op<=9){
+    steps.push({addr:'0x30',phase:'EXECUTE',action:'A \u2190 R[Rd='+d.rd+']',bus:'RegFile \u2192 A'});
+    steps.push({addr:'0x31',phase:'EXECUTE',action:'B \u2190 imm8 (ext)',bus:'IR[7:0] \u2192 extend \u2192 B'});
+    steps.push({addr:'0x32',phase:'EXECUTE',action:'ALU op',bus:'A,B \u2192 ALU'});
+    steps.push({addr:'0x33',phase:'WRITEBACK',action:'R[Rd] \u2190 result',bus:'ALU \u2192 RegFile'});
+  }else if(op===10){
+    steps.push({addr:'0x40',phase:'EXECUTE',action:'A \u2190 R[Rs]+imm5',bus:'Addr calc'});
+    steps.push({addr:'0x41',phase:'EXECUTE',action:'MAR \u2190 A',bus:'A \u2192 MAR'});
+    steps.push({addr:'0x42',phase:'EXECUTE',action:'MDR \u2190 Mem[MAR]',bus:'Memory read'});
+    steps.push({addr:'0x43',phase:'WRITEBACK',action:'R[Rd] \u2190 MDR',bus:'MDR \u2192 RegFile'});
+  }else if(op===11){
+    steps.push({addr:'0x44',phase:'EXECUTE',action:'A \u2190 R[Rs]+imm5',bus:'Addr calc'});
+    steps.push({addr:'0x45',phase:'EXECUTE',action:'MAR \u2190 A',bus:'A \u2192 MAR'});
+    steps.push({addr:'0x46',phase:'EXECUTE',action:'MDR \u2190 R[Rd]',bus:'RegFile \u2192 MDR'});
+    steps.push({addr:'0x47',phase:'WRITEBACK',action:'Mem[MAR] \u2190 MDR',bus:'Memory write'});
+  }else if(op===12){
+    steps.push({addr:'0x48',phase:'EXECUTE',action:'SP \u2190 SP - 1',bus:'SP decrement'});
+    steps.push({addr:'0x49',phase:'EXECUTE',action:'MAR \u2190 SP',bus:'SP \u2192 MAR'});
+    steps.push({addr:'0x4A',phase:'EXECUTE',action:'MDR \u2190 R[Rd]',bus:'RegFile \u2192 MDR'});
+    steps.push({addr:'0x4B',phase:'WRITEBACK',action:'Mem[MAR] \u2190 MDR',bus:'Memory write'});
+  }else if(op===13){
+    steps.push({addr:'0x4C',phase:'EXECUTE',action:'MAR \u2190 SP',bus:'SP \u2192 MAR'});
+    steps.push({addr:'0x4D',phase:'EXECUTE',action:'MDR \u2190 Mem[MAR]',bus:'Memory read'});
+    steps.push({addr:'0x4E',phase:'EXECUTE',action:'R[Rd] \u2190 MDR',bus:'MDR \u2192 RegFile'});
+    steps.push({addr:'0x4F',phase:'WRITEBACK',action:'SP \u2190 SP + 1',bus:'SP increment'});
+  }else if(op>=16&&op<=23){
+    steps.push({addr:'0x50',phase:'EXECUTE',action:'Check condition',bus:'FLAGS test'});
+    steps.push({addr:'0x51',phase:'EXECUTE',action:'offset = sign_ext(IR[10:0])',bus:'Offset calc'});
+    if(op===23)steps.push({addr:'0x52',phase:'EXECUTE',action:'LR \u2190 PC',bus:'PC \u2192 LR'});
+    steps.push({addr:'0x53',phase:'WRITEBACK',action:'PC \u2190 PC + offset (if taken)',bus:'Branch resolve'});
+  }else if(op===24){
+    steps.push({addr:'0x67',phase:'EXECUTE',action:'PC \u2190 LR',bus:'LR \u2192 PC'});
+  }else if(op===31){
+    steps.push({addr:'0x70',phase:'EXECUTE',action:'HALT \u2014 stop clock',bus:'\u2014'});
+  }
+  return steps;
 }
 
 function execOne(){
   if(halt)return;
-  if(run&&breakpoints.size&&pLen&&PC<pLen){
-    let lnBp=aLines[PC].ln;
-    if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp+' (not executed yet)',0);renderAll();return}
-  }
+  if(run&&breakpoints.size&&pLen&&PC<pLen){let lnBp=aLines[PC].ln;if(breakpoints.has(lnBp)){stopR();sLog('Breakpoint: line '+lnBp,0);renderAll();return}}
   savePrev();
   MAR=PC;MDR=mem[MAR];IR=MDR;PC=(PC+1)&0xFFFF;
   let d={op:(IR>>11)&0x1F,rd:(IR>>8)&7,rs:(IR>>5)&7,rt:(IR>>2)&7,fn:IR&3,i5:se(IR&0x1F,5),i8:se(IR&0xFF,8),i8u:IR&0xFF,i11:se(IR&0x7FF,11)};
   curI=dis(IR);let op=d.op;
 
   if(op<=2){
-    let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};
-    let nm=m[op]?.[d.fn]||'ADD';let a,b;
-    if(nm==='NOT'){a=0;b=R[d.rs]}else if(nm==='CMP'){a=R[d.rs];b=R[d.rt]}else{a=R[d.rs];b=R[d.rt]}
+    let m={0:{0:'ADD',1:'SUB',2:'AND',3:'OR'},1:{0:'XOR',1:'NOT',2:'SHL',3:'SHR'},2:{0:'SRA',1:'CMP'}};let nm=m[op]?.[d.fn];
+    if(!nm){halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'ILLEGAL'};curDesc='ILLEGAL INSTRUCTION';sSt('ERROR');ucSteps=[];return}
+    let a,b;if(nm==='NOT'){a=0;b=R[d.rs]}else if(nm==='CMP'){a=R[d.rs];b=R[d.rt]}else{a=R[d.rs];b=R[d.rt]}
     let res=alu(nm==='CMP'?'SUB':nm,a,b);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;
     if(nm!=='CMP'&&d.rd!==0)R[d.rd]=res.r;
-    bus={s:nm==='CMP'?`R${d.rs},R${d.rt}`:`R${d.rs},R${d.rt}`,v:f16(res.r),d:nm==='CMP'?'FLAGS':`R${d.rd}`,a:nm};
-    curDesc=nm==='CMP'?`Compare R${d.rs}(${f16(a)}) - R${d.rt}(${f16(b)}) → flags`:`${nm}: R${d.rs}(${f16(a)}) ${nm} R${d.rt}(${f16(b)}) = ${f16(res.r)} → R${d.rd}`
+    bus={s:`R${d.rs},R${d.rt}`,v:f16(res.r),d:nm==='CMP'?'FLAGS':`R${d.rd}`,a:nm};
+    curDesc=nm==='CMP'?`CMP R${d.rs}(${f16(a)})-R${d.rt}(${f16(b)})\u2192flags`:`${nm}: ${f16(a)} ${nm} ${f16(b)}=${f16(res.r)}\u2192R${d.rd}`;
   }
-  else if(op>=8&&op<=13){
+  else if(op>=4&&op<=9){
     let rd=d.rd;
-    if(op===8){let res=alu('ADD',R[rd],d.i8&0xFFFF);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'ADD'};curDesc=`ADDI: R${rd} + ${d.i8} = ${f16(res.r)}`}
-    else if(op===9){let res=alu('AND',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'AND'};curDesc=`ANDI: R${rd} & 0x${d.i8u.toString(16)} = ${f16(res.r)}`}
-    else if(op===10){let res=alu('OR',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'OR'};curDesc=`ORI: R${rd} | 0x${d.i8u.toString(16)} = ${f16(res.r)}`}
-    else if(op===11){let v=d.i8&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'PASS'};curDesc=`LI: ${d.i8} → R${rd}`}
-    else if(op===12){let v=(d.i8u<<8)&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'SHL8'};curDesc=`LUI: ${d.i8u} << 8 = ${f16(v)} → R${rd}`}
-    else if(op===13){let res=alu('SUB',R[rd],d.i8&0xFFFF);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(R[rd]),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])}) - ${d.i8} → flags`}
+    if(op===4){let imm16=d.i8&0xFFFF;let res=alu('ADD',R[rd],imm16);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'ADD'};curDesc=`ADDI: R${rd}+${d.i8}=${f16(res.r)}`}
+    else if(op===5){let res=alu('AND',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'AND'};curDesc=`ANDI: R${rd}&0x${d.i8u.toString(16).toUpperCase()}=${f16(res.r)}`}
+    else if(op===6){let res=alu('OR',R[rd],d.i8u);FL.Z=res.z;FL.N=res.n;if(rd!==0)R[rd]=res.r;bus={s:`R${rd}`,v:f16(res.r),d:`R${rd}`,a:'OR'};curDesc=`ORI: R${rd}|0x${d.i8u.toString(16).toUpperCase()}=${f16(res.r)}`}
+    else if(op===7){let v=d.i8&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'PASS'};curDesc=`LI: ${d.i8}\u2192R${rd}`}
+    else if(op===8){let v=(d.i8u<<8)&0xFFFF;if(rd!==0)R[rd]=v;bus={s:'imm8',v:f16(v),d:`R${rd}`,a:'SHL8'};curDesc=`LUI: 0x${d.i8u.toString(16).toUpperCase()}\u00AB8=${f16(v)}\u2192R${rd}`}
+    else if(op===9){let imm16=d.i8&0xFFFF;let res=alu('SUB',R[rd],imm16);FL.Z=res.z;FL.C=res.c;FL.N=res.n;FL.V=res.v;bus={s:`R${rd}`,v:f16(R[rd]),d:'FLAGS',a:'SUB'};curDesc=`CMPI: R${rd}(${f16(R[rd])})-${d.i8}\u2192flags`}
   }
-  else if(op===16){let ad=(R[d.rs]+d.i5)&0xFFFF;if(d.rd!==0)R[d.rd]=mem[ad];bus={s:`[${f16(ad)}]`,v:f16(mem[ad]),d:`R${d.rd}`,a:'—'};curDesc=`LOAD: Mem[${f16(ad)}] = ${f16(mem[ad])} → R${d.rd}`}
-  else if(op===17){let ad=(R[d.rs]+d.i5)&0xFFFF;mem[ad]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'—'};curDesc=`STORE: R${d.rd}(${f16(R[d.rd])}) → Mem[${f16(ad)}]`}
-  else if(op===18){R[6]=(R[6]-1)&0xFFFF;mem[R[6]]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP-- → ${f16(R[6])}, R${d.rd}(${f16(R[d.rd])}) → stack`}
-  else if(op===19){let v=mem[R[6]];if(d.rd!==0)R[d.rd]=v;R[6]=(R[6]+1)&0xFFFF;bus={s:`[SP]`,v:f16(v),d:`R${d.rd}`,a:'POP'};curDesc=`POP: Mem[SP] = ${f16(v)} → R${d.rd}, SP++`}
-  else if(op===20){PC=R[7];bus={s:'LR',v:f16(R[7]),d:'PC',a:'—'};curDesc=`RET: LR(${f16(R[7])}) → PC`}
-  else if(op===21){halt=true;bus={s:'—',v:'—',d:'—',a:'HALT'};curDesc='HALT: Machine stopped';sSt('HALTED')}
-  else if(op>=24){
+  else if(op===10){let ad=(R[d.rs]+d.i5)&0xFFFF;if(d.rd!==0)R[d.rd]=mem[ad];bus={s:`[${f16(ad)}]`,v:f16(mem[ad]),d:`R${d.rd}`,a:'\u2014'};curDesc=`LOAD: Mem[${f16(ad)}]=${f16(mem[ad])}\u2192R${d.rd}`}
+  else if(op===11){let ad=(R[d.rs]+d.i5)&0xFFFF;mem[ad]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[${f16(ad)}]`,a:'\u2014'};curDesc=`STORE: R${d.rd}\u2192Mem[${f16(ad)}]`}
+  else if(op===12){R[6]=(R[6]-1)&0xFFFF;mem[R[6]]=R[d.rd];bus={s:`R${d.rd}`,v:f16(R[d.rd]),d:`[SP=${f16(R[6])}]`,a:'PUSH'};curDesc=`PUSH: SP--,R${d.rd}\u2192stack`}
+  else if(op===13){let v=mem[R[6]];if(d.rd!==0)R[d.rd]=v;R[6]=(R[6]+1)&0xFFFF;bus={s:'[SP]',v:f16(v),d:`R${d.rd}`,a:'POP'};curDesc=`POP: Mem[SP]\u2192R${d.rd},SP++`}
+  else if(op>=16&&op<=23){
     let tk=false;
-    if(op===24)tk=FL.Z===1;else if(op===25)tk=FL.Z===0;else if(op===26)tk=FL.N!==FL.V;
-    else if(op===27)tk=FL.N===FL.V;else if(op===28)tk=FL.C===1;else if(op===29)tk=FL.C===0;
-    else if(op===30)tk=true;else if(op===31){R[7]=PC;tk=true}
+    if(op===16)tk=FL.Z===1;else if(op===17)tk=FL.Z===0;else if(op===18)tk=FL.N!==FL.V;
+    else if(op===19)tk=FL.N===FL.V;else if(op===20)tk=FL.C===1;else if(op===21)tk=FL.C===0;
+    else if(op===22)tk=true;else if(op===23){R[7]=PC;tk=true}
     if(tk)PC=(PC+d.i11)&0xFFFF;
-    let nm={24:'BEQ',25:'BNE',26:'BLT',27:'BGE',28:'BCS',29:'BCC',30:'JMP',31:'CALL'}[op];
-    bus={s:'offset',v:f16(d.i11&0xFFFF),d:tk?'PC':'—',a:tk?'TAKEN':'NOT TAKEN'};
-    curDesc=`${nm}: offset=${d.i11}, ${tk?'TAKEN → PC='+f16(PC):'NOT TAKEN'}`
+    let nm={16:'BEQ',17:'BNE',18:'BLT',19:'BGE',20:'BCS',21:'BCC',22:'JMP',23:'CALL'}[op];
+    bus={s:'offset',v:f16(d.i11&0xFFFF),d:tk?'PC':'\u2014',a:tk?'TAKEN':'NOT TAKEN'};
+    curDesc=`${nm}: off=${d.i11}, ${tk?'TAKEN\u2192PC='+f16(PC):'NOT TAKEN'}`;
   }
+  else if(op===24){PC=R[7];bus={s:'LR',v:f16(R[7]),d:'PC',a:'\u2014'};curDesc=`RET: LR\u2192PC`}
+  else if(op===31){halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'HALT'};curDesc='HALT';sSt('HALTED')}
+  else{halt=true;bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'ILLEGAL'};curDesc='ILLEGAL';sSt('ERROR')}
+
+  // Build microcode trace
+  ucSteps=buildUcTrace(d,op);
   R[0]=0;cy++;ic++;detect()
 }
 
-function doStep(){if(halt)return;execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}}
-function getResults(){let parts=[];for(let i=1;i<=5;i++)if(R[i])parts.push(`R${i}=${R[i]}(${f16(R[i])})`);return parts.join(', ')}
+function doStep(){if(halt)return;execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
+function getResults(){let p=[];for(let i=1;i<=7;i++)if(R[i])p.push(`R${i}=${R[i]}(${f16(R[i])})`);return p.join(', ')}
 let spd=10;
 function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();startR()}}
 function doToggleRun(){if(run)stopR();else startR()}
 function startR(){if(halt)return;run=true;document.getElementById('runBtn').textContent='Pause';document.getElementById('runBtn').className='b';sSt('RUNNING');
   let dl=spd>=9999?1:Math.max(1,Math.floor(1000/spd)),bt=spd>=9999?200:1;
-  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instructions. ${getResults()}`,0)}},dl)}
+  tmr=setInterval(()=>{for(let i=0;i<bt&&!halt&&run;i++)execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}},dl)}
 function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getElementById('runBtn').textContent='Run';document.getElementById('runBtn').className='b bg';if(!halt)sSt('READY')}
 
 // ===== RENDER =====
@@ -886,111 +913,151 @@ function fD(v){return v>32767?(v-65536).toString():v.toString()}
 function sSt(s){let e=document.getElementById('st');e.textContent=s;e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s]}
 function sLog(m,err){let e=document.getElementById('log');e.textContent=m;e.className='lb'+(err?' le':' ls')}
 
+function renderDatapath(){
+  // Update values in SVG
+  document.getElementById('dpPCv').textContent=f16(PC).slice(2);
+  document.getElementById('dpMemV').textContent=f16(MDR).slice(2);
+  document.getElementById('dpIRv').textContent=f16(IR).slice(2);
+  document.getElementById('dpDecV').textContent=curI?curI.split(' ')[0]||'\u2014':'\u2014';
+  document.getElementById('dpFLv').textContent=(FL.V?'V':'.')+(FL.N?'N':'.')+(FL.C?'C':'.')+(FL.Z?'Z':'.');
+
+  let op=(IR>>11)&0x1F;
+  // ALU info
+  document.getElementById('dpALUop').textContent=bus.a||'\u2014';
+  document.getElementById('dpALUr').textContent=bus.v||'\u2014';
+  // Register file
+  document.getElementById('dpRFa').textContent=bus.s!=='\u2014'?bus.s.split(',')[0]||'':'\u2014';
+  document.getElementById('dpRFb').textContent=bus.s!=='\u2014'&&bus.s.includes(',')?bus.s.split(',')[1]:'';
+  // Writeback
+  document.getElementById('dpWBv').textContent=bus.d||'\u2014';
+  // Mem I/O
+  let isMem=op===10||op===11||op===12||op===13;
+  document.getElementById('dpMAv').textContent=isMem?(op===10||op===13?'READ':'WRITE'):'\u2014';
+
+  // Highlight active boxes
+  let boxes=['dpPC','dpMem','dpIR','dpDec','dpRF','dpALU','dpFL','dpWB','dpMA'];
+  boxes.forEach(id=>document.getElementById(id).setAttribute('class','dp-box'));
+  if(curI){
+    document.getElementById('dpPC').setAttribute('class','dp-box dp-box-act');
+    document.getElementById('dpMem').setAttribute('class','dp-box dp-box-act');
+    document.getElementById('dpIR').setAttribute('class','dp-box dp-box-act');
+    document.getElementById('dpDec').setAttribute('class','dp-box dp-box-act');
+    if(op<=2||( op>=4&&op<=9))document.getElementById('dpALU').setAttribute('class','dp-box dp-box-act');
+    if(bus.d!=='\u2014'&&!bus.d.startsWith('[')&&bus.d!=='FLAGS')document.getElementById('dpWB').setAttribute('class','dp-box dp-box-act');
+    if(bus.d==='FLAGS'||bus.a!=='\u2014')document.getElementById('dpFL').setAttribute('class','dp-box dp-box-act');
+    if(isMem)document.getElementById('dpMA').setAttribute('class','dp-box dp-box-act');
+    document.getElementById('dpRF').setAttribute('class','dp-box dp-box-act');
+  }
+
+  // Activate bus lines
+  let busLines=['busPC2M','busM2IR','busIR2D','busD2RF','busRF2A','busALU2F','busALU2WB','busD2MA','busWB2RF'];
+  busLines.forEach(id=>{let el=document.getElementById(id);el.setAttribute('class','dp-bus');el.setAttribute('marker-end','url(#dpArr)')});
+  if(curI){
+    ['busPC2M','busM2IR','busIR2D'].forEach(id=>{let el=document.getElementById(id);el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)')});
+    if(bus.s!=='\u2014'){
+      let el=document.getElementById('busD2RF');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)');
+      let el2=document.getElementById('busRF2A');el2.setAttribute('class','dp-bus dp-bus-act');el2.setAttribute('marker-end','url(#dpArrAct)');
+    }
+    if(op<=2||(op>=4&&op<=9)){
+      let el=document.getElementById('busALU2F');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)');
+      if(bus.d!=='FLAGS'){let el2=document.getElementById('busALU2WB');el2.setAttribute('class','dp-bus dp-bus-act');el2.setAttribute('marker-end','url(#dpArrAct)');
+        let el3=document.getElementById('busWB2RF');el3.setAttribute('class','dp-bus dp-bus-act');el3.setAttribute('marker-end','url(#dpArrAct)')}
+    }
+    if(isMem){let el=document.getElementById('busD2MA');el.setAttribute('class','dp-bus dp-bus-act');el.setAttribute('marker-end','url(#dpArrAct)')}
+  }
+
+  // Phase bar position
+  let phBar=document.getElementById('dpPhBar');
+  let phTexts=['dpPh0','dpPh1','dpPh2','dpPh3'];
+  phTexts.forEach(id=>{let el=document.getElementById(id);el.setAttribute('fill','var(--text3)');el.setAttribute('font-weight','500')});
+  // All phases execute in one step, highlight last relevant
+  if(halt){phBar.setAttribute('x','18');phBar.setAttribute('width','140')}
+  else if(curI){
+    // Show WRITEBACK as final phase
+    phBar.setAttribute('x','508');phBar.setAttribute('width','140');
+    document.getElementById('dpPh3').setAttribute('fill','var(--blu)');document.getElementById('dpPh3').setAttribute('font-weight','700');
+  }else{
+    phBar.setAttribute('x','18');phBar.setAttribute('width','140');
+    document.getElementById('dpPh0').setAttribute('fill','var(--blu)');document.getElementById('dpPh0').setAttribute('font-weight','700');
+  }
+
+  // Dots
+  ['dotFetch','dotDecode','dotExec','dotWB'].forEach(id=>document.getElementById(id).setAttribute('class','dp-dot'));
+  if(curI&&!run){
+    document.getElementById('dotFetch').setAttribute('class','dp-dot on');
+    document.getElementById('dotDecode').setAttribute('class','dp-dot on');
+    document.getElementById('dotExec').setAttribute('class','dp-dot on');
+    document.getElementById('dotWB').setAttribute('class','dp-dot on');
+  }
+}
+
+function renderMicrocode(){
+  if(!ucSteps.length){
+    document.getElementById('ucBody').innerHTML='<tr><td colspan="4" style="color:var(--text3);text-align:center">\u2014 no instruction \u2014</td></tr>';
+    document.getElementById('ucAddr').textContent='\u2014';
+    return;
+  }
+  let last=ucSteps[ucSteps.length-1];
+  document.getElementById('ucAddr').textContent=last.addr;
+  let html='';
+  for(let i=0;i<ucSteps.length;i++){
+    let s=ucSteps[i];
+    let cl=i===ucSteps.length-1?'uc-act':(i<ucSteps.length-1?'uc-done':'');
+    html+=`<tr class="${cl}"><td>${s.addr}</td><td>${s.phase}</td><td>${s.action}</td><td>${s.bus}</td></tr>`;
+  }
+  document.getElementById('ucBody').innerHTML=html;
+  // Scroll to active row
+  let wrap=document.getElementById('ucWrap');
+  let act=wrap.querySelector('.uc-act');
+  if(act)act.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
 function renderAll(){
   let nm=['R0','R1','R2','R3','R4','R5','SP','LR'];
   let h='';for(let i=0;i<8;i++){let c=chg.has('R'+i);h+=`<div class="rc${c?' chg':''}"><span class="rn">${nm[i]}</span><span class="rv">${f16(R[i])}</span><span class="rd">${fD(R[i])}</span></div>`}
   document.getElementById('rgG').innerHTML=h;
-
   h='';for(let[n,v]of[['PC',PC],['MAR',MAR],['IR',IR]]){let c=chg.has(n);h+=`<div class="rc${c?' chg':''}"><span class="rn">${n}</span><span class="rv">${f16(v)}</span></div>`}
   document.getElementById('ctG').innerHTML=h;
-
   h='';for(let f of['Z','C','N','V'])h+=`<span class="fb${FL[f]?' fs':''}">${f}=${FL[f]}</span>`;
   document.getElementById('flG').innerHTML=h;
-
   document.getElementById('bS').textContent=bus.s;document.getElementById('bV').textContent=bus.v;
   document.getElementById('bD').textContent=bus.d;document.getElementById('bA').textContent=bus.a;
-  document.getElementById('irD').textContent=curI||'—';
+  document.getElementById('irD').textContent=curI||'\u2014';
   document.getElementById('cyN').textContent=cy;document.getElementById('inN').textContent=ic;
   document.getElementById('phN').textContent=halt?'HALTED':(run?'RUNNING':'READY');
-  document.getElementById('desc').textContent=curDesc||'—';
-
+  document.getElementById('desc').textContent=curDesc||'\u2014';
   // Memory: program
   let rows=Math.ceil(Math.max(pLen,1)/8);
   h='';for(let r=0;r<rows;r++){let base=r*8;h+=`<span class="ma">${f16(base)}</span>`;
-    for(let c=0;c<8;c++){let ad=base+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===PC)cl+=' pc';if(ad===R[6])cl+=' sp';
-      h+=`<span class="${cl}" title="${f16(ad)}: ${dis(v)}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}}
+    for(let c=0;c<8;c++){let ad=base+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===PC)cl+=' pc';if(ad===R[6])cl+=' sp';h+=`<span class="${cl}" title="${f16(ad)}: ${dis(v)}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}}
   document.getElementById('mP').innerHTML=h;
-
-  // Memory: stack
-  h='';let sBase=0x02F8;
-  h+=`<span class="ma">${f16(sBase)}</span>`;
-  for(let c=0;c<8;c++){let ad=sBase+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===R[6])cl+=' sp';
-    h+=`<span class="${cl}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}
+  // Stack
+  h='';let sBase=0x02F8;h+=`<span class="ma">${f16(sBase)}</span>`;
+  for(let c=0;c<8;c++){let ad=sBase+c,v=mem[ad],cl='mv';if(v)cl+=' nz';if(ad===R[6])cl+=' sp';h+=`<span class="${cl}">${v.toString(16).toUpperCase().padStart(4,'0')}</span>`}
   document.getElementById('mS').innerHTML=h;
+  renderDatapath();
+  renderMicrocode();
   updateDebugLineUI();
 }
 
-// Line numbers + editor (single-layer textarea — reliable caret alignment)
-const ed=document.getElementById('ed');
-const lns=document.getElementById('lns');
-const ew=document.querySelector('.ew');
-
-function activeSourceLine(){
-  if(!pLen||!aLines.length)return null;
-  if(PC<pLen)return aLines[PC].ln;
-  return aLines[pLen-1].ln;
-}
-function lineMetrics(){
-  const cs=getComputedStyle(ed);
-  let lh=parseFloat(cs.lineHeight);
-  if(isNaN(lh)||cs.lineHeight==='normal')lh=(parseFloat(cs.fontSize)||11.5)*1.65;
-  return{lh,pt:parseFloat(cs.paddingTop)||8}
-}
-function updateLineHighlight(){
-  const wrap=document.getElementById('edLineHi');
-  if(!wrap)return;
-  const ln=activeSourceLine();
-  if(ln==null||!pLen){wrap.innerHTML='';return}
-  const{lh,pt}=lineMetrics();
-  const top=pt+(ln-1)*lh-ed.scrollTop;
-  wrap.innerHTML='<div class="ed-line-hi-bar" style="top:'+top+'px;height:'+lh+'px"></div>';
-}
-function updateDebugLineUI(){
-  updateLineHighlight();
-  const cur=activeSourceLine();
-  document.querySelectorAll('#lns .ln-row').forEach(function(span){
-    span.classList.toggle('ln-cur',cur!==null&&+span.dataset.line===cur);
-  });
-}
+// ===== EDITOR =====
+const ed=document.getElementById('ed'),lns=document.getElementById('lns'),ew=document.querySelector('.ew');
+function activeSourceLine(){if(!pLen||!aLines.length)return null;if(PC<pLen)return aLines[PC].ln;return aLines[pLen-1].ln}
+function lineMetrics(){const cs=getComputedStyle(ed);let lh=parseFloat(cs.lineHeight);if(isNaN(lh)||cs.lineHeight==='normal')lh=(parseFloat(cs.fontSize)||11.5)*1.65;return{lh,pt:parseFloat(cs.paddingTop)||8}}
+function updateLineHighlight(){const wrap=document.getElementById('edLineHi');if(!wrap)return;const ln=activeSourceLine();if(ln==null||!pLen){wrap.innerHTML='';return}const{lh,pt}=lineMetrics();const top=pt+(ln-1)*lh-ed.scrollTop;wrap.innerHTML='<div class="ed-line-hi-bar" style="top:'+top+'px;height:'+lh+'px"></div>'}
+function updateDebugLineUI(){updateLineHighlight();const cur=activeSourceLine();document.querySelectorAll('#lns .ln-row').forEach(span=>{span.classList.toggle('ln-cur',cur!==null&&+span.dataset.line===cur)})}
 function syncLnScroll(){lns.scrollTop=ed.scrollTop}
 function syncAllScroll(){syncLnScroll();updateLineHighlight()}
 ed.addEventListener('input',function(){updLn();updateDebugLineUI()});
 ed.addEventListener('scroll',syncAllScroll);
-ew.addEventListener('wheel',function(e){
-  if(e.target===ed)return;
-  e.preventDefault();
-  ed.scrollTop+=e.deltaY;
-  if(e.deltaX)ed.scrollLeft+=e.deltaX;
-  syncAllScroll();
-},{passive:false});
-function updLn(){
-  let n=ed.value.split('\n').length,h='',cur=activeSourceLine();
-  for(let i=1;i<=n;i++){
-    let cl='ln-row';
-    if(breakpoints.has(i))cl+=' ln-bp';
-    if(cur!==null&&i===cur)cl+=' ln-cur';
-    h+='<span class="'+cl+'" data-line="'+i+'" title="Breakpoint: click / remove">'+i+'</span>';
-  }
-  lns.innerHTML=h;
-  syncLnScroll();
-}
-lns.addEventListener('click',function(e){
-  const row=e.target.closest('.ln-row');
-  if(!row)return;
-  let line=+row.dataset.line;
-  if(!line)return;
-  if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);
-  updLn();updateLineHighlight();
-});
-ed.addEventListener('keydown',function(e){
-  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updateLineHighlight()}
-  else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}
-});
+ew.addEventListener('wheel',function(e){if(e.target===ed)return;e.preventDefault();ed.scrollTop+=e.deltaY;if(e.deltaX)ed.scrollLeft+=e.deltaX;syncAllScroll()},{passive:false});
+function updLn(){let n=ed.value.split('\n').length,h='',cur=activeSourceLine();for(let i=1;i<=n;i++){let cl='ln-row';if(breakpoints.has(i))cl+=' ln-bp';if(cur!==null&&i===cur)cl+=' ln-cur';h+='<span class="'+cl+'" data-line="'+i+'" title="Toggle breakpoint">'+i+'</span>'}lns.innerHTML=h;syncLnScroll()}
+lns.addEventListener('click',function(e){const row=e.target.closest('.ln-row');if(!row)return;let line=+row.dataset.line;if(!line)return;if(instrLines.size>0&&!instrLines.has(line)){sLog('Line '+line+': no instruction here.',1);return}if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);updLn();updateLineHighlight()});
+ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn()}else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}});
 
-// Examples
+// ===== EXAMPLES =====
 const EX={
-sum:`; Sum 1 to 5
-; Result: R2 = 15
+sum:`; Sum 1 to 5 — Result: R2 = 15
     LI   R1, #5
     LI   R2, #0
 loop:
@@ -998,8 +1065,7 @@ loop:
     ADDI R1, #-1
     BNE  loop
     HALT`,
-fib:`; Fibonacci sequence
-; R2 = fib(7) = 13
+fib:`; Fibonacci — R2 = fib(7) = 13
     LI   R1, #0
     LI   R2, #1
     LI   R4, #6
@@ -1010,8 +1076,7 @@ loop:
     ADDI R4, #-1
     BNE  loop
     HALT`,
-fact:`; Factorial of 5
-; R2 = 120
+fact:`; Factorial(5) — R2 = 120
     LI   R1, #5
     LI   R2, #1
 loop:
@@ -1026,8 +1091,7 @@ mul:
     CMPI R1, #1
     BGE  loop
     HALT`,
-call:`; Nested call + LR save/restore
-; R1 = 15 (7*2 + 1)
+call:`; Nested call — R1 = 15 (7*2+1)
     LI   R1, #7
     CALL inc2
     HALT
@@ -1051,8 +1115,7 @@ mem:`; Memory operations
     LI   R3, #0
     POP  R3
     HALT`,
-sort:`; Bubble sort [5,3,1,4,2]
-; Data at 0x0100
+sort:`; Bubble sort [5,3,1,4,2] at 0x0100
     LI   R1, #5
     LI   R2, #0
     LUI  R2, #1
@@ -1089,11 +1152,9 @@ skip:
     BNE  outer
     HALT`
 };
-function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}
-  var ov=document.getElementById('docOv');
-  if(s&&!ov.hidden&&TUTORIAL_HTML[s])setDocSection(s);}
+function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
 
-// Init
+// ===== INIT =====
 ed.value=EX.sum;updLn();doAssemble();renderAll();
 </script>
 </body>
