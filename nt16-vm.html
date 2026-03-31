@@ -147,7 +147,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ms{font-family:var(--mono);font-size:10.5px;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.55}
 .out-box{font-family:var(--mono);font-size:10px;line-height:1.45;background:var(--bg3);border-radius:var(--r);padding:6px 8px;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .out-meta{font-family:var(--mono);font-size:9.5px;color:var(--text2);margin-top:4px}
-@media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
   .mn{display:flex;flex-direction:column}
@@ -189,7 +188,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .uc-tbl tr.uc-act td{color:var(--grn);font-weight:600}
 .uc-tbl tr.uc-done{background:var(--bg3)}
 .uc-tbl tr.uc-done td{color:var(--text3)}
-.uc-wrap{max-height:180px;overflow-x:auto;overflow-y:scroll;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.uc-empty-cell{height:130px;text-align:center;color:var(--text3);vertical-align:middle}
+.uc-wrap{height:180px;overflow-x:auto;overflow-y:scroll;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .uc-wrap::-webkit-scrollbar{width:6px}.uc-wrap::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px}
 
 /* ===== EXPORT MODAL ===== */
@@ -1138,7 +1138,7 @@ function renderDatapath(){
 
 function renderMicrocode(){
   if(!ucSteps.length){
-    document.getElementById('ucBody').innerHTML='<tr><td colspan="4" style="color:var(--text3);text-align:center">\u2014 no instruction \u2014</td></tr>';
+    document.getElementById('ucBody').innerHTML='<tr><td colspan="4" class="uc-empty-cell">\u2014 no instruction \u2014</td></tr>';
     document.getElementById('ucAddr').textContent='\u2014';
     return;
   }
