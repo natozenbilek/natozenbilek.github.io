@@ -53,6 +53,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bp{background:var(--acc);color:#fff;border-color:var(--acc)}.bp:hover{opacity:.9;background:var(--acc)}
 .bg{background:var(--grn);color:#fff;border-color:var(--grn)}.bg:hover{opacity:.9;background:var(--grn)}
 .b-blu{background:var(--blu);color:#fff;border-color:var(--blu)}.b-blu:hover{opacity:.9;background:var(--blu)}
+#runBtn{min-width:62px;text-align:center}
 .spd{display:flex;align-items:center;gap:4px}
 .spd label{font-size:10px;color:var(--text2);font-family:var(--mono)}
 .spd select{font-family:var(--mono);font-size:10px;padding:2px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
@@ -320,6 +321,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <option value="call">Subroutine</option>
         <option value="mem">Load / Store</option>
         <option value="sort">Bubble sort</option>
+        <option value="max2">Max of two numbers</option>
+        <option value="absv">Absolute value</option>
+        <option value="gcd">GCD (Euclid-sub)</option>
+        <option value="sumarr">Sum array</option>
+        <option value="countdown">Countdown</option>
+        <option value="parity">Parity (XOR fold)</option>
+        <option value="shifts">Shift showcase</option>
+        <option value="stackdemo">Stack demo</option>
+        <option value="callchain">Call chain</option>
+        <option value="linsearch">Linear search</option>
+        <option value="memfill">Memory fill</option>
+        <option value="carrydemo">Carry branch demo</option>
+        <option value="signedcmp">Signed compare demo</option>
+        <option value="fib10">Fibonacci(10)</option>
       </select>
       <div class="eh-side">
         <button type="button" class="b bp" onclick="doAssemble()" title="Assemble (Ctrl+Enter)">Assemble</button>
@@ -615,7 +630,31 @@ overview:`<h3>Overview</h3>
 <tr><td>Memory</td><td>2\u00b9\u2076 words (65,536)</td></tr>
 <tr><td>Addressing</td><td>Word-addressed</td></tr>
 <tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
-<tr><td>I/O</td><td>Memory-mapped</td></tr></table>`,
+<tr><td>I/O</td><td>Memory-mapped</td></tr></table>
+<h4>Emulator at a glance</h4>
+<p>The simulator models the architectural state step-by-step (registers, memory, flags, bus and datapath highlights) so each instruction can be inspected deterministically.</p>
+<h4>Execution and debugging model</h4>
+<table><tr><th>Feature</th><th>Behavior</th><th>Why it helps</th></tr>
+<tr><td>Initial stack state</td><td><code>SP</code> is auto-initialized to <code>0x0300</code></td><td>Examples run consistently without manual setup.</td></tr>
+<tr><td>Breakpoints</td><td>Click source line numbers to toggle breakpoints</td><td>Fast source-level control while keeping machine-level visibility.</td></tr>
+<tr><td>Run semantics</td><td><code>Run</code> pauses <em>before</em> executing a breakpointed line</td><td>Lets you inspect pre-instruction state safely.</td></tr>
+<tr><td>Step navigation</td><td><code>Back / Step / Forward</code> traverses execution snapshots</td><td>You can replay control flow and verify state transitions.</td></tr></table>
+<h4>Core design decisions</h4>
+<table><tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+<tr><td><code>R0</code></td><td>Hardwired zero</td><td>Simplifies code generation and pseudo-ops (e.g. <code>MOV</code>, <code>NOP</code>).</td></tr>
+<tr><td><code>SP/LR</code></td><td>Mapped inside GPR file (<code>R6/R7</code>)</td><td>Smaller datapath/control complexity with standard calling convention support.</td></tr>
+<tr><td>Branches</td><td>PC-relative <code>off11</code></td><td>Compact encoding and position-independent control flow.</td></tr>
+<tr><td>Instruction formats</td><td>4 formats (<code>R</code>, <code>I-short</code>, <code>I-wide</code>, <code>J</code>)</td><td>Balanced trade-off between simplicity and expressiveness.</td></tr></table>
+<h4>Worked examples (integrated)</h4>
+<table><tr><th>Example</th><th>Core idea</th><th>What to watch while stepping</th></tr>
+<tr><td>Sum 1..5</td><td><code>LI</code> + loop with <code>ADD/ADDI/BNE</code></td><td><code>R1</code> decreases, <code>R2</code> accumulates final sum.</td></tr>
+<tr><td>Fibonacci</td><td>Rolling register state</td><td><code>R1,R2</code> hold consecutive terms; <code>R3</code> is temporary next term.</td></tr>
+<tr><td>Factorial(5)</td><td>Nested-loop multiplication by repeated addition</td><td><code>CMPI</code> and signed branches control loop exits.</td></tr>
+<tr><td>Subroutine</td><td><code>CALL/RET</code> with LR preservation</td><td><code>PUSH LR</code> before nested call, <code>POP LR</code> before returning.</td></tr>
+<tr><td>Load / Store</td><td>Data memory + stack behavior</td><td>Address build via <code>LUI</code>, then memory round-trip and <code>PUSH/POP</code>.</td></tr>
+<tr><td>Bubble sort</td><td>Indexed memory access + conditional swap</td><td><code>LOAD/CMP/STORE</code> across inner and outer loops.</td></tr></table>
+<p class="doc-note">All examples are in the editor's <strong>Program</strong> dropdown. Select one, press <code>Assemble</code>, then inspect with <code>Back / Step / Forward</code>.</p>
+<p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`,
 registers:`<h3>Registers</h3>
 <p>NT-16 has <strong>8 architectural registers</strong> (<code>R0..R7</code>). Most instructions read/write these directly.</p>
 <h4>General purpose registers</h4>
@@ -625,8 +664,8 @@ registers:`<h3>Registers</h3>
 <tr><td><code>R6 / SP</code></td><td><code>110</code></td><td>Stack pointer</td><td>By convention points to stack top; used by <code>PUSH/POP</code>.</td></tr>
 <tr><td><code>R7 / LR</code></td><td><code>111</code></td><td>Link register</td><td>Return address holder for <code>CALL</code>/<code>RET</code>.</td></tr></table>
 <h4>FLAGS register (status bits)</h4>
-<pre>Bit index:  3    2    1    0
-            [ V ][ N ][ C ][ Z ]</pre>
+<table><tr><th>Bit index</th><th>3</th><th>2</th><th>1</th><th>0</th></tr>
+<tr><th>Field</th><td><code>V</code></td><td><code>N</code></td><td><code>C</code></td><td><code>Z</code></td></tr></table>
 <table><tr><th>Flag</th><th>Meaning</th><th>Set when...</th><th>Used by</th></tr>
 <tr><td><code>Z</code></td><td>Zero</td><td>ALU result is 0.</td><td><code>BEQ/BNE</code></td></tr>
 <tr><td><code>C</code></td><td>Carry/Borrow</td><td>Carry out (add) or no borrow (sub).</td><td><code>BCS/BCC</code></td></tr>
@@ -634,10 +673,11 @@ registers:`<h3>Registers</h3>
 <tr><td><code>V</code></td><td>Overflow</td><td>Signed overflow occurs.</td><td><code>BLT/BGE</code> (with N)</td></tr></table>`,
 encodingDispatch:`<h3>Instruction encoding</h3>
 <p>Each instruction is 16-bit wide. Decode from <strong>MSB to LSB</strong>: first read <code>opcode[15:11]</code>, then interpret remaining bits according to format.</p>
-<pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
-I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5  (signed)
-I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
-J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
+<table><tr><th>Format</th><th>Bit-field view (15..0)</th><th>Notes</th></tr>
+<tr><td><code>R-type</code></td><td><code>[15:11] opcode</code> | <code>[10:8] Rd</code> | <code>[7:5] Rs</code> | <code>[4:2] Rt</code> | <code>[1:0] func</code></td><td>ALU/register operations; <code>func</code> selects variant.</td></tr>
+<tr><td><code>I-short</code></td><td><code>[15:11] opcode</code> | <code>[10:8] Rd</code> | <code>[7:5] Rs</code> | <code>[4:0] imm5</code></td><td><code>imm5</code> is signed (typically used as offset).</td></tr>
+<tr><td><code>I-wide</code></td><td><code>[15:11] opcode</code> | <code>[10:8] Rd</code> | <code>[7:0] imm8</code></td><td>8-bit immediate class.</td></tr>
+<tr><td><code>J-type</code></td><td><code>[15:11] opcode</code> | <code>[10:0] off11</code></td><td>PC-relative signed branch offset.</td></tr></table>
 <table><tr><th>Format</th><th>Typical use</th></tr>
 <tr><td><code>R-type</code></td><td>Register-register ALU ops. Final 2 bits (<code>func</code>) select variant.</td></tr>
 <tr><td><code>I-short</code></td><td>Base+offset memory access (<code>imm5</code>) with sign extension.</td></tr>
@@ -699,29 +739,8 @@ memoryFlow:`<h3>Memory and control flow</h3>
 <table><tr><th>Pattern</th><th>Why</th></tr>
 <tr><td><code>PUSH LR</code> \u2192 <code>CALL sub</code> \u2192 <code>POP LR</code> \u2192 <code>RET</code></td><td>Protects caller return address across nested calls.</td></tr></table>`,
 emulatorDesign:`<h3>Emulator</h3>
-<p>The simulator models the architectural state step-by-step (registers, memory, flags, bus and datapath highlights) so each instruction can be inspected deterministically.</p>
-<h4>Execution and debugging model</h4>
-<table><tr><th>Feature</th><th>Behavior</th><th>Why it helps</th></tr>
-<tr><td>Initial stack state</td><td><code>SP</code> is auto-initialized to <code>0x0300</code></td><td>Examples run consistently without manual setup.</td></tr>
-<tr><td>Breakpoints</td><td>Click source line numbers to toggle breakpoints</td><td>Fast source-level control while keeping machine-level visibility.</td></tr>
-<tr><td>Run semantics</td><td><code>Run</code> pauses <em>before</em> executing a breakpointed line</td><td>Lets you inspect pre-instruction state safely.</td></tr>
-<tr><td>Step navigation</td><td><code>Back / Step / Forward</code> traverses execution snapshots</td><td>You can replay control flow and verify state transitions.</td></tr></table>
-<h4>Core design decisions</h4>
-<table><tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
-<tr><td><code>R0</code></td><td>Hardwired zero</td><td>Simplifies code generation and pseudo-ops (e.g. <code>MOV</code>, <code>NOP</code>).</td></tr>
-<tr><td><code>SP/LR</code></td><td>Mapped inside GPR file (<code>R6/R7</code>)</td><td>Smaller datapath/control complexity with standard calling convention support.</td></tr>
-<tr><td>Branches</td><td>PC-relative <code>off11</code></td><td>Compact encoding and position-independent control flow.</td></tr>
-<tr><td>Instruction formats</td><td>4 formats (<code>R</code>, <code>I-short</code>, <code>I-wide</code>, <code>J</code>)</td><td>Balanced trade-off between simplicity and expressiveness.</td></tr></table>
-<h4>Worked examples (integrated)</h4>
-<table><tr><th>Example</th><th>Core idea</th><th>What to watch while stepping</th></tr>
-<tr><td>Sum 1..5</td><td><code>LI</code> + loop with <code>ADD/ADDI/BNE</code></td><td><code>R1</code> decreases, <code>R2</code> accumulates final sum.</td></tr>
-<tr><td>Fibonacci</td><td>Rolling register state</td><td><code>R1,R2</code> hold consecutive terms; <code>R3</code> is temporary next term.</td></tr>
-<tr><td>Factorial(5)</td><td>Nested-loop multiplication by repeated addition</td><td><code>CMPI</code> and signed branches control loop exits.</td></tr>
-<tr><td>Subroutine</td><td><code>CALL/RET</code> with LR preservation</td><td><code>PUSH LR</code> before nested call, <code>POP LR</code> before returning.</td></tr>
-<tr><td>Load / Store</td><td>Data memory + stack behavior</td><td>Address build via <code>LUI</code>, then memory round-trip and <code>PUSH/POP</code>.</td></tr>
-<tr><td>Bubble sort</td><td>Indexed memory access + conditional swap</td><td><code>LOAD/CMP/STORE</code> across inner and outer loops.</td></tr></table>
-<p class="doc-note">All examples are in the editor's <strong>Program</strong> dropdown. Select one, press <code>Assemble</code>, then inspect with <code>Back / Step / Forward</code>.</p>
-<p><em>NT-16 ISA v0.1 \u2014 Nezih Arhan T\u00f6zenbilek, March 2026.</em></p>`
+<p>Core emulator behavior, design rationale, and integrated worked examples are now documented in <strong>Overview</strong> for a single-entry reading flow.</p>
+<p class="doc-note">Use <code>Program</code> + <code>Assemble</code> + <code>Back/Step/Forward</code> to inspect execution interactively.</p>`
 };
 const ISA_SECTIONS=[
 {id:'genel',label:'Overview',html:DOC_HTML.overview},
@@ -1239,6 +1258,192 @@ skip:
     ADDI\tR5, #-1
     CMPI\tR5, #0
     BNE\touter
+    HALT`,
+max2:`; Max of two numbers -> R3
+    LI\tR1, #37
+    LI\tR2, #52
+    CMP\tR1, R2
+    BGE\tr1_ge
+    MOV\tR3, R2
+    JMP\tdone
+r1_ge:
+    MOV\tR3, R1
+done:
+    HALT`,
+absv:`; Absolute value of R1 (-7) -> R2
+    LI\tR1, #-7
+    CMPI\tR1, #0
+    BLT\tneg
+    MOV\tR2, R1
+    JMP\tdone
+neg:
+    NEG\tR2, R1
+done:
+    HALT`,
+gcd:`; GCD(48,18) via repeated subtraction -> R1
+    LI\tR1, #48
+    LI\tR2, #18
+loop:
+    CMP\tR1, R2
+    BEQ\tdone
+    BGE\tr1_big
+    SUB\tR2, R2, R1
+    JMP\tloop
+r1_big:
+    SUB\tR1, R1, R2
+    JMP\tloop
+done:
+    HALT`,
+sumarr:`; Sum [1,2,3,4,5] at 0x0100 -> R4
+    LI\tR2, #0
+    LUI\tR2, #1
+    LI\tR1, #1
+    STORE\tR1, [R2]
+    LI\tR1, #2
+    STORE\tR1, [R2+1]
+    LI\tR1, #3
+    STORE\tR1, [R2+2]
+    LI\tR1, #4
+    STORE\tR1, [R2+3]
+    LI\tR1, #5
+    STORE\tR1, [R2+4]
+    LI\tR3, #0
+    LI\tR4, #0
+sum_loop:
+    LOAD\tR1, [R2]
+    ADD\tR4, R4, R1
+    ADDI\tR2, #1
+    ADDI\tR3, #1
+    CMPI\tR3, #5
+    BLT\tsum_loop
+    HALT`,
+countdown:`; Countdown 5..0 in R1
+    LI\tR1, #5
+loop:
+    CMPI\tR1, #0
+    BEQ\tdone
+    ADDI\tR1, #-1
+    JMP\tloop
+done:
+    HALT`,
+parity:`; Parity of 13 in R1 -> R2 (0 even, 1 odd)
+    LI\tR1, #13
+    MOV\tR2, R1
+    SHR\tR3, R1, R0
+    XOR\tR2, R2, R3
+    LI\tR4, #2
+    SHR\tR3, R1, R4
+    XOR\tR2, R2, R3
+    LI\tR4, #4
+    SHR\tR3, R1, R4
+    XOR\tR2, R2, R3
+    ANDI\tR2, #1
+    HALT`,
+shifts:`; SHL/SHR/SRA showcase
+    LI\tR1, #-16
+    LI\tR2, #2
+    SHL\tR3, R2, R2
+    SHR\tR4, R1, R2
+    SRA\tR5, R1, R2
+    HALT`,
+stackdemo:`; Stack push/pop order
+    LI\tR1, #11
+    LI\tR2, #22
+    PUSH\tR1
+    PUSH\tR2
+    POP\tR3
+    POP\tR4
+    HALT`,
+callchain:`; a -> b -> c nested calls
+    LI\tR1, #1
+    CALL\ta
+    HALT
+a:
+    PUSH\tLR
+    ADDI\tR1, #2
+    CALL\tb
+    POP\tLR
+    RET
+b:
+    PUSH\tLR
+    ADDI\tR1, #3
+    CALL\tc
+    POP\tLR
+    RET
+c:
+    ADDI\tR1, #4
+    RET`,
+linsearch:`; Linear search in [5,3,9,2], target=9 -> R5=index
+    LI\tR2, #0
+    LUI\tR2, #1
+    LI\tR1, #5
+    STORE\tR1, [R2]
+    LI\tR1, #3
+    STORE\tR1, [R2+1]
+    LI\tR1, #9
+    STORE\tR1, [R2+2]
+    LI\tR1, #2
+    STORE\tR1, [R2+3]
+    LI\tR4, #9
+    LI\tR3, #0
+    LI\tR5, #-1
+loop:
+    LOAD\tR1, [R2]
+    CMP\tR1, R4
+    BEQ\tfound
+    ADDI\tR2, #1
+    ADDI\tR3, #1
+    CMPI\tR3, #4
+    BLT\tloop
+    JMP\tdone
+found:
+    MOV\tR5, R3
+done:
+    HALT`,
+memfill:`; Fill 5 words at 0x0100 with 9
+    LI\tR2, #0
+    LUI\tR2, #1
+    LI\tR1, #9
+    LI\tR3, #0
+loop:
+    STORE\tR1, [R2]
+    ADDI\tR2, #1
+    ADDI\tR3, #1
+    CMPI\tR3, #5
+    BLT\tloop
+    HALT`,
+carrydemo:`; Unsigned carry and BCS/BCC demo
+    LUI\tR1, #255
+    ORI\tR1, #255
+    ADDI\tR1, #1
+    BCS\tcarry_set
+    LI\tR2, #0
+    JMP\tdone
+carry_set:
+    LI\tR2, #1
+done:
+    HALT`,
+signedcmp:`; Signed compare: -5 < 3, so BLT taken
+    LI\tR1, #-5
+    LI\tR2, #3
+    CMP\tR1, R2
+    BLT\tlt
+    LI\tR3, #0
+    JMP\tdone
+lt:
+    LI\tR3, #1
+done:
+    HALT`,
+fib10:`; Fibonacci(10) -> R2 = 55
+    LI\tR1, #0
+    LI\tR2, #1
+    LI\tR4, #9
+loop:
+    ADD\tR3, R1, R2
+    MOV\tR1, R2
+    MOV\tR2, R3
+    ADDI\tR4, #-1
+    BNE\tloop
     HALT`
 };
 function loadEx(){var s=document.getElementById('ex').value;if(s&&EX[s]){ed.value=EX[s];updLn();doReset()}}
