@@ -133,21 +133,24 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bd{display:flex;align-items:center;flex-wrap:wrap;gap:6px 9px;font-family:var(--mono);font-size:11.2px;padding:5px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9.8px}
 
-.ir{font-family:var(--mono);font-size:12px;padding:4px 8px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600;display:inline-block;max-width:max-content;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ir{font-family:var(--mono);font-size:12px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);text-align:left;color:var(--acc);font-weight:600;display:block;width:100%;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .blk-lbl{font-family:var(--mono);font-size:9.2px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px}
 
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
-.ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
-.mv{text-align:center;padding:1px;border-radius:2px;color:var(--text3);transition:all .15s}
+.ma{color:var(--text2);padding:1px 4px 1px 0;text-align:right;font-weight:500}
+.mv{text-align:center;padding:2px 1px;border-radius:2px;color:var(--text2);transition:all .15s}
 .mv.nz{color:var(--text)}.mv.pc{background:var(--grn-l);color:var(--grn);font-weight:600}
 .mv.sp{background:var(--amb-l);color:var(--amb);font-weight:600}
 
-.cyc{display:flex;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--text2);padding:2px 0}
+.cyc{display:flex;gap:10px;font-family:var(--mono);font-size:11px;color:var(--text2);padding:2px 0}
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:11.2px;color:var(--text);padding:6px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.6}
 .out-box{font-family:var(--mono);font-size:10.8px;line-height:1.5;background:var(--bg3);border-radius:var(--r);padding:7px 8px;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .out-meta{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:5px}
+.out-modes{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
+.out-btn{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer}
+.out-btn.on{background:var(--bg3);color:var(--text);border-color:var(--text3)}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
   .mn{display:flex;flex-direction:column}
@@ -177,7 +180,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 }
 
 /* ===== MICROCODE VIEWER ===== */
-.uc-tbl{width:100%;min-width:740px;border-collapse:collapse;font-family:var(--mono);font-size:10.2px;line-height:1.5;table-layout:fixed}
+.uc-tbl{width:100%;min-width:760px;border-collapse:collapse;font-family:var(--mono);font-size:10.8px;line-height:1.52;table-layout:fixed}
 .uc-tbl th{background:var(--bg3);border:1px solid var(--brd);padding:3px 6px;text-align:left;font-weight:600;color:var(--text2);position:sticky;top:0;z-index:1}
 .uc-tbl td{border:1px solid var(--brd);padding:3px 6px;color:var(--text2)}
 .uc-tbl th:nth-child(1),.uc-tbl td:nth-child(1){width:84px}
@@ -368,6 +371,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
         <div class="bd"><span class="bl">SRC</span><span id="bS">—</span><span class="ba">&rarr;</span><span class="bv" id="bV">—</span><span class="ba">&rarr;</span><span id="bD">—</span><span class="bl">DST</span><span style="margin-left:auto" class="bl">ALU: <span id="bA">—</span></span></div>
         <div class="blk-lbl">Description</div>
         <div class="ms" id="desc">—</div>
+        <div class="blk-lbl">State diff</div>
+        <div class="ms" id="diffBox">—</div>
+        <div class="blk-lbl">Flag notes</div>
+        <div class="ms" id="flagWhy">—</div>
       </div></div>
     </div>
     <div class="cd"><div class="ch">Registers</div><div class="cb"><div class="rg" id="rgG"></div></div></div>
@@ -453,6 +460,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
       <table class="uc-tbl"><thead><tr><th>μAddr</th><th>Phase</th><th>Action</th><th>Bus</th></tr></thead><tbody id="ucBody"></tbody></table>
     </div></div></div>
     <div class="cd"><div class="ch">Output <span class="ch-sub">memory-mapped I/O</span></div><div class="cb">
+      <div class="out-modes">
+        <button type="button" class="out-btn on" onclick="setOutMode('char',this)">CHAR</button>
+        <button type="button" class="out-btn" onclick="setOutMode('hex',this)">HEX</button>
+        <button type="button" class="out-btn" onclick="setOutMode('dec',this)">DEC</button>
+        <button type="button" class="out-btn" onclick="setOutMode('trace',this)">TRACE</button>
+      </div>
       <div class="out-box" id="outStream">— no output —</div>
       <div class="out-meta" id="outMeta">Range: 0xFF00–0xFFFF · Mode: char + hex</div>
     </div></div>
@@ -803,6 +816,7 @@ let chg=new Set(),bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'},curI=null,cu
 let ucSteps=[]; // microcode trace for current instruction
 let stepPast=[],stepFuture=[],vmStatus='READY';
 let outLog=[];
+let outMode='char',lastDiff='—',flagWhyText='—';
 const IO_OUT_BASE=0xFF00;
 const OUT_LOG_MAX=120;
 const SP_INIT=0x0300;
@@ -843,7 +857,7 @@ function doAssemble(){
   sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[]}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY';outLog=[];lastDiff='—';flagWhyText='—';outMode='char'}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
 
 function captureSnapshot(){
@@ -852,7 +866,8 @@ function captureSnapshot(){
     FL:{...FL},cy,ic,halt,bus:{...bus},curI,curDesc,
     ucSteps:ucSteps.map(s=>({...s})),
     vmStatus,
-    outLog:outLog.map(x=>({...x}))
+    outLog:outLog.map(x=>({...x})),
+    outMode,lastDiff,flagWhyText
   }
 }
 function restoreSnapshot(s){
@@ -860,6 +875,7 @@ function restoreSnapshot(s){
   FL={...s.FL};cy=s.cy;ic=s.ic;halt=s.halt;bus={...s.bus};curI=s.curI;curDesc=s.curDesc;
   ucSteps=s.ucSteps.map(x=>({...x}));vmStatus=s.vmStatus||'READY';
   outLog=(s.outLog||[]).map(x=>({...x}));
+  outMode=s.outMode||'char';lastDiff=s.lastDiff||'—';flagWhyText=s.flagWhyText||'—';
   chg.clear();sSt(vmStatus)
 }
 
@@ -869,6 +885,26 @@ function pushOutput(ad,val){
   let ch=(v>=32&&v<=126)?String.fromCharCode(v):'.';
   outLog.push({ad:ad,v:v,ch:ch});
   if(outLog.length>OUT_LOG_MAX)outLog=outLog.slice(-OUT_LOG_MAX);
+}
+
+function summarizeDiff(){
+  let diffs=[];
+  for(let i=0;i<8;i++)if(R[i]!==pR_[i])diffs.push('R'+i+': '+f16(pR_[i])+'→'+f16(R[i]));
+  if(PC!==pPC)diffs.push('PC: '+f16(pPC)+'→'+f16(PC));
+  if(FL.Z!==pFL.Z)diffs.push('Z:'+pFL.Z+'→'+FL.Z);
+  if(FL.C!==pFL.C)diffs.push('C:'+pFL.C+'→'+FL.C);
+  if(FL.N!==pFL.N)diffs.push('N:'+pFL.N+'→'+FL.N);
+  if(FL.V!==pFL.V)diffs.push('V:'+pFL.V+'→'+FL.V);
+  return diffs.length?diffs.join(' | '):'No architectural change';
+}
+function summarizeFlagWhy(){
+  let f=[];
+  if(FL.Z!==pFL.Z)f.push('Z '+(FL.Z?'set':'cleared'));
+  if(FL.C!==pFL.C)f.push('C '+(FL.C?'set':'cleared'));
+  if(FL.N!==pFL.N)f.push('N '+(FL.N?'set':'cleared'));
+  if(FL.V!==pFL.V)f.push('V '+(FL.V?'set':'cleared'));
+  if(!f.length)return'No flag update';
+  return f.join(', ')+' (from '+(bus.a||'op')+')';
 }
 
 function alu(op,a,b){
@@ -1005,7 +1041,7 @@ function execOne(){
 
   // Build microcode trace
   ucSteps=buildUcTrace(d,op);
-  R[0]=0;cy++;ic++;detect()
+  R[0]=0;cy++;ic++;detect();lastDiff=summarizeDiff();flagWhyText=summarizeFlagWhy()
 }
 
 function doStep(){if(halt)return;stepPast.push(captureSnapshot());if(stepPast.length>300)stepPast.shift();stepFuture=[];execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
@@ -1049,18 +1085,16 @@ function renderOutput(){
   if(!box||!meta)return;
   if(!outLog.length){
     box.textContent='— no output —';
-    meta.textContent='Range: 0xFF00–0xFFFF · Mode: char + hex';
+    meta.textContent='Range: 0xFF00–0xFFFF · mode: '+outMode.toUpperCase();
     return;
   }
-  let chars='';
-  for(let i=0;i<outLog.length;i++){
-    let o=outLog[i];
-    chars+=o.ch==='.'?('\\\\x'+(o.v&0xFF).toString(16).toUpperCase().padStart(2,'0')):o.ch;
-  }
+  let chars='',hexs=[],decs=[],rows=[];
+  for(let i=0;i<outLog.length;i++){let o=outLog[i];chars+=o.ch==='.'?('\\\\x'+(o.v&0xFF).toString(16).toUpperCase().padStart(2,'0')):o.ch;hexs.push(f16(o.v));decs.push(String(o.v));rows.push(o.ch+'  '+f16(o.v)+' @ '+f16(o.ad))}
   let last=outLog[outLog.length-1];
-  box.textContent=chars;
-  meta.textContent='Range: 0xFF00–0xFFFF · writes: '+outLog.length+' · last: '+f16(last.v)+' @ '+f16(last.ad);
+  box.textContent=outMode==='hex'?hexs.join(' '):outMode==='dec'?decs.join(' '):outMode==='trace'?rows.join('\n'):chars;
+  meta.textContent='Range: 0xFF00–0xFFFF · mode: '+outMode.toUpperCase()+' · writes: '+outLog.length+' · last: '+f16(last.v)+' @ '+f16(last.ad);
 }
+function setOutMode(m,btn){outMode=m;document.querySelectorAll('.out-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');renderOutput()}
 
 function renderDatapath(){
   // Update values in SVG
@@ -1175,6 +1209,8 @@ function renderAll(){
   document.getElementById('cyN').textContent=cy;document.getElementById('inN').textContent=ic;
   document.getElementById('phN').textContent=halt?'HALTED':(run?'RUNNING':'READY');
   document.getElementById('desc').textContent=curDesc||'\u2014';
+  document.getElementById('diffBox').textContent=lastDiff;
+  document.getElementById('flagWhy').textContent=flagWhyText;
   // Memory: program
   let rows=Math.ceil(Math.max(pLen,1)/8);
   h='';for(let r=0;r<rows;r++){let base=r*8;h+=`<span class="ma">${f16(base)}</span>`;
