@@ -49,13 +49,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .hd-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .b{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text);cursor:pointer;transition:all .1s;white-space:nowrap}
 .b:hover{background:var(--bg3)}.b:active{transform:scale(.97)}
+.b:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .bp{background:var(--acc);color:#fff;border-color:var(--acc)}.bp:hover{opacity:.9;background:var(--acc)}
 .bg{background:var(--grn);color:#fff;border-color:var(--grn)}.bg:hover{opacity:.9;background:var(--grn)}
 .b-blu{background:var(--blu);color:#fff;border-color:var(--blu)}.b-blu:hover{opacity:.9;background:var(--blu)}
 .spd{display:flex;align-items:center;gap:4px}
 .spd label{font-size:10px;color:var(--text2);font-family:var(--mono)}
 .spd select{font-family:var(--mono);font-size:10px;padding:2px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg2);color:var(--text)}
-.pill{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:10px;font-weight:600}
+.pill{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;min-width:74px}
 .p-rdy{background:var(--blu-l);color:var(--blu)}
 .p-run{background:var(--grn-l);color:var(--grn)}
 .p-hlt{background:var(--amb-l);color:var(--amb)}
@@ -131,7 +132,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .bd{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-family:var(--mono);font-size:10.5px;padding:4px 8px;background:var(--bg3);border-radius:var(--r)}
 .ba{color:var(--text3)}.bv{font-weight:600;color:var(--acc)}.bl{color:var(--text2);font-size:9px}
 
-.ir{font-family:var(--mono);font-size:11.5px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600}
+.ir{font-family:var(--mono);font-size:10.5px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);text-align:center;color:var(--acc);font-weight:600}
 
 .mg{display:grid;grid-template-columns:auto repeat(8,1fr);gap:1px;font-family:var(--mono);font-size:9.5px}
 .ma{color:var(--text3);padding:1px 4px 1px 0;text-align:right;font-weight:500}
@@ -143,7 +144,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .cyc b{color:var(--text);font-weight:600}
 
 .ms{font-family:var(--mono);font-size:9.5px;color:var(--text2);padding:4px 8px;background:var(--bg3);border-radius:var(--r);line-height:1.5}
-@media(min-width:860px){.rw-mem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px;align-items:start}}
 @media(min-width:1080px){.rw-irbus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px;align-items:stretch}}
 @media(max-width:720px){.hd{gap:8px}.pill{margin-left:0}}
 @media(max-width:640px){
@@ -289,7 +289,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="hd-right">
     <div class="ctrls">
+      <button class="b" id="stepBackBtn" onclick="doStepBack()" title="Previous step">&#x2190; Back</button>
       <button class="b" onclick="doStep()" title="One instruction">Step</button>
+      <button class="b" id="stepFwdBtn" onclick="doStepForward()" title="Next step">Forward &#x2192;</button>
       <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
       <button class="b" onclick="doReset()">Reset</button>
     </div>
@@ -548,11 +550,11 @@ function buildIsaSidebar(){
 <div class="isa-note">16-bit constant: <code>LUI Rd,#hi</code> then <code>ORI Rd,#lo</code></div>
 
 <h4>Encoding formats</h4>
-<table><tr><th>Fmt</th><th>Layout</th></tr>
-<tr><td>R</td><td>op[5] Rd[3] Rs[3] Rt[3] fn[2]</td></tr>
-<tr><td>I-short</td><td>op[5] Rd[3] Rs[3] imm5[5]</td></tr>
-<tr><td>I-wide</td><td>op[5] Rd[3] imm8[8]</td></tr>
-<tr><td>J</td><td>op[5] off11[11]</td></tr></table>`;
+<table><tr><th>Fmt</th><th>Bit layout (15..0)</th></tr>
+<tr><td><code>R</code></td><td><code>op[15:11]</code> | <code>Rd[10:8]</code> | <code>Rs[7:5]</code> | <code>Rt[4:2]</code> | <code>fn[1:0]</code></td></tr>
+<tr><td><code>I-short</code></td><td><code>op[15:11]</code> | <code>Rd[10:8]</code> | <code>Rs[7:5]</code> | <code>imm5[4:0]</code></td></tr>
+<tr><td><code>I-wide</code></td><td><code>op[15:11]</code> | <code>Rd[10:8]</code> | <code>imm8[7:0]</code></td></tr>
+<tr><td><code>J</code></td><td><code>op[15:11]</code> | <code>off11[10:0]</code></td></tr></table>`;
 }
 
 function toggleIsaSidebar(){
@@ -619,45 +621,57 @@ overview:`<h3>Overview</h3>
 <tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
 <tr><td>I/O</td><td>Memory-mapped</td></tr></table>`,
 registers:`<h3>Registers</h3>
+<p>NT-16 has <strong>8 architectural registers</strong> (<code>R0..R7</code>). Most instructions read/write these directly.</p>
 <h4>General purpose registers</h4>
-<table><tr><th>Register</th><th>Encoding</th><th>Use</th></tr>
-<tr><td><code>R0</code></td><td><code>000</code></td><td>Hard-wired zero</td></tr>
-<tr><td><code>R1-R5</code></td><td><code>001-101</code></td><td>General purpose</td></tr>
-<tr><td><code>R6/SP</code></td><td><code>110</code></td><td>Stack pointer (convention)</td></tr>
-<tr><td><code>R7/LR</code></td><td><code>111</code></td><td>Link register (convention)</td></tr></table>
-<h4>FLAGS layout</h4>
-<pre>Bit:   3    2    1    0
-     [ V ][ N ][ C ][ Z ]</pre>`,
+<table><tr><th>Register(s)</th><th>Encoding</th><th>Role</th><th>Practical note</th></tr>
+<tr><td><code>R0</code></td><td><code>000</code></td><td>Constant zero</td><td>Reads as 0; writes are ignored.</td></tr>
+<tr><td><code>R1-R5</code></td><td><code>001-101</code></td><td>General purpose</td><td>Main operands/results for arithmetic and data movement.</td></tr>
+<tr><td><code>R6 / SP</code></td><td><code>110</code></td><td>Stack pointer</td><td>By convention points to stack top; used by <code>PUSH/POP</code>.</td></tr>
+<tr><td><code>R7 / LR</code></td><td><code>111</code></td><td>Link register</td><td>Return address holder for <code>CALL</code>/<code>RET</code>.</td></tr></table>
+<h4>FLAGS register (status bits)</h4>
+<pre>Bit index:  3    2    1    0
+            [ V ][ N ][ C ][ Z ]</pre>
+<table><tr><th>Flag</th><th>Meaning</th><th>Set when...</th><th>Used by</th></tr>
+<tr><td><code>Z</code></td><td>Zero</td><td>ALU result is 0.</td><td><code>BEQ/BNE</code></td></tr>
+<tr><td><code>C</code></td><td>Carry/Borrow</td><td>Carry out (add) or no borrow (sub).</td><td><code>BCS/BCC</code></td></tr>
+<tr><td><code>N</code></td><td>Negative</td><td>Result MSB is 1 (signed negative).</td><td><code>BLT/BGE</code> (with V)</td></tr>
+<tr><td><code>V</code></td><td>Overflow</td><td>Signed overflow occurs.</td><td><code>BLT/BGE</code> (with N)</td></tr></table>`,
 encodingDispatch:`<h3>Instruction encoding</h3>
+<p>Each instruction is 16-bit wide. Decode from <strong>MSB to LSB</strong>: first read <code>opcode[15:11]</code>, then interpret remaining bits according to format.</p>
 <pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
-I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (signed)
+I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5  (signed)
 I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
 J-type : 15..11 opcode | 10..0 off11 (PC-relative, signed)</pre>
+<table><tr><th>Format</th><th>Typical use</th></tr>
+<tr><td><code>R-type</code></td><td>Register-register ALU ops. Final 2 bits (<code>func</code>) select variant.</td></tr>
+<tr><td><code>I-short</code></td><td>Base+offset memory access (<code>imm5</code>) with sign extension.</td></tr>
+<tr><td><code>I-wide</code></td><td>Register + 8-bit immediate ALU/data ops (<code>LI/LUI/ADDI/...</code>).</td></tr>
+<tr><td><code>J-type</code></td><td>Branch/jump/call using signed PC-relative <code>off11</code>.</td></tr></table>
 <div class="doc-dispatch"><h4 class="dd-sec">Complete opcode map (spec v0.1)</h4>
-<table><tr><th>Op</th><th>Binary</th><th>Instruction</th></tr>
-<tr class="dd-hi"><td>0</td><td><code>00000</code></td><td>ADD,SUB,AND,OR</td></tr>
-<tr class="dd-hi"><td>1</td><td><code>00001</code></td><td>XOR,NOT,SHL,SHR</td></tr>
-<tr class="dd-hi"><td>2</td><td><code>00010</code></td><td>SRA,CMP</td></tr>
-<tr><td>4</td><td><code>00100</code></td><td>ADDI</td></tr>
-<tr><td>5</td><td><code>00101</code></td><td>ANDI</td></tr>
-<tr><td>6</td><td><code>00110</code></td><td>ORI</td></tr>
-<tr><td>7</td><td><code>00111</code></td><td>LI</td></tr>
-<tr><td>8</td><td><code>01000</code></td><td>LUI</td></tr>
-<tr><td>9</td><td><code>01001</code></td><td>CMPI</td></tr>
-<tr><td>10</td><td><code>01010</code></td><td>LOAD</td></tr>
-<tr><td>11</td><td><code>01011</code></td><td>STORE</td></tr>
-<tr><td>12</td><td><code>01100</code></td><td>PUSH</td></tr>
-<tr><td>13</td><td><code>01101</code></td><td>POP</td></tr>
-<tr><td>16</td><td><code>10000</code></td><td>BEQ</td></tr>
-<tr><td>17</td><td><code>10001</code></td><td>BNE</td></tr>
-<tr><td>18</td><td><code>10010</code></td><td>BLT</td></tr>
-<tr><td>19</td><td><code>10011</code></td><td>BGE</td></tr>
-<tr><td>20</td><td><code>10100</code></td><td>BCS</td></tr>
-<tr><td>21</td><td><code>10101</code></td><td>BCC</td></tr>
-<tr><td>22</td><td><code>10110</code></td><td>JMP</td></tr>
-<tr><td>23</td><td><code>10111</code></td><td>CALL</td></tr>
-<tr><td>24</td><td><code>11000</code></td><td>RET</td></tr>
-<tr><td>31</td><td><code>11111</code></td><td>HALT</td></tr></table></div>`,
+<table><tr><th>Class</th><th>Op</th><th>Binary</th><th>Instruction(s)</th><th>Note</th></tr>
+<tr class="dd-hi"><td>ALU (R)</td><td>0</td><td><code>00000</code></td><td>ADD, SUB, AND, OR</td><td><code>func</code> chooses op</td></tr>
+<tr class="dd-hi"><td>ALU (R)</td><td>1</td><td><code>00001</code></td><td>XOR, NOT, SHL, SHR</td><td><code>func</code> chooses op</td></tr>
+<tr class="dd-hi"><td>ALU (R)</td><td>2</td><td><code>00010</code></td><td>SRA, CMP</td><td><code>func</code> chooses op</td></tr>
+<tr><td>Immediate</td><td>4</td><td><code>00100</code></td><td>ADDI</td><td>imm8 signed</td></tr>
+<tr><td>Immediate</td><td>5</td><td><code>00101</code></td><td>ANDI</td><td>imm8 zero-extended</td></tr>
+<tr><td>Immediate</td><td>6</td><td><code>00110</code></td><td>ORI</td><td>imm8 zero-extended</td></tr>
+<tr><td>Immediate</td><td>7</td><td><code>00111</code></td><td>LI</td><td>imm8 signed</td></tr>
+<tr><td>Immediate</td><td>8</td><td><code>01000</code></td><td>LUI</td><td>imm8 &laquo; 8</td></tr>
+<tr><td>Immediate</td><td>9</td><td><code>01001</code></td><td>CMPI</td><td>compare with imm8 signed</td></tr>
+<tr><td>Memory</td><td>10</td><td><code>01010</code></td><td>LOAD</td><td>base + imm5</td></tr>
+<tr><td>Memory</td><td>11</td><td><code>01011</code></td><td>STORE</td><td>base + imm5</td></tr>
+<tr><td>Stack</td><td>12</td><td><code>01100</code></td><td>PUSH</td><td>pre-decrement SP</td></tr>
+<tr><td>Stack</td><td>13</td><td><code>01101</code></td><td>POP</td><td>post-increment SP</td></tr>
+<tr><td>Control flow</td><td>16</td><td><code>10000</code></td><td>BEQ</td><td>Z == 1</td></tr>
+<tr><td>Control flow</td><td>17</td><td><code>10001</code></td><td>BNE</td><td>Z == 0</td></tr>
+<tr><td>Control flow</td><td>18</td><td><code>10010</code></td><td>BLT</td><td>N != V (signed)</td></tr>
+<tr><td>Control flow</td><td>19</td><td><code>10011</code></td><td>BGE</td><td>N == V (signed)</td></tr>
+<tr><td>Control flow</td><td>20</td><td><code>10100</code></td><td>BCS</td><td>C == 1</td></tr>
+<tr><td>Control flow</td><td>21</td><td><code>10101</code></td><td>BCC</td><td>C == 0</td></tr>
+<tr><td>Control flow</td><td>22</td><td><code>10110</code></td><td>JMP</td><td>always</td></tr>
+<tr><td>Control flow</td><td>23</td><td><code>10111</code></td><td>CALL</td><td>LR = PC; branch</td></tr>
+<tr><td>Control flow</td><td>24</td><td><code>11000</code></td><td>RET</td><td>PC = LR</td></tr>
+<tr><td>System</td><td>31</td><td><code>11111</code></td><td>HALT</td><td>stop execution</td></tr></table></div>`,
 aluImmediate:`<h3>ALU and immediate</h3>
 <h4>Immediate extension rules</h4>
 <table><tr><th>Inst</th><th>Width</th><th>Extension</th></tr>
@@ -743,6 +757,7 @@ let breakpoints=new Set(),instrLines=new Set();
 let pR_=new Uint16Array(8),pPC=0,pFL={Z:0,C:0,N:0,V:0};
 let chg=new Set(),bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'},curI=null,curDesc='';
 let ucSteps=[]; // microcode trace for current instruction
+let stepPast=[],stepFuture=[],vmStatus='READY';
 const SP_INIT=0x0300;
 
 function doAssemble(){
@@ -777,11 +792,27 @@ function doAssemble(){
   resetState();for(let i=0;i<bin.length;i++)mem[i]=bin[i];
   pLen=bin.length;labels=lbl;aLines=ils;instrLines=iLines;R[6]=SP_INIT;
   breakpoints=new Set([...breakpoints].filter(n=>n>=1&&n<=lines.length&&instrLines.has(n)));
+  stepPast=[];stepFuture=[];
   sLog(`Assembled ${bin.length} instructions. SP=${f16(SP_INIT)}.`,0);sSt('READY');renderAll()
 }
 
-function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[]}
+function resetState(){mem.fill(0);R.fill(0);PC=0;MAR=0;MDR=0;IR=0;A=0;ALUO=0;FL={Z:0,C:0,N:0,V:0};cy=0;ic=0;halt=false;chg.clear();bus={s:'\u2014',v:'\u2014',d:'\u2014',a:'\u2014'};curI=null;curDesc='';ucSteps=[];stepPast=[];stepFuture=[];vmStatus='READY'}
 function doReset(){stopR();resetState();doAssemble();renderAll()}
+
+function captureSnapshot(){
+  return{
+    mem:new Uint16Array(mem),R:new Uint16Array(R),PC,MAR,MDR,IR,A,ALUO,
+    FL:{...FL},cy,ic,halt,bus:{...bus},curI,curDesc,
+    ucSteps:ucSteps.map(s=>({...s})),
+    vmStatus
+  }
+}
+function restoreSnapshot(s){
+  mem=s.mem;R=s.R;PC=s.PC;MAR=s.MAR;MDR=s.MDR;IR=s.IR;A=s.A;ALUO=s.ALUO;
+  FL={...s.FL};cy=s.cy;ic=s.ic;halt=s.halt;bus={...s.bus};curI=s.curI;curDesc=s.curDesc;
+  ucSteps=s.ucSteps.map(x=>({...x}));vmStatus=s.vmStatus||'READY';
+  chg.clear();sSt(vmStatus)
+}
 
 function alu(op,a,b){
   let r=0,c=0;
@@ -920,7 +951,21 @@ function execOne(){
   R[0]=0;cy++;ic++;detect()
 }
 
-function doStep(){if(halt)return;execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
+function doStep(){if(halt)return;stepPast.push(captureSnapshot());if(stepPast.length>300)stepPast.shift();stepFuture=[];execOne();renderAll();if(halt){stopR();sLog(`HALT. ${ic} instr. ${getResults()}`,0)}}
+function doStepBack(){
+  if(!stepPast.length)return;
+  stopR();
+  stepFuture.push(captureSnapshot());
+  restoreSnapshot(stepPast.pop());
+  renderAll()
+}
+function doStepForward(){
+  if(!stepFuture.length)return;
+  stopR();
+  stepPast.push(captureSnapshot());
+  restoreSnapshot(stepFuture.pop());
+  renderAll()
+}
 function getResults(){let p=[];for(let i=1;i<=7;i++)if(R[i])p.push(`R${i}=${R[i]}(${f16(R[i])})`);return p.join(', ')}
 let spd=10;
 function updSpd(){spd=+document.getElementById('spd').value;if(run){stopR();startR()}}
@@ -933,8 +978,14 @@ function stopR(){run=false;if(tmr){clearInterval(tmr);tmr=null}document.getEleme
 // ===== RENDER =====
 function f16(v){return'0x'+((v&0xFFFF).toString(16)).toUpperCase().padStart(4,'0')}
 function fD(v){return v>32767?(v-65536).toString():v.toString()}
-function sSt(s){let e=document.getElementById('st');e.textContent=s;e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s]}
+function sSt(s){vmStatus=s;let e=document.getElementById('st');e.textContent=s;e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s]}
 function sLog(m,err){let e=document.getElementById('log');e.textContent=m;e.className='lb'+(err?' le':' ls')}
+
+function updateStepNavButtons(){
+  let b=document.getElementById('stepBackBtn'),f=document.getElementById('stepFwdBtn');
+  if(b)b.disabled=run||stepPast.length===0;
+  if(f)f.disabled=run||stepFuture.length===0;
+}
 
 function renderDatapath(){
   // Update values in SVG
@@ -1061,6 +1112,7 @@ function renderAll(){
   renderDatapath();
   renderMicrocode();
   updateDebugLineUI();
+  updateStepNavButtons();
 }
 
 // ===== EDITOR =====
