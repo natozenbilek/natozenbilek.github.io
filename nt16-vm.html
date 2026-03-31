@@ -69,10 +69,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ed-wrap{flex:1;position:relative;min-width:0;min-height:0;align-self:stretch;background:var(--bg-ed)}
 .ed-hl{position:absolute;inset:0;margin:0;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.65;tab-size:4;white-space:pre;overflow:hidden;pointer-events:none;z-index:0;color:#cdd6f4;border-radius:0}
 .ed-hl code{display:block;transform-origin:0 0;will-change:transform}
+.ed-hl span{vertical-align:baseline}
 .hl-op{color:#cba6f7;font-weight:500}
 .hl-reg{color:#89dceb;font-weight:500}
 .hl-imm{color:#fab387}
 .hl-num{color:#a6e3a1}
+.hl-hash{color:#f5a97a;font-weight:600}
+.hl-bracket{color:#b4befe;opacity:.92}
 .hl-lbl{color:#f9e2af;font-weight:500}
 .hl-ref{color:#94e2d5}
 .hl-cmnt{color:#7f849c;font-style:italic}
@@ -145,7 +148,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="sep"></div>
   <div class="ctrls">
-    <button class="b bp" onclick="doAssemble()">Assemble</button>
+    <button type="button" class="b bp" onclick="doAssemble()" title="Derle (Ctrl+Enter)">Assemble</button>
     <div class="sep"></div>
     <button class="b" onclick="doStep()" title="One instruction">Step</button>
     <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
@@ -407,8 +410,29 @@ const lns=document.getElementById('lns');
 const ew=document.querySelector('.ew');
 const MNEM=new Set(['ADD','SUB','AND','OR','XOR','NOT','SHL','SHR','SRA','CMP','ADDI','ANDI','ORI','LI','LUI','CMPI','LOAD','STORE','PUSH','POP','RET','HALT','BEQ','BNE','BLT','BGE','BCS','BCC','JMP','CALL','NOP','MOV','NEG','CLR']);
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function gapAfterLabel(code){return code.replace(/([A-Za-z_][\w]*):(?=[A-Za-z])/g,'$1: ')}
+function hlHashImm(raw){
+  if(!raw||raw[0]!=='#')return null;
+  const rest=raw.slice(1);
+  if(/^([+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|\d+))$/.test(rest))
+    return'<span class="hl-hash">#</span><span class="hl-num">'+esc(rest)+'</span>';
+  return'<span class="hl-imm">'+esc(raw)+'</span>';
+}
+function hlBrackets(raw){
+  if(!raw||raw.length<2||raw[0]!=='['||raw[raw.length-1]!==']')return null;
+  const inner=raw.slice(1,-1).replace(/\s+/g,'');
+  const m=inner.match(/^(R[0-7]|SP|LR)([+-]\d+)?$/i);
+  if(m)
+    return'<span class="hl-bracket">[</span><span class="hl-reg">'+esc(m[1])+'</span>'+
+      (m[2]?'<span class="hl-num">'+esc(m[2])+'</span>':'')+
+      '<span class="hl-bracket">]</span>';
+  return'<span class="hl-imm">'+esc(raw)+'</span>';
+}
 function hlTok(p){
+  if(/^\s+$/.test(p)||p==='')return p;
   const raw=p,t=p.replace(/,/g,''),up=t.toUpperCase();
+  let x=hlHashImm(p);if(x)return x;
+  x=hlBrackets(p);if(x)return x;
   if(MNEM.has(up))return'<span class="hl-op">'+esc(raw)+'</span>';
   if(/^[A-Za-z_][\w]*:$/.test(t))return'<span class="hl-lbl">'+esc(raw)+'</span>';
   if(/^[Rr][0-7]$|^SP$|^LR$/i.test(t))return'<span class="hl-reg">'+esc(raw)+'</span>';
@@ -417,16 +441,23 @@ function hlTok(p){
   if(/^[A-Za-z_][\w]*$/.test(t))return'<span class="hl-ref">'+esc(raw)+'</span>';
   return esc(raw);
 }
-function hlCode(c){if(!c)return'';return c.split(/(\s+)/).map(p=>/^\s+$/.test(p)?p:hlTok(p)).join('')}
+function hlCode(c){if(!c)return'';return c.split(/(\s+)/).map(p=>hlTok(p)).join('')}
 function hlLine(line){
+  line=line.replace(/\r/g,'');
   const i=line.indexOf(';');
-  if(i>=0)return hlCode(line.slice(0,i))+'<span class="hl-cmnt">;'+esc(line.slice(i+1))+'</span>';
-  return hlCode(line);
+  if(i>=0){
+    const left=gapAfterLabel(line.slice(0,i));
+    return hlCode(left)+'<span class="hl-cmnt">;'+esc(line.slice(i+1))+'</span>';
+  }
+  return hlCode(gapAfterLabel(line));
 }
-function highlightAsm(src){if(!src)return'';return src.split('\n').map(hlLine).join('\n')}
+function highlightAsm(src){
+  if(!src)return'';
+  return src.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').map(hlLine).join('\n');
+}
 function updHl(){
   const v=ed.value;
-  edH.innerHTML=v.trim()?highlightAsm(v):'<span class="hl-ph">; NT-16 assembly</span>';
+  edH.innerHTML=!v.length?'<span class="hl-ph">; NT-16 assembly</span>':highlightAsm(v);
   syncHlScroll();
 }
 function syncHlScroll(){edH.style.transform='translate('+(-ed.scrollLeft)+'px,'+(-ed.scrollTop)+'px)'}
@@ -442,7 +473,10 @@ ew.addEventListener('wheel',function(e){
   syncAllScroll();
 },{passive:false});
 function updLn(){let n=ed.value.split('\n').length,h='';for(let i=1;i<=n;i++)h+=i+'\n';lns.textContent=h;syncLnScroll()}
-ed.addEventListener('keydown',function(e){if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl()}});
+ed.addEventListener('keydown',function(e){
+  if(e.key==='Tab'){e.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;updLn();updHl()}
+  else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doAssemble()}
+});
 
 // Examples
 const EX={
