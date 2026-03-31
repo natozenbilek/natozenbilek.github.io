@@ -190,6 +190,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .tut-steps{counter-reset:st;margin:0;padding:0 0 0 1.1rem}
 .tut-steps li{margin:.55rem 0;padding-left:.25rem}
 .tut-steps li code{background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:10px}
+.doc-fig{margin:.6rem 0;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);padding:8px}
+.doc-fig svg{width:100%;height:auto;display:block}
+.doc-fig text{font-family:var(--mono);font-size:10px;fill:var(--text)}
+.doc-fig .bx{fill:var(--bg2);stroke:var(--text2);stroke-width:1}
+.doc-fig .ln{stroke:var(--text2);stroke-width:1.5;fill:none;marker-end:url(#arr)}
+.doc-fig .mut{fill:var(--text2)}
 
 .doc-dispatch{margin-top:.15rem}
 .doc-dispatch .dd-sec{margin:1.15rem 0 .5rem;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding-bottom:4px;border-bottom:1px solid var(--brd)}
@@ -219,7 +225,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
   <h1><b>NT-16</b> &thinsp;Virtual Machine</h1>
   <div class="sep"></div>
   <div class="ctrls">
-    <button type="button" class="b bp" onclick="doAssemble()" title="Derle (Ctrl+Enter)">Assemble</button>
+    <button type="button" class="b bp" onclick="doAssemble()" title="Assemble (Ctrl+Enter)">Assemble</button>
     <div class="sep"></div>
     <button class="b" onclick="doStep()" title="One instruction">Step</button>
     <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
@@ -314,11 +320,16 @@ const ISA_SECTIONS=[
 <tr><td>Instruction width</td><td>16-bit (fixed)</td></tr>
 <tr><td>I/O</td><td>Memory-mapped (design)</td></tr></table>
 <h4>Figure — high-level flow</h4>
-<pre>Assembly source
-   -> Assembler
-   -> Memory image (16-bit words)
-   -> Fetch / Decode / Execute
-   -> Register + Flags + Memory update</pre>`},
+<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="High-level VM flow">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
+<rect class="bx" x="10" y="28" width="130" height="48" rx="3"></rect><text x="26" y="56">Assembly source</text>
+<path class="ln" d="M140 52 L190 52"></path>
+<rect class="bx" x="190" y="28" width="110" height="48" rx="3"></rect><text x="216" y="56">Assembler</text>
+<path class="ln" d="M300 52 L350 52"></path>
+<rect class="bx" x="350" y="28" width="150" height="48" rx="3"></rect><text x="372" y="56">Memory image</text>
+<path class="ln" d="M500 52 L550 52"></path>
+<rect class="bx" x="550" y="28" width="200" height="48" rx="3"></rect><text x="567" y="49">Fetch / Decode / Execute</text><text class="mut" x="584" y="64">+ Reg/Flags/Memory update</text>
+</svg></figure>`},
 {id:'yazmac',label:'Registers',html:`<h3>Registers</h3>
 <h4>General purpose registers (GPR)</h4>
 <table><tr><th>Register</th><th>Use</th></tr>
@@ -332,20 +343,36 @@ const ISA_SECTIONS=[
 <tr><td><code>PC</code></td><td>Address of the next instruction</td></tr>
 <tr><td><code>FLAGS</code></td><td>Z, C, N, V (zero, carry, negative, overflow)</td></tr></table>
 <h4>Figure — status word</h4>
-<pre>FLAGS bitleri: [ V ][ N ][ C ][ Z ]
-                3   2   1   0</pre>`},
+<figure class="doc-fig"><svg viewBox="0 0 760 90" role="img" aria-label="FLAGS bit layout">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
+<rect class="bx" x="180" y="24" width="70" height="32" rx="3"></rect><text x="211" y="44">V</text>
+<rect class="bx" x="250" y="24" width="70" height="32" rx="3"></rect><text x="281" y="44">N</text>
+<rect class="bx" x="320" y="24" width="70" height="32" rx="3"></rect><text x="351" y="44">C</text>
+<rect class="bx" x="390" y="24" width="70" height="32" rx="3"></rect><text x="421" y="44">Z</text>
+<text class="mut" x="205" y="74">bit3</text><text class="mut" x="275" y="74">bit2</text><text class="mut" x="345" y="74">bit1</text><text class="mut" x="415" y="74">bit0</text>
+</svg></figure>`},
 {id:'kodlama_dispatch',label:'Encoding & Dispatch',html:`<h3>Instruction encoding and dispatch</h3>
 <p>Instruction encoding is 16-bit; primary decode uses the upper <strong>5-bit opcode</strong>. In <strong>R-type</strong> instructions, a second selection uses the <code>func</code> field (IR[1:0]); therefore opcodes <code>00000</code>, <code>00001</code>, <code>00010</code> go to router micro-addresses rather than direct execute entries.</p>
+<p class="doc-note">Branch offsets are PC-relative to the already incremented PC (PC points to the next instruction after fetch).</p>
 <h4>Instruction formats</h4>
 <pre>R-type : 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..2 Rt | 1..0 func
 I-short: 15..11 opcode | 10..8 Rd | 7..5 Rs | 4..0 imm5 (signed)
 I-wide : 15..11 opcode | 10..8 Rd | 7..0 imm8
 J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <h4>Figure — DECODE path</h4>
-<pre>IR[15:11] opcode
-   -> dispatch LUT
-      -> R-group router? -> IR[1:0] func dispatch -> execute entry
-      -> non-R op        -> execute entry</pre>
+<figure class="doc-fig"><svg viewBox="0 0 760 130" role="img" aria-label="Decode and dispatch path">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
+<rect class="bx" x="16" y="45" width="115" height="40" rx="3"></rect><text x="33" y="69">IR[15:11]</text>
+<path class="ln" d="M131 65 L190 65"></path>
+<rect class="bx" x="190" y="45" width="130" height="40" rx="3"></rect><text x="217" y="69">dispatch LUT</text>
+<path class="ln" d="M320 65 L390 35"></path>
+<rect class="bx" x="390" y="14" width="150" height="42" rx="3"></rect><text x="408" y="39">R-group router</text>
+<path class="ln" d="M540 35 L720 35"></path><text class="mut" x="593" y="29">IR[1:0]</text>
+<path class="ln" d="M320 65 L390 95"></path>
+<rect class="bx" x="390" y="74" width="150" height="42" rx="3"></rect><text x="414" y="99">non-R execute</text>
+<rect class="bx" x="580" y="14" width="160" height="42" rx="3"></rect><text x="602" y="39">execute entry</text>
+<rect class="bx" x="580" y="74" width="160" height="42" rx="3"></rect><text x="602" y="99">execute entry</text>
+</svg></figure>
 <div class="doc-dispatch">
 <h4 class="dd-sec">Primary dispatch (opcode → micro-address)</h4>
 <table><tr><th>Opcode</th><th>Binary</th><th>Format</th><th>Instruction</th><th>Micro addr.</th><th>Execute</th></tr>
@@ -393,11 +420,27 @@ J-type : 15..11 opcode | 10..0 off11 (PC-relative)</pre>
 <tr><td>CMP / CMPI</td><td>Updates flags only</td><td>Z,C,N,V</td></tr>
 <tr><td>ADDI / ANDI / ORI / LI / LUI</td><td>Immediate (imm8) operations</td><td>sign/zero extension depends on instruction</td></tr></table>
 <p>16-bit constant loading pattern: <code>LUI R1,#0x3F</code> then <code>ORI R1,#0x7A</code>. <code>SUBI</code> is not a separate opcode; use <code>ADDI Rd,#-k</code>.</p>
+<p class="doc-note">Common pitfall: <code>CMPI</code> and <code>CMP</code> do not write a destination register; they only update flags.</p>
+<h4>Immediate extension rules (quick reference)</h4>
+<table><tr><th>Instruction</th><th>Immediate width</th><th>Extension behavior</th><th>Example</th></tr>
+<tr><td>ADDI, CMPI</td><td>imm8</td><td>Sign-extend to 16-bit</td><td><code>ADDI R1,#-1</code> → adds <code>0xFFFF</code></td></tr>
+<tr><td>LOAD, STORE</td><td>imm5</td><td>Sign-extend to 16-bit offset</td><td><code>LOAD R1,[R2-1]</code> is valid via <code>imm5</code></td></tr>
+<tr><td>ANDI, ORI</td><td>imm8</td><td>Zero-extend logical mask</td><td><code>ANDI R1,#0x0F</code> masks low nibble</td></tr>
+<tr><td>LI</td><td>imm8</td><td>Sign-extend into destination</td><td><code>LI R1,#-5</code> → <code>0xFFFB</code></td></tr>
+<tr><td>LUI</td><td>imm8</td><td>Placed at high byte (<code>imm8 &lt;&lt; 8</code>)</td><td><code>LUI R1,#0x12</code> → <code>0x1200</code></td></tr></table>
 <h4>Figure — ALU datapath</h4>
-<pre>Rs ----.
-       +--> ALU(op) --> result --> Rd
-Rt ----'
-imm8 --(immediate path)</pre>`},
+<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="ALU datapath">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
+<rect class="bx" x="300" y="36" width="120" height="52" rx="3"></rect><text x="346" y="66">ALU</text>
+<rect class="bx" x="30" y="12" width="85" height="30" rx="3"></rect><text x="62" y="32">Rs</text>
+<rect class="bx" x="30" y="78" width="85" height="30" rx="3"></rect><text x="62" y="98">Rt</text>
+<rect class="bx" x="30" y="45" width="85" height="30" rx="3"></rect><text x="50" y="64">imm8</text>
+<path class="ln" d="M115 27 L300 48"></path>
+<path class="ln" d="M115 93 L300 76"></path>
+<path class="ln" d="M115 60 L250 60"></path><text class="mut" x="176" y="54">immediate path</text>
+<rect class="bx" x="490" y="45" width="95" height="32" rx="3"></rect><text x="530" y="65">Rd</text>
+<path class="ln" d="M420 62 L490 62"></path>
+</svg></figure>`},
 {id:'bellek_akis',label:'Memory & Flow',html:`<h3>Memory, stack, and control flow</h3>
 <h4>Memory / stack</h4>
 <table><tr><th>Instruction</th><th>Meaning</th></tr>
@@ -416,11 +459,24 @@ imm8 --(immediate path)</pre>`},
 <tr><td>RET</td><td>PC=LR</td></tr>
 <tr><td>HALT</td><td>Stop</td></tr></table>
 <p>Typical nested-call pattern: <code>PUSH LR</code> → <code>CALL</code> → <code>POP LR</code> → <code>RET</code>.</p>
+<h4>Signed vs unsigned branches</h4>
+<table><tr><th>Family</th><th>Uses flags</th><th>Interpretation</th><th>When to use</th></tr>
+<tr><td>BLT / BGE</td><td>N and V</td><td>Signed compare (<code>&lt;</code>, <code>≥</code>)</td><td>Values represent signed integers</td></tr>
+<tr><td>BCS / BCC</td><td>C</td><td>Unsigned carry/borrow logic</td><td>Values are raw magnitudes/addresses</td></tr></table>
+<table><tr><th>Operands compared</th><th>Result meaning</th><th>Recommended branch</th></tr>
+<tr><td><code>R1=0xFFFF</code>, <code>R2=0x0001</code></td><td>signed: -1 &lt; 1, unsigned: 65535 &gt; 1</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr>
+<tr><td><code>R1=0x8000</code>, <code>R2=0x7FFF</code></td><td>signed: -32768 &lt; 32767, unsigned: 32768 &gt; 32767</td><td>signed check: <code>BLT</code>; unsigned check: <code>BCS</code></td></tr></table>
 <h4>Figure — shared branch-taken routine</h4>
-<pre>if (cond true) goto 0x80
-0x80: A <- PC
-0x81: A <- A + sign_ext(off11)
-0x82: PC <- A</pre>`},
+<figure class="doc-fig"><svg viewBox="0 0 760 120" role="img" aria-label="Shared branch-taken routine">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="currentColor"></path></marker></defs>
+<rect class="bx" x="20" y="38" width="130" height="40" rx="3"></rect><text x="34" y="62">cond true ?</text>
+<rect class="bx" x="220" y="10" width="150" height="32" rx="3"></rect><text x="244" y="30">0x80: A &lt;- PC</text>
+<rect class="bx" x="220" y="46" width="230" height="32" rx="3"></rect><text x="234" y="66">0x81: A &lt;- A + sign_ext(off11)</text>
+<rect class="bx" x="220" y="82" width="150" height="32" rx="3"></rect><text x="244" y="102">0x82: PC &lt;- A</text>
+<path class="ln" d="M150 58 L220 26"></path>
+<path class="ln" d="M370 26 L370 46"></path>
+<path class="ln" d="M370 78 L370 82"></path>
+</svg></figure>`},
 {id:'emul_tasarim',label:'Emulator & Design',html:`<h3>Emulator behavior and design notes</h3>
 <p><strong>Simulator:</strong> After assemble, <code>PC</code> points to the next instruction to execute; the highlighted source line corresponds to it. You can click a line number on the left to set a breakpoint; <strong>Run</strong> stops before executing that line.</p>
 <h4>Design choices</h4>
@@ -439,50 +495,144 @@ imm8 --(immediate path)</pre>`},
 <tr><td><code>0x50</code> – <code>0x66</code></td><td>Branch/control execute</td><td>~23</td></tr>
 <tr><td><code>0x80</code> – <code>0x82</code></td><td>Shared branch taken</td><td>3</td></tr>
 <tr><td><code>0x83</code> – <code>0xFF</code></td><td>Expansion area</td><td>125</td></tr></table>
-<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tozenbilek, March 2026.</em> This guide is aligned with the emulator implementation for class use; the opcode mapping table’s single source of truth is in the <strong>Encoding & Dispatch</strong> tab.</p>`}
+<p><em>NT-16 ISA Specification v0.1 (Draft) — Nezih Arhan Tozenbilek, March 2026.</em> The opcode mapping table’s single source of truth is the <strong>Encoding & Dispatch</strong> tab.</p>`}
 ];
 
 const TUTORIAL_HTML={
-sum:`<h3>Loop + branch basics (61C L09-L15) — Sum 1..5</h3><ol class="tut-steps">
+sum:`<h3>Loop + branch basics — Sum 1..5</h3><ol class="tut-steps">
 <li><code>LI R1,#5</code> sets the counter, <code>LI R2,#0</code> sets the accumulator (running sum).</li>
 <li><code>loop:</code> is the backward branch target label.</li>
 <li><code>ADD R2,R2,R1</code> computes the loop body.</li>
-<li><code>ADDI R1,#-1</code> decrements the counter; this is the 61C induction-variable pattern.</li>
+<li><code>ADDI R1,#-1</code> decrements the counter.</li>
 <li><code>BNE loop</code> returns control flow with a conditional branch.</li>
-<li><code>HALT</code> sonunda <code>R2=15</code>.</li>
-</ol>`,
+<li>At <code>HALT</code>, <code>R2=15</code>.</li>
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #5
+LI   R2, #0
+loop:
+ADD  R2, R2, R1
+ADDI R1, #-1
+BNE  loop
+HALT</pre>`,
 fib:`<h3>Data-flow practice — Fibonacci fib(7)=13</h3><ol class="tut-steps">
 <li>The <code>R1,R2</code> pair carries state <code>(F_n, F_{n+1})</code>.</li>
 <li><code>ADD R3,R1,R2</code> produces the next term; then state is shifted with <code>MOV</code>.</li>
 <li><code>R4</code> is the iteration counter; the loop continues with <code>BNE</code>.</li>
 <li>This example makes the register-renaming idea (old/new value separation) visible.</li>
-<li><code>HALT</code> sonunda <code>R2=13</code>.</li>
-</ol>`,
+<li>At <code>HALT</code>, <code>R2=13</code>.</li>
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #0
+LI   R2, #1
+LI   R4, #6
+loop:
+ADD  R3, R1, R2
+MOV  R1, R2
+MOV  R2, R3
+ADDI R4, #-1
+BNE  loop
+HALT</pre>`,
 fact:`<h3>Nested loop + comparison — Factorial(5)</h3><ol class="tut-steps">
 <li>The outer loop decreases <code>n</code>; the inner loop performs multiplication by repeated addition.</li>
 <li>The <code>CMPI</code> + <code>BGE</code> combination shows the signed-comparison path.</li>
 <li>This pattern teaches software-level multiplication when ISA has no hardware MUL.</li>
-<li><code>HALT</code> sonunda <code>R2=120</code>.</li>
-</ol>`,
-call:`<h3>CALL/RET + LR protection (61C calling-convention idea)</h3><ol class="tut-steps">
+<li>At <code>HALT</code>, <code>R2=120</code>.</li>
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #5
+LI   R2, #1
+loop:
+LI   R3, #0
+MOV  R4, R1
+mul:
+ADD  R3, R3, R2
+ADDI R4, #-1
+BNE  mul
+MOV  R2, R3
+ADDI R1, #-1
+CMPI R1, #1
+BGE  loop
+HALT</pre>`,
+call:`<h3>CALL/RET + LR protection</h3><ol class="tut-steps">
 <li><code>main</code> calls the subroutine via <code>CALL inc2</code>.</li>
 <li>Since <code>inc2</code> will perform another <code>CALL</code>, it first saves return address with <code>PUSH LR</code>.</li>
 <li>After <code>CALL double</code>, <code>ADDI R1,#1</code> is applied.</li>
 <li><code>POP LR</code> + <code>RET</code> returns to the correct caller.</li>
 <li>This shows why an LR/stack protocol is required in nested-call situations.</li>
-</ol>`,
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #7
+CALL inc2
+HALT
+inc2:
+PUSH LR
+CALL double
+ADDI R1, #1
+POP  LR
+RET
+double:
+ADD  R1, R1, R1
+RET</pre>`,
 mem:`<h3>Memory access and pointer basics</h3><ol class="tut-steps">
 <li><code>LUI R2,#1</code> builds the data-region base (<code>0x0100</code>).</li>
 <li>The <code>STORE</code> / <code>LOAD</code> pair verifies persistence and read-back from memory.</li>
 <li><code>PUSH</code>/<code>POP</code> makes stack pointer movement visible.</li>
-<li>This prepares for the 61C address-calculation + data-access model.</li>
-</ol>`,
+<li>This pattern demonstrates address calculation and data access clearly.</li>
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #42
+LI   R2, #0
+LUI  R2, #1
+STORE R1, [R2]
+LI   R3, #0
+LOAD R3, [R2]
+PUSH R3
+LI   R3, #0
+POP  R3
+HALT</pre>`,
 sort:`<h3>Array scan + branch-heavy example: Bubble sort</h3><ol class="tut-steps">
 <li>The array is written to memory at base <code>0x0100</code> (array-in-memory model).</li>
 <li>The <code>inner</code> loop <code>LOAD</code>s two adjacent elements and compares with <code>CMP</code>.</li>
 <li>The <code>BGE</code>/<code>JMP</code> path decides swap behavior; ideal for control-flow tracing.</li>
 <li>Outer/inner loop counters are useful for observing branch prediction and loop behavior.</li>
-</ol>`
+</ol>
+<h4>Code</h4>
+<pre>LI   R1, #5
+LI   R2, #0
+LUI  R2, #1
+STORE R1, [R2]
+LI   R1, #3
+STORE R1, [R2+1]
+LI   R1, #1
+STORE R1, [R2+2]
+LI   R1, #4
+STORE R1, [R2+3]
+LI   R1, #2
+STORE R1, [R2+4]
+LI   R5, #4
+outer:
+LI   R4, #0
+LI   R2, #0
+LUI  R2, #1
+inner:
+LOAD R1, [R2]
+LOAD R3, [R2+1]
+CMP  R1, R3
+BGE  noswap
+JMP  skip
+noswap:
+STORE R3, [R2]
+STORE R1, [R2+1]
+skip:
+ADDI R2, #1
+ADDI R4, #1
+CMP  R4, R5
+BLT  inner
+ADDI R5, #-1
+CMPI R5, #0
+BNE  outer
+HALT</pre>`
 };
 
 const TUTORIAL_NAV=[
