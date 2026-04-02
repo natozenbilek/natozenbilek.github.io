@@ -1,720 +1,1046 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RBMK Reaktörü - İnteraktif Animasyon</title>
+<title>RBMK-1000 Reactor — Interactive Animation</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0c10;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
-canvas{display:block}
+body{background:#f0efe8;color:#2c2c2a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh}
+canvas{display:block;width:100%;height:100%}
 
-.overlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
-.title-bar{position:fixed;top:0;left:0;right:0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(10,12,16,.95),rgba(10,12,16,0));z-index:20;pointer-events:auto}
-.title-bar h1{font-size:1.1rem;font-weight:600;letter-spacing:.5px;color:#79c0ff}
-.title-bar a{color:#606a7a;text-decoration:none;font-size:.85rem;transition:color .3s}
-.title-bar a:hover{color:#79c0ff}
+.top-bar{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(240,239,232,.92);backdrop-filter:blur(8px);border-bottom:1px solid #d8d6ce;z-index:20}
+.top-bar h1{font-size:.95rem;font-weight:600;color:#3a3a40;letter-spacing:.3px}
+.top-bar span{font-size:.78rem;color:#8a8a80}
+.top-bar a{color:#5a7a9a;text-decoration:none;font-size:.82rem}
+.top-bar a:hover{text-decoration:underline}
 
-.controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;z-index:20;pointer-events:auto;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.15);border-radius:14px;padding:10px 20px;backdrop-filter:blur(12px)}
-.controls label{font-size:.8rem;color:#8b95a5;white-space:nowrap}
-.controls input[type=range]{-webkit-appearance:none;width:140px;height:4px;background:#2a3140;border-radius:4px;outline:none}
-.controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#79c0ff;cursor:pointer;box-shadow:0 0 8px rgba(121,192,255,.4)}
-.btn{background:rgba(121,192,255,.1);border:1px solid rgba(121,192,255,.25);color:#79c0ff;padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .3s;font-family:inherit}
-.btn:hover{background:rgba(121,192,255,.2);border-color:rgba(121,192,255,.5)}
-.btn.active{background:rgba(255,107,107,.15);border-color:rgba(255,107,107,.4);color:#ff6b6b}
-.btn.scram{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:#ff6b6b}
-.btn.scram:hover{background:rgba(255,107,107,.25)}
+.panel{position:fixed;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:14px 16px;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.06)}
 
-.info-panel{position:fixed;top:60px;right:20px;width:220px;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.12);border-radius:12px;padding:14px;z-index:20;pointer-events:auto;backdrop-filter:blur(12px)}
-.info-panel h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#606a7a;margin-bottom:10px}
-.stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.stat-label{font-size:.8rem;color:#8b95a5}
-.stat-value{font-size:.9rem;font-weight:600;font-variant-numeric:tabular-nums}
-.stat-bar{width:100%;height:4px;background:#1a1f2a;border-radius:2px;margin-top:3px;overflow:hidden}
-.stat-bar-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.legend{top:60px;left:16px;width:180px}
+.legend h3,.info h3{font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;color:#9a9a90;margin-bottom:8px;font-weight:600}
+.legend-item{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:.75rem;color:#5a5a55}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,.08)}
 
-.legend{position:fixed;top:60px;left:20px;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.12);border-radius:12px;padding:14px;z-index:20;backdrop-filter:blur(12px)}
-.legend h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#606a7a;margin-bottom:8px}
-.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:.78rem;color:#8b95a5}
-.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.info{top:60px;right:16px;width:210px}
+.stat{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.stat-label{font-size:.75rem;color:#7a7a72}
+.stat-value{font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat-bar{width:100%;height:3px;background:#e8e6de;border-radius:2px;margin-top:2px;margin-bottom:8px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:2px;transition:width .4s ease,background .4s ease}
 
-.phase-label{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:700;color:#fff;opacity:0;transition:opacity .6s;z-index:30;pointer-events:none;text-shadow:0 0 40px rgba(121,192,255,.5)}
+.controls{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:12px;padding:10px 22px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.controls label{font-size:.75rem;color:#7a7a72;white-space:nowrap}
+.controls input[type=range]{-webkit-appearance:none;width:150px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
+.controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.btn{background:#f0efe8;border:1px solid #d0cec5;color:#4a4a45;padding:5px 14px;border-radius:7px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:500}
+.btn:hover{background:#e8e6de;border-color:#b0aea5}
+.btn.active{background:#e8f0e8;border-color:#6aaa6a;color:#2a6a2a}
+.btn.scram{background:#fde8e8;border-color:#e0a0a0;color:#a03030}
+.btn.scram:hover{background:#f8d0d0;border-color:#d07070}
+
+.phase-label{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.6rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .5s;z-index:30;pointer-events:none;text-shadow:0 1px 2px rgba(255,255,255,.8)}
 .phase-label.visible{opacity:1}
-.phase-label.danger{color:#ff6b6b;text-shadow:0 0 40px rgba(255,107,107,.5)}
+.phase-label.danger{color:#b02020}
 </style>
 </head>
 <body>
 
-<canvas id="reactor"></canvas>
+<canvas id="c"></canvas>
 
-<div class="title-bar">
-  <h1>RBMK-1000 Reaktör Simülasyonu</h1>
-  <a href="index.html">Ana Sayfa</a>
+<div class="top-bar">
+  <h1>RBMK-1000 Reactor Process Flow</h1>
+  <span>Channel-Type, Graphite-Moderated, Boiling Water Reactor</span>
+  <a href="index.html">Home</a>
 </div>
 
-<div class="legend">
-  <h3>Bileşenler</h3>
-  <div class="legend-item"><div class="legend-dot" style="background:#5a6a7a"></div>Grafit Moderatör</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ffb86b"></div>Yakıt Çubukları (UO₂)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div>Soğutma Suyu</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#e0e8f0"></div>Buhar</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3a3a4a"></div>Kontrol Çubukları</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#6bcf6b"></div>Türbin / Jeneratör</div>
+<div class="panel legend">
+  <h3>Components</h3>
+  <div class="legend-item"><div class="legend-dot" style="background:#8a8e96"></div>Graphite Moderator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e8943a"></div>Fuel Assemblies (UO₂)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a8ad0"></div>Coolant Water</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c8d4e0"></div>Steam</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a4a58"></div>Control Rods (B₄C)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7a9aaa"></div>Drum Separator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5a80a0"></div>Main Circ. Pump</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a8a6a"></div>Turbine &amp; Generator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a70a0"></div>Condenser</div>
 </div>
 
-<div class="info-panel">
-  <h3>Reaktör Durumu</h3>
-  <div class="stat">
-    <span class="stat-label">Güç Seviyesi</span>
-    <span class="stat-value" id="powerVal" style="color:#8be9a8">0%</span>
-  </div>
-  <div class="stat-bar"><div class="stat-bar-fill" id="powerBar" style="width:0%;background:#8be9a8"></div></div>
-
-  <div class="stat" style="margin-top:12px">
-    <span class="stat-label">Sıcaklık</span>
-    <span class="stat-value" id="tempVal" style="color:#79c0ff">280°C</span>
-  </div>
-  <div class="stat-bar"><div class="stat-bar-fill" id="tempBar" style="width:20%;background:#79c0ff"></div></div>
-
-  <div class="stat" style="margin-top:12px">
-    <span class="stat-label">Buhar Basıncı</span>
-    <span class="stat-value" id="pressVal" style="color:#b8c0cc">0 MPa</span>
-  </div>
-  <div class="stat-bar"><div class="stat-bar-fill" id="pressBar" style="width:0%;background:#b8c0cc"></div></div>
-
-  <div class="stat" style="margin-top:12px">
-    <span class="stat-label">Kontrol Çubukları</span>
-    <span class="stat-value" id="rodVal" style="color:#ffb86b">100%</span>
-  </div>
-  <div class="stat-bar"><div class="stat-bar-fill" id="rodBar" style="width:100%;background:#ffb86b"></div></div>
-
-  <div class="stat" style="margin-top:12px">
-    <span class="stat-label">Elektrik Üretimi</span>
-    <span class="stat-value" id="elecVal" style="color:#6bcf6b">0 MW</span>
-  </div>
+<div class="panel info">
+  <h3>Reactor Status</h3>
+  <div class="stat"><span class="stat-label">Thermal Power</span><span class="stat-value" id="vPow">0 MWt</span></div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="bPow" style="width:0%;background:#3a8a6a"></div></div>
+  <div class="stat"><span class="stat-label">Core Temperature</span><span class="stat-value" id="vTemp">280 °C</span></div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="bTemp" style="width:20%;background:#5a8ab0"></div></div>
+  <div class="stat"><span class="stat-label">Steam Pressure</span><span class="stat-value" id="vPres">0 MPa</span></div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="bPres" style="width:0%;background:#8a8a90"></div></div>
+  <div class="stat"><span class="stat-label">Control Rod Insertion</span><span class="stat-value" id="vRod">100%</span></div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="bRod" style="width:100%;background:#c08030"></div></div>
+  <div class="stat"><span class="stat-label">Turbine Speed</span><span class="stat-value" id="vRpm">0 rpm</span></div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
+  <div class="stat"><span class="stat-label">Electrical Output</span><span class="stat-value" id="vElec" style="color:#2a6a2a">0 MWe</span></div>
 </div>
 
 <div class="controls">
-  <label>Kontrol Çubukları</label>
+  <label>Control Rods</label>
   <input type="range" id="rodSlider" min="0" max="100" value="100">
   <button class="btn scram" id="scramBtn">SCRAM</button>
-  <button class="btn" id="autoBtn">Otomatik Çalıştır</button>
+  <button class="btn" id="autoBtn">Auto Run</button>
 </div>
 
 <div class="phase-label" id="phaseLabel"></div>
 
 <script>
-const canvas = document.getElementById('reactor');
+const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-let W, H;
+let W, H, sc, ox, oy;
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
+  sc = Math.min(W / 1050, (H - 48) / 700);
+  ox = (W - 1050 * sc) / 2;
+  oy = 48 + ((H - 48) - 700 * sc) / 2;
 }
 resize();
 window.addEventListener('resize', resize);
 
-const state = {
-  rodInsertion: 1,
-  power: 0,
-  temp: 280,
-  pressure: 0,
-  electricity: 0,
-  autoMode: false,
-  autoPhase: 0,
-  autoTimer: 0,
-  scramActive: false,
-  time: 0
+function tx(x) { return ox + x * sc; }
+function ty(y) { return oy + y * sc; }
+function ts(v) { return v * sc; }
+
+// ── State ──
+const S = {
+  rod: 1, power: 0, temp: 280, pressure: 0, elec: 0, rpm: 0,
+  time: 0, autoMode: false, autoPhase: 0, autoTimer: 0, scram: false
 };
 
-const particles = [];
-const steamParticles = [];
-const turbineAngle = { value: 0 };
+// ── Pipe definitions (world coords) ──
+const pipes = {
+  coreToSep:   { pts: [[170,155],[170,80],[340,80],[340,115]], fluid:'mixture', label:'Steam-Water Mixture' },
+  sepToMCP:    { pts: [[355,200],[355,430],[230,430],[230,555]], fluid:'water', label:'Recirculated Water' },
+  mcpToCore:   { pts: [[230,610],[230,650],[110,650],[110,505]], fluid:'water', label:'Feed to Core' },
+  sepToHP:     { pts: [[465,148],[520,148]], fluid:'steam', label:'Dry Steam' },
+  hpToLP:      { pts: [[618,155],[645,155]], fluid:'steam', label:'' },
+  lpExhaust:   { pts: [[700,215],[700,435]], fluid:'exhaust', label:'Exhaust Steam' },
+  condToFW:    { pts: [[640,475],[540,475]], fluid:'water', label:'Condensate' },
+  fwToSep:     { pts: [[515,450],[515,240],[440,240],[440,200]], fluid:'water', label:'Feedwater' },
+};
 
-class WaterParticle {
-  constructor(x, y, channel) {
-    this.x = x;
-    this.y = y;
-    this.channel = channel;
-    this.speed = 0.5 + Math.random() * 0.3;
-    this.phase = Math.random() * Math.PI * 2;
-    this.isSteam = false;
-    this.opacity = 0.6 + Math.random() * 0.4;
-    this.size = 2 + Math.random() * 2;
+function pathLength(pts) {
+  let l = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i-1][0], dy = pts[i][1] - pts[i-1][1];
+    l += Math.sqrt(dx*dx + dy*dy);
+  }
+  return l;
+}
+
+function pointOnPath(pts, t) {
+  const total = pathLength(pts);
+  let dist = t * total;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i-1][0], dy = pts[i][1] - pts[i-1][1];
+    const seg = Math.sqrt(dx*dx + dy*dy);
+    if (dist <= seg) {
+      const f = dist / seg;
+      return { x: pts[i-1][0] + dx*f, y: pts[i-1][1] + dy*f };
+    }
+    dist -= seg;
+  }
+  return { x: pts[pts.length-1][0], y: pts[pts.length-1][1] };
+}
+
+// ── Drawing helpers ──
+function roundRect(x, y, w, h, r) {
+  const ax=tx(x), ay=ty(y), aw=ts(w), ah=ts(h), ar=ts(r);
+  ctx.beginPath();
+  ctx.moveTo(ax+ar, ay);
+  ctx.lineTo(ax+aw-ar, ay);
+  ctx.quadraticCurveTo(ax+aw, ay, ax+aw, ay+ar);
+  ctx.lineTo(ax+aw, ay+ah-ar);
+  ctx.quadraticCurveTo(ax+aw, ay+ah, ax+aw-ar, ay+ah);
+  ctx.lineTo(ax+ar, ay+ah);
+  ctx.quadraticCurveTo(ax, ay+ah, ax, ay+ah-ar);
+  ctx.lineTo(ax, ay+ar);
+  ctx.quadraticCurveTo(ax, ay, ax+ar, ay);
+  ctx.closePath();
+}
+
+function cylinder(cx, cy, w, h) {
+  const ax=tx(cx-w/2), ay=ty(cy-h/2), aw=ts(w), ah=ts(h), cap=ts(h*0.35);
+  ctx.beginPath();
+  ctx.moveTo(ax, ay+cap);
+  ctx.ellipse(ax+aw/2, ay+cap, aw/2, cap, 0, Math.PI, 0);
+  ctx.lineTo(ax+aw, ay+ah-cap);
+  ctx.ellipse(ax+aw/2, ay+ah-cap, aw/2, cap, 0, 0, Math.PI);
+  ctx.closePath();
+}
+
+function drawPipeLines() {
+  Object.values(pipes).forEach(pipe => {
+    ctx.strokeStyle = '#c0beb5';
+    ctx.lineWidth = ts(10);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(tx(pipe.pts[0][0]), ty(pipe.pts[0][1]));
+    for (let i = 1; i < pipe.pts.length; i++) {
+      ctx.lineTo(tx(pipe.pts[i][0]), ty(pipe.pts[i][1]));
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = '#dddbd2';
+    ctx.lineWidth = ts(6);
+    ctx.beginPath();
+    ctx.moveTo(tx(pipe.pts[0][0]), ty(pipe.pts[0][1]));
+    for (let i = 1; i < pipe.pts.length; i++) {
+      ctx.lineTo(tx(pipe.pts[i][0]), ty(pipe.pts[i][1]));
+    }
+    ctx.stroke();
+  });
+}
+
+function drawFlowParticles() {
+  const powerFrac = S.power / 100;
+  if (powerFrac < 0.02) return;
+
+  Object.values(pipes).forEach(pipe => {
+    const count = pipe.fluid === 'steam' ? 12 : pipe.fluid === 'mixture' ? 14 : pipe.fluid === 'exhaust' ? 8 : 10;
+    const speed = 0.08 + powerFrac * 0.15;
+    for (let i = 0; i < count; i++) {
+      const t = ((S.time * speed + i / count) % 1);
+      const pos = pointOnPath(pipe.pts, t);
+      const alpha = powerFrac * 0.7 * Math.sin(t * Math.PI);
+
+      let color;
+      if (pipe.fluid === 'water') color = `rgba(50,120,200,${alpha})`;
+      else if (pipe.fluid === 'steam') color = `rgba(160,180,200,${alpha * 1.2})`;
+      else if (pipe.fluid === 'exhaust') color = `rgba(180,190,200,${alpha * 0.6})`;
+      else {
+        color = t % 0.15 < 0.07
+          ? `rgba(50,120,200,${alpha})`
+          : `rgba(170,185,200,${alpha})`;
+      }
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      const sz = pipe.fluid === 'steam' || pipe.fluid === 'exhaust' ? 3.5 : 2.8;
+      ctx.arc(tx(pos.x), ty(pos.y), ts(sz), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
+function drawPipeLabels() {
+  ctx.font = `${ts(9)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9a9a90';
+
+  const labels = [
+    { text: 'Steam-Water\nMixture', x: 240, y: 72 },
+    { text: 'Dry Steam', x: 490, y: 132 },
+    { text: 'Separated\nWater', x: 302, y: 380 },
+    { text: 'Exhaust\nSteam', x: 718, y: 320 },
+    { text: 'Condensate', x: 588, y: 490 },
+    { text: 'Feedwater', x: 530, y: 218 },
+  ];
+
+  labels.forEach(l => {
+    const lines = l.text.split('\n');
+    lines.forEach((line, idx) => {
+      ctx.fillText(line, tx(l.x), ty(l.y) + idx * ts(11));
+    });
+  });
+}
+
+// ── Reactor Core ──
+function drawCore() {
+  const cx = 160, cy = 330, hw = 95, hh = 175;
+  const left = cx-hw, top = cy-hh, w = hw*2, h = hh*2;
+
+  // Biological shield
+  roundRect(left-15, top-15, w+30, h+30, 8);
+  ctx.fillStyle = '#d0cec5';
+  ctx.fill();
+  ctx.strokeStyle = '#a0a098';
+  ctx.lineWidth = ts(2);
+  ctx.stroke();
+
+  // Core body
+  roundRect(left, top, w, h, 4);
+  ctx.fillStyle = '#e8e7e0';
+  ctx.fill();
+  ctx.strokeStyle = '#b0aea5';
+  ctx.lineWidth = ts(1.5);
+  ctx.stroke();
+
+  // Graphite blocks
+  const bsz = 22;
+  const cols = Math.floor(w / bsz);
+  const rows = Math.floor(h / bsz);
+  const gx = left + (w - cols*bsz) / 2;
+  const gy = top + (h - rows*bsz) / 2;
+  const powerFrac = S.power / 100;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const bx = gx + c * bsz, by = gy + r * bsz;
+      const n = Math.sin(r*2.3 + c*3.1 + S.time * 0.8) * 3;
+      const base = 140 + n;
+      const glow = powerFrac * 25;
+      ctx.fillStyle = `rgb(${base+glow},${base+glow*0.3},${base-glow*0.5})`;
+      ctx.fillRect(tx(bx+0.5), ty(by+0.5), ts(bsz-1), ts(bsz-1));
+    }
+  }
+
+  // Fuel channels (7 channels)
+  const fuelPositions = [-70, -46, -23, 0, 23, 46, 70];
+  fuelPositions.forEach(fx => {
+    const fcx = cx + fx;
+    const chTop = top + 15, chBot = top + h - 15, chH = chBot - chTop;
+
+    ctx.fillStyle = '#b0a898';
+    ctx.fillRect(tx(fcx-4), ty(chTop), ts(8), ts(chH));
+
+    // Fuel pellets
+    for (let p = 0; p < 14; p++) {
+      const py = chTop + 5 + p * ((chH - 10) / 14);
+      const bright = 0.35 + powerFrac * 0.65;
+      const pr = Math.floor(210 * bright + 40);
+      const pg = Math.floor(120 * bright + 30);
+      const pb = Math.floor(30 * bright + 10);
+      ctx.fillStyle = `rgb(${pr},${pg},${pb})`;
+      ctx.fillRect(tx(fcx-2.5), ty(py), ts(5), ts((chH-10)/14 - 2));
+    }
+
+    // Fuel glow
+    if (powerFrac > 0.05) {
+      const grad = ctx.createRadialGradient(tx(fcx), ty(cy), 0, tx(fcx), ty(cy), ts(20 + powerFrac * 30));
+      grad.addColorStop(0, `rgba(230,140,40,${powerFrac * 0.2})`);
+      grad.addColorStop(1, 'rgba(230,100,30,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(tx(fcx-35), ty(chTop), ts(70), ts(chH));
+    }
+
+    // Water flowing up through channel
+    if (powerFrac > 0.02) {
+      for (let wi = 0; wi < 6; wi++) {
+        const wt = ((S.time * (0.4 + powerFrac * 0.5) + wi * 0.167) % 1);
+        const wy = chTop + (1 - wt) * chH;
+        const isSteam = wt > 0.55 && powerFrac > 0.1;
+        if (isSteam) {
+          ctx.fillStyle = `rgba(160,180,200,${powerFrac * 0.35 * Math.sin(wt * Math.PI)})`;
+          ctx.beginPath();
+          ctx.arc(tx(fcx + Math.sin(S.time*3+wi)*2), ty(wy), ts(2.5), 0, Math.PI*2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = `rgba(50,120,200,${powerFrac * 0.4 * Math.sin(wt * Math.PI)})`;
+          ctx.beginPath();
+          ctx.arc(tx(fcx), ty(wy), ts(2), 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+    }
+  });
+
+  // Control rods (4 rods between fuel channels)
+  const rodPositions = [-58, -12, 12, 58];
+  const rodFullH = h - 30;
+  const rodInserted = rodFullH * S.rod;
+
+  rodPositions.forEach(rx => {
+    const rcx = cx + rx;
+    const rodTop = top + 8;
+
+    // Guide tube above core
+    ctx.fillStyle = '#a0a098';
+    ctx.fillRect(tx(rcx-3), ty(rodTop-40), ts(6), ts(40));
+
+    // Actuator mechanism
+    ctx.fillStyle = '#7a7a78';
+    roundRect(rcx-6, rodTop - 48 + (1-S.rod)*35, 12, 14, 2);
+    ctx.fill();
+
+    // Control rod body
+    const grad = ctx.createLinearGradient(tx(rcx-3), 0, tx(rcx+3), 0);
+    grad.addColorStop(0, '#5a5a60');
+    grad.addColorStop(0.5, '#707078');
+    grad.addColorStop(1, '#5a5a60');
+    ctx.fillStyle = grad;
+    ctx.fillRect(tx(rcx-3), ty(rodTop), ts(6), ts(rodInserted));
+
+    // Absorber tip
+    if (rodInserted > 5) {
+      ctx.fillStyle = '#3a3a42';
+      ctx.fillRect(tx(rcx-3.5), ty(rodTop + rodInserted - 6), ts(7), ts(6));
+    }
+  });
+
+  // Core glow
+  if (powerFrac > 0.05) {
+    const cg = ctx.createRadialGradient(tx(cx), ty(cy), 0, tx(cx), ty(cy), ts(hw * 1.2));
+    const danger = powerFrac > 0.8;
+    if (danger) {
+      cg.addColorStop(0, `rgba(220,80,30,${powerFrac * 0.1})`);
+      cg.addColorStop(1, 'rgba(200,50,20,0)');
+    } else {
+      cg.addColorStop(0, `rgba(220,160,60,${powerFrac * 0.08})`);
+      cg.addColorStop(1, 'rgba(200,140,50,0)');
+    }
+    ctx.fillStyle = cg;
+    ctx.fillRect(tx(left-15), ty(top-15), ts(w+30), ts(h+30));
+  }
+
+  // Neutron particles
+  if (powerFrac > 0.05) {
+    const nCount = Math.floor(powerFrac * 30);
+    for (let n = 0; n < nCount; n++) {
+      const nx = cx + Math.sin(S.time * 1.7 + n * 7.3) * hw * 0.7;
+      const ny = cy + Math.cos(S.time * 2.1 + n * 5.1) * hh * 0.7;
+      ctx.fillStyle = `rgba(100,160,230,${0.15 + powerFrac * 0.25})`;
+      ctx.beginPath();
+      ctx.arc(tx(nx), ty(ny), ts(1.2), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Label
+  ctx.fillStyle = '#6a6a65';
+  ctx.font = `bold ${ts(11)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('REACTOR CORE', tx(cx), ty(cy + hh + 35));
+  ctx.font = `${ts(8.5)}px "Segoe UI", sans-serif`;
+  ctx.fillStyle = '#9a9a90';
+  ctx.fillText('Graphite-Moderated', tx(cx), ty(cy + hh + 48));
+  ctx.fillText('1661 Fuel Channels', tx(cx), ty(cy + hh + 59));
+}
+
+// ── Drum Separator ──
+function drawDrumSep() {
+  const cx = 395, cy = 155, w = 130, h = 75;
+  const left = cx - w/2, top = cy - h/2;
+
+  // Horizontal cylindrical vessel
+  const capR = ts(h * 0.42);
+  const bodyL = tx(left + h*0.42);
+  const bodyR = tx(left + w - h*0.42);
+  const bodyT = ty(top);
+  const bodyB = ty(top + h);
+
+  ctx.fillStyle = '#d8dce0';
+  ctx.strokeStyle = '#9aa0a8';
+  ctx.lineWidth = ts(2);
+  ctx.beginPath();
+  ctx.ellipse(bodyL, ty(cy), capR, ts(h/2), 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#e0e4e8';
+  ctx.beginPath();
+  ctx.rect(bodyL, bodyT, bodyR - bodyL, bodyB - bodyT);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(bodyL, bodyT);
+  ctx.lineTo(bodyR, bodyT);
+  ctx.moveTo(bodyL, bodyB);
+  ctx.lineTo(bodyR, bodyB);
+  ctx.strokeStyle = '#9aa0a8';
+  ctx.stroke();
+
+  ctx.fillStyle = '#d8dce0';
+  ctx.beginPath();
+  ctx.ellipse(bodyR, ty(cy), capR, ts(h/2), 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Water level inside
+  const powerFrac = S.power / 100;
+  const waterLevel = 0.45 + powerFrac * 0.1;
+  const waterTop = ty(cy + h/2 * (1 - waterLevel * 2));
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(bodyL - capR, bodyT, bodyR - bodyL + capR * 2, bodyB - bodyT);
+  ctx.clip();
+
+  ctx.fillStyle = `rgba(50,120,200,${0.08 + powerFrac * 0.12})`;
+  ctx.fillRect(bodyL - capR, waterTop, bodyR - bodyL + capR*2, bodyB - waterTop);
+
+  // Bubbles in separator
+  if (powerFrac > 0.1) {
+    for (let b = 0; b < 15; b++) {
+      const bx = cx - w*0.3 + Math.sin(S.time * 1.5 + b * 2.7) * w * 0.3;
+      const by = cy + h*0.1 + Math.cos(S.time * 2 + b * 1.9) * h * 0.15;
+      ctx.fillStyle = `rgba(160,190,220,${powerFrac * 0.3})`;
+      ctx.beginPath();
+      ctx.arc(tx(bx), ty(by), ts(1.5 + Math.sin(S.time + b) * 0.8), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // Steam space indication
+  ctx.fillStyle = '#7a8a94';
+  ctx.font = `${ts(7.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Steam', tx(cx), ty(cy - 8));
+  ctx.fillStyle = '#5a7a9a';
+  ctx.fillText('Water', tx(cx), ty(cy + 16));
+
+  // Label
+  ctx.fillStyle = '#6a6a65';
+  ctx.font = `bold ${ts(10)}px "Segoe UI", sans-serif`;
+  ctx.fillText('DRUM SEPARATOR', tx(cx), ty(cy + h/2 + 18));
+  ctx.font = `${ts(8)}px "Segoe UI", sans-serif`;
+  ctx.fillStyle = '#9a9a90';
+  ctx.fillText('(4 units, Ø 2.3m)', tx(cx), ty(cy + h/2 + 30));
+}
+
+// ── Main Circulation Pump ──
+function drawMCP() {
+  const cx = 230, cy = 582, r = 28;
+
+  ctx.fillStyle = '#d0d8e0';
+  ctx.strokeStyle = '#8a9aa8';
+  ctx.lineWidth = ts(2);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r), 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Pump impeller rotation
+  const powerFrac = S.power / 100;
+  const pumpSpeed = S.time * (1 + powerFrac * 4);
+  ctx.save();
+  ctx.translate(tx(cx), ty(cy));
+  ctx.rotate(pumpSpeed);
+  ctx.strokeStyle = `rgba(70,100,130,${0.3 + powerFrac * 0.5})`;
+  ctx.lineWidth = ts(2.5);
+  for (let b = 0; b < 6; b++) {
+    const a = b * Math.PI / 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    const tipX = Math.cos(a) * ts(r * 0.75);
+    const tipY = Math.sin(a) * ts(r * 0.75);
+    ctx.quadraticCurveTo(
+      Math.cos(a + 0.4) * ts(r * 0.45),
+      Math.sin(a + 0.4) * ts(r * 0.45),
+      tipX, tipY
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Center
+  ctx.fillStyle = '#8a9aaa';
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(5), 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#6a6a65';
+  ctx.font = `bold ${ts(9)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('MCP', tx(cx), ty(cy + r + 16));
+  ctx.font = `${ts(7.5)}px "Segoe UI", sans-serif`;
+  ctx.fillStyle = '#9a9a90';
+  ctx.fillText('(8 pumps, 2 loops)', tx(cx), ty(cy + r + 27));
+}
+
+// ── HP Turbine ──
+function drawHPTurbine() {
+  const cx = 568, cy = 155, r = 48;
+
+  ctx.fillStyle = '#e0ece8';
+  ctx.strokeStyle = '#6a9a88';
+  ctx.lineWidth = ts(2.5);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r), 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner ring
+  ctx.strokeStyle = '#8ab8a8';
+  ctx.lineWidth = ts(1);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r * 0.85), 0, Math.PI*2);
+  ctx.stroke();
+
+  const powerFrac = S.power / 100;
+  const turbineAngle = S.time * (0.5 + powerFrac * 8);
+
+  // Blades
+  ctx.save();
+  ctx.translate(tx(cx), ty(cy));
+  ctx.rotate(turbineAngle);
+  const bladeCount = 12;
+  for (let b = 0; b < bladeCount; b++) {
+    const a = b * Math.PI * 2 / bladeCount;
+    const intensity = 0.2 + powerFrac * 0.6;
+    ctx.strokeStyle = `rgba(50,120,90,${intensity})`;
+    ctx.lineWidth = ts(2);
+    ctx.beginPath();
+    ctx.moveTo(ts(6) * Math.cos(a), ts(6) * Math.sin(a));
+    ctx.lineTo(ts(r*0.8) * Math.cos(a), ts(r*0.8) * Math.sin(a));
+    ctx.stroke();
+
+    ctx.fillStyle = `rgba(50,120,90,${intensity * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(ts(r*0.8) * Math.cos(a), ts(r*0.8) * Math.sin(a), ts(2.5), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = '#6a9a88';
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(6), 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#5a7a6a';
+  ctx.font = `bold ${ts(9.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('HP TURBINE', tx(cx), ty(cy + r + 18));
+}
+
+// ── LP Turbine ──
+function drawLPTurbine() {
+  const cx = 700, cy = 155, r = 55;
+
+  ctx.fillStyle = '#e0ece8';
+  ctx.strokeStyle = '#6a9a88';
+  ctx.lineWidth = ts(2.5);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r), 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = '#8ab8a8';
+  ctx.lineWidth = ts(1);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r * 0.85), 0, Math.PI*2);
+  ctx.stroke();
+
+  const powerFrac = S.power / 100;
+  const turbineAngle = S.time * (0.5 + powerFrac * 8);
+
+  ctx.save();
+  ctx.translate(tx(cx), ty(cy));
+  ctx.rotate(turbineAngle);
+  const bladeCount = 16;
+  for (let b = 0; b < bladeCount; b++) {
+    const a = b * Math.PI * 2 / bladeCount;
+    const intensity = 0.2 + powerFrac * 0.6;
+    ctx.strokeStyle = `rgba(50,120,90,${intensity})`;
+    ctx.lineWidth = ts(2);
+    ctx.beginPath();
+    ctx.moveTo(ts(7) * Math.cos(a), ts(7) * Math.sin(a));
+    ctx.lineTo(ts(r*0.8) * Math.cos(a), ts(r*0.8) * Math.sin(a));
+    ctx.stroke();
+
+    ctx.fillStyle = `rgba(50,120,90,${intensity * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(ts(r*0.8) * Math.cos(a), ts(r*0.8) * Math.sin(a), ts(3), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = '#6a9a88';
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(7), 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#5a7a6a';
+  ctx.font = `bold ${ts(9.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('LP TURBINE', tx(cx), ty(cy + r + 18));
+}
+
+// ── Shaft connecting turbines and generator ──
+function drawShaft() {
+  ctx.strokeStyle = '#a0a898';
+  ctx.lineWidth = ts(5);
+  ctx.lineCap = 'round';
+
+  // HP to LP
+  ctx.beginPath();
+  ctx.moveTo(tx(616), ty(155));
+  ctx.lineTo(tx(645), ty(155));
+  ctx.stroke();
+
+  // LP to Generator
+  ctx.beginPath();
+  ctx.moveTo(tx(755), ty(155));
+  ctx.lineTo(tx(790), ty(155));
+  ctx.stroke();
+
+  ctx.fillStyle = '#8a9a90';
+  ctx.font = `${ts(7)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('SHAFT', tx(630), ty(143));
+}
+
+// ── Generator ──
+function drawGenerator() {
+  const cx = 840, cy = 155, w = 70, h = 75;
+
+  roundRect(cx-w/2, cy-h/2, w, h, 6);
+  ctx.fillStyle = '#e0ece0';
+  ctx.fill();
+  ctx.strokeStyle = '#5a8a5a';
+  ctx.lineWidth = ts(2);
+  ctx.stroke();
+
+  const powerFrac = S.power / 100;
+
+  // Coil visualization
+  ctx.save();
+  ctx.translate(tx(cx), ty(cy));
+  const coilAngle = S.time * (0.5 + powerFrac * 6);
+  for (let c = 0; c < 3; c++) {
+    const a = coilAngle + c * Math.PI * 2 / 3;
+    const intensity = 0.15 + powerFrac * 0.5;
+    ctx.strokeStyle = `rgba(40,100,40,${intensity})`;
+    ctx.lineWidth = ts(1.5);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, ts(20), ts(28), a, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Electricity spark
+  if (powerFrac > 0.1) {
+    const sparkAlpha = 0.3 + powerFrac * 0.5 + Math.sin(S.time * 8) * 0.15;
+    ctx.fillStyle = `rgba(40,140,40,${sparkAlpha})`;
+    ctx.font = `bold ${ts(18)}px "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', tx(cx), ty(cy + 6));
+  }
+
+  ctx.fillStyle = '#4a7a4a';
+  ctx.font = `bold ${ts(9.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('GENERATOR', tx(cx), ty(cy + h/2 + 18));
+  ctx.font = `${ts(8.5)}px "Segoe UI", sans-serif`;
+  ctx.fillStyle = powerFrac > 0.1 ? '#2a6a2a' : '#9a9a90';
+  ctx.fillText(S.elec.toFixed(0) + ' MWe', tx(cx), ty(cy + h/2 + 30));
+}
+
+// ── Condenser ──
+function drawCondenser() {
+  const cx = 690, cy = 475, w = 100, h = 60;
+
+  roundRect(cx-w/2, cy-h/2, w, h, 5);
+  ctx.fillStyle = '#dce4ec';
+  ctx.fill();
+  ctx.strokeStyle = '#7a90a8';
+  ctx.lineWidth = ts(2);
+  ctx.stroke();
+
+  // Cooling tubes inside
+  const powerFrac = S.power / 100;
+  for (let t = 0; t < 5; t++) {
+    const ty_ = cy - h*0.3 + t * h*0.15;
+    ctx.strokeStyle = `rgba(80,130,180,${0.15 + powerFrac * 0.2})`;
+    ctx.lineWidth = ts(1.5);
+    ctx.beginPath();
+    for (let x = cx - w*0.4; x < cx + w*0.4; x += 5) {
+      const sx = tx(x), sy = ty(ty_ + Math.sin((x + S.time * 20) * 0.15) * 3);
+      if (x === cx - w*0.4) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+  }
+
+  // Cooling water arrows
+  if (powerFrac > 0.05) {
+    ctx.fillStyle = `rgba(60,120,200,${0.2 + powerFrac * 0.2})`;
+    ctx.font = `${ts(9)}px "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('≋', tx(cx), ty(cy + 3));
+  }
+
+  ctx.fillStyle = '#5a7090';
+  ctx.font = `bold ${ts(9.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('CONDENSER', tx(cx), ty(cy + h/2 + 18));
+}
+
+// ── Feedwater Pump ──
+function drawFWPump() {
+  const cx = 515, cy = 475, r = 22;
+
+  ctx.fillStyle = '#d8e0e8';
+  ctx.strokeStyle = '#7a8aa0';
+  ctx.lineWidth = ts(2);
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(r), 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  const powerFrac = S.power / 100;
+  const pumpAngle = S.time * (0.8 + powerFrac * 3);
+
+  ctx.save();
+  ctx.translate(tx(cx), ty(cy));
+  ctx.rotate(pumpAngle);
+  for (let b = 0; b < 4; b++) {
+    const a = b * Math.PI / 2;
+    ctx.strokeStyle = `rgba(70,90,130,${0.25 + powerFrac * 0.45})`;
+    ctx.lineWidth = ts(2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(a) * ts(r*0.7), Math.sin(a) * ts(r*0.7));
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = '#7a8aa0';
+  ctx.beginPath();
+  ctx.arc(tx(cx), ty(cy), ts(4), 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `bold ${ts(8.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('FW PUMP', tx(cx), ty(cy + r + 16));
+}
+
+// ── Cooling Tower (visual) ──
+function drawCoolingTower() {
+  const cx = 870, cy = 475, w = 50, h = 80;
+
+  // Hyperbolic shape
+  ctx.fillStyle = '#e0ddd5';
+  ctx.strokeStyle = '#b0aea5';
+  ctx.lineWidth = ts(1.5);
+  ctx.beginPath();
+  const top = cy - h/2, bot = cy + h/2;
+  ctx.moveTo(tx(cx - w*0.35), ty(bot));
+  ctx.quadraticCurveTo(tx(cx - w*0.2), ty(cy + h*0.1), tx(cx - w*0.25), ty(top + h*0.2));
+  ctx.lineTo(tx(cx - w*0.3), ty(top));
+  ctx.lineTo(tx(cx + w*0.3), ty(top));
+  ctx.lineTo(tx(cx + w*0.25), ty(top + h*0.2));
+  ctx.quadraticCurveTo(tx(cx + w*0.2), ty(cy + h*0.1), tx(cx + w*0.35), ty(bot));
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  const powerFrac = S.power / 100;
+  if (powerFrac > 0.1) {
+    for (let p = 0; p < 5; p++) {
+      const px = cx + Math.sin(S.time * 0.8 + p * 1.5) * 8;
+      const py = top - 5 - p * 8 - (S.time * 15 + p * 12) % 40;
+      const alpha = powerFrac * 0.2 * (1 - p * 0.18);
+      if (alpha > 0) {
+        ctx.fillStyle = `rgba(160,170,180,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(tx(px), ty(py), ts(4 + p * 1.5), 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Cooling water pipe
+  ctx.strokeStyle = '#b0b8c0';
+  ctx.lineWidth = ts(4);
+  ctx.beginPath();
+  ctx.moveTo(tx(740), ty(490));
+  ctx.lineTo(tx(cx - w*0.35), ty(490));
+  ctx.stroke();
+
+  ctx.fillStyle = '#8a8a85';
+  ctx.font = `${ts(8)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('COOLING', tx(cx), ty(bot + 14));
+  ctx.fillText('TOWER', tx(cx), ty(bot + 24));
+}
+
+// ── Flow direction arrows ──
+function drawFlowArrows() {
+  ctx.fillStyle = '#a8a8a0';
+  ctx.font = `${ts(14)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+
+  // Core to drum (upward then right)
+  ctx.fillText('↑', tx(170), ty(118));
+  ctx.fillText('→', tx(260), ty(77));
+
+  // Drum to MCP (down)
+  ctx.fillText('↓', tx(355), ty(320));
+
+  // MCP to core (down then left then up)
+  ctx.fillText('↓', tx(230), ty(632));
+  ctx.fillText('←', tx(170), ty(648));
+  ctx.fillText('↑', tx(110), ty(570));
+
+  // Drum to turbine (right)
+  ctx.fillText('→', tx(492), ty(145));
+
+  // LP exhaust down
+  ctx.fillText('↓', tx(700), ty(330));
+
+  // Condenser to FW pump (left)
+  ctx.fillText('←', tx(585), ty(472));
+
+  // FW pump to drum (up)
+  ctx.fillText('↑', tx(515), ty(340));
+  ctx.fillText('←', tx(475), ty(237));
+}
+
+// ── Background ──
+function drawBG() {
+  ctx.fillStyle = '#f0efe8';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#e8e6de';
+  ctx.lineWidth = 1;
+  const gs = 40;
+  for (let x = ox % gs; x < W; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = oy % gs; y < H; y += gs) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
   }
 }
 
-class SteamParticle {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.vx = (Math.random() - 0.5) * 0.5;
-    this.vy = -1 - Math.random() * 2;
-    this.life = 1;
-    this.decay = 0.005 + Math.random() * 0.008;
-    this.size = 3 + Math.random() * 4;
+// ── Physics ──
+function updatePhysics(dt) {
+  if (S.scram) {
+    S.rod = Math.min(1, S.rod + dt * 0.9);
+    rodSlider.value = S.rod * 100;
+    if (S.rod >= 0.99) S.scram = false;
   }
+
+  if (S.autoMode) {
+    S.autoTimer += dt;
+    switch (S.autoPhase) {
+      case 0:
+        S.rod = Math.max(0.25, S.rod - dt * 0.07);
+        if (S.rod <= 0.25) { S.autoPhase = 1; showPhase('Criticality Reached'); }
+        break;
+      case 1:
+        S.rod = Math.max(0.12, S.rod - dt * 0.025);
+        if (S.power > 65) { S.autoPhase = 2; showPhase('Full Power Operation'); }
+        break;
+      case 2:
+        S.rod = 0.12 + Math.sin(S.time * 0.25) * 0.02;
+        if (S.autoTimer > 28) { S.autoPhase = 3; S.autoTimer = 0; showPhase('Power Reduction'); }
+        break;
+      case 3:
+        S.rod = Math.min(1, S.rod + dt * 0.055);
+        if (S.rod >= 0.95) { S.autoPhase = 4; S.autoTimer = 0; showPhase('Reactor Shutdown'); }
+        break;
+      case 4:
+        if (S.autoTimer > 5) { S.autoPhase = 0; S.autoTimer = 0; showPhase('Reactor Startup...'); }
+        break;
+    }
+    rodSlider.value = S.rod * 100;
+  }
+
+  const reactivity = Math.max(0, (1 - S.rod) * 1.15 - 0.04);
+  const targetPow = Math.min(100, reactivity * 100);
+  S.power += (targetPow - S.power) * dt * 0.45;
+  S.power = Math.max(0, Math.min(100, S.power));
+
+  S.temp = 280 + S.power * 4.2;
+  S.pressure += ((S.power * 0.069) - S.pressure) * dt * 0.4;
+  S.rpm = S.power > 5 ? S.power * 30 : 0;
+
+  const eff = S.power > 5 ? 0.31 : 0;
+  S.elec = (S.power / 100) * 3200 * eff;
+
+  updateUI();
 }
 
-class GlowParticle {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.vx = (Math.random() - 0.5) * 2;
-    this.vy = (Math.random() - 0.5) * 2;
-    this.life = 1;
-    this.decay = 0.01 + Math.random() * 0.02;
-    this.size = 1 + Math.random() * 2;
-  }
+function updateUI() {
+  const p = S.power, pf = p / 100;
+  const pCol = p > 85 ? '#b03030' : p > 55 ? '#c08030' : '#3a8a6a';
+  document.getElementById('vPow').textContent = (p/100 * 3200).toFixed(0) + ' MWt';
+  document.getElementById('vPow').style.color = pCol;
+  document.getElementById('bPow').style.width = p + '%';
+  document.getElementById('bPow').style.background = pCol;
+
+  const tCol = S.temp > 500 ? '#b03030' : S.temp > 400 ? '#c08030' : '#5a8ab0';
+  document.getElementById('vTemp').textContent = S.temp.toFixed(0) + ' °C';
+  document.getElementById('vTemp').style.color = tCol;
+  document.getElementById('bTemp').style.width = Math.min(100, S.temp/700*100) + '%';
+  document.getElementById('bTemp').style.background = tCol;
+
+  document.getElementById('vPres').textContent = S.pressure.toFixed(2) + ' MPa';
+  document.getElementById('bPres').style.width = Math.min(100, S.pressure/7*100) + '%';
+
+  document.getElementById('vRod').textContent = (S.rod * 100).toFixed(0) + '%';
+  document.getElementById('bRod').style.width = (S.rod * 100) + '%';
+
+  document.getElementById('vRpm').textContent = S.rpm.toFixed(0) + ' rpm';
+  document.getElementById('bRpm').style.width = Math.min(100, S.rpm/30) + '%';
+
+  document.getElementById('vElec').textContent = S.elec.toFixed(0) + ' MWe';
+  document.getElementById('vElec').style.color = S.elec > 10 ? '#2a6a2a' : '#9a9a90';
 }
 
-const glowParticles = [];
-
+// ── Controls ──
 const rodSlider = document.getElementById('rodSlider');
 const scramBtn = document.getElementById('scramBtn');
 const autoBtn = document.getElementById('autoBtn');
 const phaseLabel = document.getElementById('phaseLabel');
 
-rodSlider.addEventListener('input', e => {
-  if (!state.autoMode) {
-    state.rodInsertion = e.target.value / 100;
-  }
-});
+rodSlider.addEventListener('input', e => { if (!S.autoMode) S.rod = e.target.value / 100; });
 
 scramBtn.addEventListener('click', () => {
-  state.scramActive = true;
-  state.autoMode = false;
-  autoBtn.textContent = 'Otomatik Çalıştır';
+  S.scram = true;
+  S.autoMode = false;
+  autoBtn.textContent = 'Auto Run';
   autoBtn.classList.remove('active');
-  showPhase('SCRAM! Acil Kapatma', true);
+  showPhase('SCRAM — Emergency Shutdown', true);
 });
 
 autoBtn.addEventListener('click', () => {
-  state.autoMode = !state.autoMode;
-  if (state.autoMode) {
-    state.autoPhase = 0;
-    state.autoTimer = 0;
-    state.scramActive = false;
-    autoBtn.textContent = 'Durdur';
-    autoBtn.classList.add('active');
-    showPhase('Reaktör Başlatılıyor...');
+  S.autoMode = !S.autoMode;
+  if (S.autoMode) {
+    S.autoPhase = 0; S.autoTimer = 0; S.scram = false;
+    autoBtn.textContent = 'Stop'; autoBtn.classList.add('active');
+    showPhase('Reactor Startup...');
   } else {
-    autoBtn.textContent = 'Otomatik Çalıştır';
-    autoBtn.classList.remove('active');
+    autoBtn.textContent = 'Auto Run'; autoBtn.classList.remove('active');
   }
 });
 
 function showPhase(text, danger = false) {
   phaseLabel.textContent = text;
   phaseLabel.className = 'phase-label visible' + (danger ? ' danger' : '');
-  setTimeout(() => phaseLabel.classList.remove('visible'), 2000);
+  setTimeout(() => phaseLabel.classList.remove('visible'), 2200);
 }
 
-function updatePhysics(dt) {
-  if (state.scramActive) {
-    state.rodInsertion = Math.min(1, state.rodInsertion + dt * 0.8);
-    rodSlider.value = state.rodInsertion * 100;
-    if (state.rodInsertion >= 0.99) state.scramActive = false;
-  }
-
-  if (state.autoMode) {
-    state.autoTimer += dt;
-    switch (state.autoPhase) {
-      case 0:
-        state.rodInsertion = Math.max(0.3, state.rodInsertion - dt * 0.08);
-        if (state.rodInsertion <= 0.3) {
-          state.autoPhase = 1;
-          showPhase('Kritiklik Seviyesine Ulaşıldı');
-        }
-        break;
-      case 1:
-        state.rodInsertion = Math.max(0.15, state.rodInsertion - dt * 0.03);
-        if (state.power > 60) {
-          state.autoPhase = 2;
-          showPhase('Tam Güç Operasyonu');
-        }
-        break;
-      case 2:
-        state.rodInsertion = 0.15 + Math.sin(state.time * 0.3) * 0.03;
-        if (state.autoTimer > 25) {
-          state.autoPhase = 3;
-          showPhase('Güç Azaltılıyor...');
-        }
-        break;
-      case 3:
-        state.rodInsertion = Math.min(1, state.rodInsertion + dt * 0.06);
-        if (state.rodInsertion >= 0.95) {
-          state.autoPhase = 4;
-          state.autoTimer = 0;
-          showPhase('Reaktör Kapatıldı');
-        }
-        break;
-      case 4:
-        if (state.autoTimer > 4) {
-          state.autoPhase = 0;
-          state.autoTimer = 0;
-          showPhase('Reaktör Başlatılıyor...');
-        }
-        break;
-    }
-    rodSlider.value = state.rodInsertion * 100;
-  }
-
-  const reactivity = Math.max(0, (1 - state.rodInsertion) * 1.2 - 0.05);
-  const targetPower = Math.min(100, reactivity * 100);
-  state.power += (targetPower - state.power) * dt * 0.5;
-  state.power = Math.max(0, Math.min(100, state.power));
-
-  const targetTemp = 280 + state.power * 4.2;
-  state.temp += (targetTemp - state.temp) * dt * 0.3;
-
-  const targetPressure = state.power * 0.07;
-  state.pressure += (targetPressure - state.pressure) * dt * 0.4;
-
-  const efficiency = state.power > 5 ? 0.33 : 0;
-  state.electricity = state.power * 10 * efficiency;
-
-  updateUI();
-}
-
-function updateUI() {
-  const p = state.power;
-  const pColor = p > 80 ? '#ff6b6b' : p > 50 ? '#ffb86b' : '#8be9a8';
-  document.getElementById('powerVal').textContent = p.toFixed(1) + '%';
-  document.getElementById('powerVal').style.color = pColor;
-  document.getElementById('powerBar').style.width = p + '%';
-  document.getElementById('powerBar').style.background = pColor;
-
-  const t = state.temp;
-  const tColor = t > 500 ? '#ff6b6b' : t > 400 ? '#ffb86b' : '#79c0ff';
-  document.getElementById('tempVal').textContent = t.toFixed(0) + '°C';
-  document.getElementById('tempVal').style.color = tColor;
-  document.getElementById('tempBar').style.width = Math.min(100, (t / 700) * 100) + '%';
-  document.getElementById('tempBar').style.background = tColor;
-
-  document.getElementById('pressVal').textContent = state.pressure.toFixed(2) + ' MPa';
-  document.getElementById('pressBar').style.width = Math.min(100, (state.pressure / 7) * 100) + '%';
-
-  document.getElementById('rodVal').textContent = (state.rodInsertion * 100).toFixed(0) + '%';
-  document.getElementById('rodBar').style.width = (state.rodInsertion * 100) + '%';
-
-  document.getElementById('elecVal').textContent = state.electricity.toFixed(0) + ' MW';
-}
-
-function drawReactor() {
-  const cx = W * 0.38;
-  const cy = H * 0.48;
-  const scale = Math.min(W, H) / 900;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(scale, scale);
-
-  const coreW = 320;
-  const coreH = 380;
-
-  // Reactor vessel outer shell
-  ctx.strokeStyle = '#3a4050';
-  ctx.lineWidth = 4;
-  ctx.fillStyle = '#15181f';
-  roundRect(ctx, -coreW/2 - 30, -coreH/2 - 30, coreW + 60, coreH + 60, 16);
-  ctx.fill();
-  ctx.stroke();
-
-  // Graphite blocks
-  const blockSize = 36;
-  const cols = Math.floor(coreW / blockSize);
-  const rows = Math.floor(coreH / blockSize);
-  const startX = -coreW/2 + (coreW - cols * blockSize) / 2;
-  const startY = -coreH/2 + (coreH - rows * blockSize) / 2;
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const bx = startX + c * blockSize;
-      const by = startY + r * blockSize;
-      const glow = state.power / 100;
-      const baseR = 50 + glow * 20;
-      const baseG = 55 + glow * 10;
-      const baseB = 65 - glow * 10;
-      const noise = Math.sin(r * 3.7 + c * 2.1 + state.time) * 5;
-      ctx.fillStyle = `rgb(${baseR + noise},${baseG + noise},${baseB})`;
-      ctx.fillRect(bx + 1, by + 1, blockSize - 2, blockSize - 2);
-    }
-  }
-
-  // Fuel channels (pressure tubes)
-  const channels = [
-    { x: -100, y: 0 },
-    { x: -50, y: 0 },
-    { x: 0, y: 0 },
-    { x: 50, y: 0 },
-    { x: 100, y: 0 },
-  ];
-
-  channels.forEach((ch, i) => {
-    const channelH = coreH - 40;
-    const channelTop = -channelH / 2;
-
-    // Pressure tube
-    ctx.fillStyle = '#2a2a35';
-    ctx.fillRect(ch.x - 8, channelTop, 16, channelH);
-
-    // Fuel glow
-    const glowIntensity = state.power / 100;
-    if (glowIntensity > 0.05) {
-      const grad = ctx.createRadialGradient(ch.x, ch.y, 0, ch.x, ch.y, 30 + glowIntensity * 40);
-      grad.addColorStop(0, `rgba(255,180,80,${glowIntensity * 0.4})`);
-      grad.addColorStop(0.5, `rgba(255,100,40,${glowIntensity * 0.15})`);
-      grad.addColorStop(1, 'rgba(255,80,40,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(ch.x - 50, channelTop, 100, channelH);
-    }
-
-    // Fuel pellets
-    const pelletCount = 12;
-    for (let p = 0; p < pelletCount; p++) {
-      const py = channelTop + 15 + p * ((channelH - 30) / pelletCount);
-      const brightness = 0.4 + glowIntensity * 0.6;
-      const r = Math.floor(200 * brightness + 55);
-      const g = Math.floor(140 * brightness + 40);
-      const b = Math.floor(50 * brightness);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fillRect(ch.x - 4, py, 8, (channelH - 30) / pelletCount - 3);
-    }
-
-    // Water flow in channel
-    const waterSpeed = 0.5 + state.power * 0.03;
-    for (let w = 0; w < 8; w++) {
-      const wy = channelTop + ((state.time * waterSpeed * 50 + w * channelH / 8) % channelH);
-      const steamTransition = Math.max(0, (wy - channelTop) / channelH);
-      const isSteam = steamTransition > 0.5 && state.power > 10;
-
-      if (isSteam) {
-        ctx.fillStyle = `rgba(200,220,240,${0.15 + state.power * 0.003})`;
-        ctx.beginPath();
-        ctx.arc(ch.x + Math.sin(state.time * 3 + w) * 3, wy, 3, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.fillStyle = `rgba(60,140,255,${0.3 + state.power * 0.003})`;
-        ctx.beginPath();
-        ctx.arc(ch.x, wy, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  });
-
-  // Control rods
-  const controlRods = [-75, -25, 25, 75];
-  const rodFullLength = coreH - 20;
-  const rodInserted = rodFullLength * state.rodInsertion;
-
-  controlRods.forEach((rx, i) => {
-    const rodTop = -coreH/2 - 30;
-
-    // Rod guide tube
-    ctx.fillStyle = '#252530';
-    ctx.fillRect(rx - 5, rodTop - 60, 10, 60);
-
-    // Rod actuator
-    ctx.fillStyle = '#404555';
-    ctx.fillRect(rx - 8, rodTop - 70 + (1 - state.rodInsertion) * 50, 16, 20);
-
-    // Control rod
-    const rodStart = rodTop;
-    const gradient = ctx.createLinearGradient(rx - 4, 0, rx + 4, 0);
-    gradient.addColorStop(0, '#2a2d35');
-    gradient.addColorStop(0.5, '#454a55');
-    gradient.addColorStop(1, '#2a2d35');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(rx - 4, rodStart, 8, rodInserted);
-
-    // Rod tip (boron carbide absorber)
-    if (rodInserted > 5) {
-      ctx.fillStyle = '#1a1a22';
-      ctx.fillRect(rx - 5, rodStart + rodInserted - 8, 10, 8);
-    }
-  });
-
-  // Core glow overlay
-  if (state.power > 5) {
-    const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreW * 0.7);
-    const intensity = state.power / 100;
-    if (state.power > 80) {
-      coreGlow.addColorStop(0, `rgba(255,100,60,${intensity * 0.12})`);
-      coreGlow.addColorStop(1, 'rgba(255,50,30,0)');
-    } else {
-      coreGlow.addColorStop(0, `rgba(255,180,100,${intensity * 0.08})`);
-      coreGlow.addColorStop(1, 'rgba(255,150,80,0)');
-    }
-    ctx.fillStyle = coreGlow;
-    ctx.fillRect(-coreW/2 - 30, -coreH/2 - 30, coreW + 60, coreH + 60);
-  }
-
-  // Fission particles
-  if (state.power > 10 && Math.random() < state.power * 0.005) {
-    const ch = channels[Math.floor(Math.random() * channels.length)];
-    glowParticles.push(new GlowParticle(ch.x, (Math.random() - 0.5) * coreH * 0.6));
-  }
-
-  glowParticles.forEach((p, idx) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= p.decay;
-    if (p.life <= 0) { glowParticles.splice(idx, 1); return; }
-    ctx.fillStyle = `rgba(255,200,100,${p.life * 0.6})`;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Labels
-  ctx.fillStyle = '#606a7a';
-  ctx.font = '11px "Segoe UI", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('GRAFİT ÇEKİRDEK', 0, coreH/2 + 50);
-
-  ctx.fillStyle = '#806030';
-  ctx.fillText('YAKIT KANALLARI', 0, -coreH/2 - 45);
-
-  controlRods.forEach((rx, i) => {
-    if (i === 0) {
-      ctx.fillStyle = '#505a6a';
-      ctx.fillText('KONTROL', rx, -coreH/2 - 90);
-      ctx.fillText('ÇUBUKLARI', rx, -coreH/2 - 78);
-    }
-  });
-
-  ctx.restore();
-
-  // Steam pipes and turbine
-  drawSteamSystem(cx, cy, scale);
-}
-
-function drawSteamSystem(cx, cy, scale) {
-  const pipeStartX = cx + 180 * scale;
-  const pipeStartY = cy - 120 * scale;
-  const turbineX = W * 0.72;
-  const turbineY = H * 0.35;
-  const turbineR = 50 * scale;
-
-  // Steam pipe from reactor to turbine
-  ctx.strokeStyle = '#2a3040';
-  ctx.lineWidth = 12 * scale;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(pipeStartX, pipeStartY);
-  ctx.quadraticCurveTo(pipeStartX + 80 * scale, pipeStartY - 50 * scale, turbineX - turbineR - 20, turbineY - 30);
-  ctx.stroke();
-
-  // Steam label
-  if (state.power > 10) {
-    ctx.fillStyle = `rgba(200,220,240,${0.3 + state.power * 0.004})`;
-    ctx.font = `${10 * scale}px "Segoe UI", sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('BUHAR →', (pipeStartX + turbineX) / 2, pipeStartY - 50 * scale);
-  }
-
-  // Steam particles along pipe
-  if (state.power > 5) {
-    for (let i = 0; i < 15; i++) {
-      const t = ((state.time * 0.3 + i * 0.07) % 1);
-      const px = pipeStartX + (turbineX - turbineR - 20 - pipeStartX) * t;
-      const py = pipeStartY + (turbineY - 30 - pipeStartY) * t - Math.sin(t * Math.PI) * 40 * scale;
-      const alpha = state.power / 100 * 0.4 * Math.sin(t * Math.PI);
-      ctx.fillStyle = `rgba(200,220,240,${alpha})`;
-      ctx.beginPath();
-      ctx.arc(px + Math.sin(state.time * 2 + i) * 5, py, 3 * scale, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Turbine
-  const turbineSpeed = state.power * 0.08;
-  turbineAngle.value += turbineSpeed * 0.016;
-
-  ctx.save();
-  ctx.translate(turbineX, turbineY);
-
-  // Turbine housing
-  ctx.fillStyle = '#1a2030';
-  ctx.strokeStyle = '#2a3545';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(0, 0, turbineR + 10, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Turbine blades
-  const bladeCount = 8;
-  for (let b = 0; b < bladeCount; b++) {
-    const angle = turbineAngle.value + (b * Math.PI * 2 / bladeCount);
-    const intensity = Math.min(1, state.power / 50);
-    const gr = 80 + intensity * 40;
-    const gg = 160 + intensity * 40;
-    const gb = 80 + intensity * 40;
-    ctx.strokeStyle = `rgba(${gr},${gg},${gb},${0.5 + intensity * 0.4})`;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(Math.cos(angle) * turbineR, Math.sin(angle) * turbineR);
-    ctx.stroke();
-
-    // Blade tips
-    ctx.fillStyle = `rgba(${gr},${gg},${gb},${0.3 + intensity * 0.3})`;
-    ctx.beginPath();
-    ctx.arc(Math.cos(angle) * turbineR, Math.sin(angle) * turbineR, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Center hub
-  ctx.fillStyle = '#3a4555';
-  ctx.beginPath();
-  ctx.arc(0, 0, 8, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#606a7a';
-  ctx.font = '11px "Segoe UI", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('TÜRBİN', 0, turbineR + 28);
-
-  ctx.restore();
-
-  // Generator
-  const genX = turbineX + 100 * scale;
-  const genY = turbineY + 90 * scale;
-
-  // Shaft from turbine to generator
-  ctx.strokeStyle = '#3a4555';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(turbineX, turbineY + turbineR + 10);
-  ctx.lineTo(genX, genY - 25);
-  ctx.stroke();
-
-  // Generator body
-  ctx.fillStyle = '#1a2530';
-  ctx.strokeStyle = '#2a4040';
-  ctx.lineWidth = 2;
-  roundRect(ctx, genX - 35, genY - 25, 70, 50, 8);
-  ctx.fill();
-  ctx.stroke();
-
-  // Generator electricity symbol
-  if (state.electricity > 0) {
-    const elecGlow = ctx.createRadialGradient(genX, genY, 0, genX, genY, 40);
-    elecGlow.addColorStop(0, `rgba(107,207,107,${state.power * 0.003})`);
-    elecGlow.addColorStop(1, 'rgba(107,207,107,0)');
-    ctx.fillStyle = elecGlow;
-    ctx.fillRect(genX - 40, genY - 40, 80, 80);
-
-    ctx.fillStyle = `rgba(107,207,107,${0.5 + state.power * 0.005})`;
-    ctx.font = 'bold 16px "Segoe UI", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('⚡', genX, genY + 5);
-  }
-
-  ctx.fillStyle = '#606a7a';
-  ctx.font = '11px "Segoe UI", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('JENERATÖR', genX, genY + 40);
-  ctx.fillText(state.electricity.toFixed(0) + ' MW', genX, genY + 54);
-
-  // Return pipe (water)
-  const returnPipeY = cy + 140 * scale;
-  ctx.strokeStyle = '#1a2a40';
-  ctx.lineWidth = 10 * scale;
-  ctx.beginPath();
-  ctx.moveTo(turbineX + turbineR + 20, turbineY + 30);
-  ctx.quadraticCurveTo(turbineX + 60 * scale, returnPipeY, pipeStartX, returnPipeY);
-  ctx.lineTo(pipeStartX - 30 * scale, returnPipeY);
-  ctx.stroke();
-
-  // Return water label
-  if (state.power > 10) {
-    ctx.fillStyle = 'rgba(60,140,255,0.4)';
-    ctx.font = `${10 * scale}px "Segoe UI", sans-serif`;
-    ctx.fillText('← SU (Yoğuşma)', (pipeStartX + turbineX) / 2, returnPipeY + 20 * scale);
-  }
-
-  // Water particles in return pipe
-  if (state.power > 5) {
-    for (let i = 0; i < 10; i++) {
-      const t = ((state.time * 0.2 + i * 0.1) % 1);
-      const px = turbineX + turbineR + 20 - (turbineX + turbineR + 20 - pipeStartX + 30 * scale) * t;
-      const py = returnPipeY + Math.sin(t * Math.PI) * -20 * scale * (1 - t);
-      ctx.fillStyle = `rgba(60,140,255,${0.3 * Math.sin(t * Math.PI)})`;
-      ctx.beginPath();
-      ctx.arc(px, py, 2.5 * scale, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Condenser
-  const condX = turbineX + 80 * scale;
-  const condY = returnPipeY - 20 * scale;
-  ctx.fillStyle = '#151a25';
-  ctx.strokeStyle = '#253040';
-  ctx.lineWidth = 2;
-  roundRect(ctx, condX - 25, condY - 15, 50, 30, 6);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#506070';
-  ctx.font = '9px "Segoe UI", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('YOĞUŞTURUCU', condX, condY + 28);
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-function drawBackground() {
-  ctx.fillStyle = '#0a0c10';
-  ctx.fillRect(0, 0, W, H);
-
-  // Subtle grid
-  ctx.strokeStyle = 'rgba(40,50,65,0.15)';
-  ctx.lineWidth = 1;
-  const gridSize = 50;
-  for (let x = 0; x < W; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
-  }
-  for (let y = 0; y < H; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
-}
-
-let lastTime = 0;
-function animate(timestamp) {
-  const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
-  lastTime = timestamp;
-  state.time += dt;
+// ── Main Loop ──
+let last = 0;
+function frame(t) {
+  const dt = Math.min(0.05, (t - last) / 1000);
+  last = t;
+  S.time += dt;
 
   updatePhysics(dt);
-  drawBackground();
-  drawReactor();
 
-  requestAnimationFrame(animate);
+  drawBG();
+  drawPipeLines();
+  drawFlowParticles();
+  drawFlowArrows();
+  drawPipeLabels();
+  drawCore();
+  drawDrumSep();
+  drawMCP();
+  drawShaft();
+  drawHPTurbine();
+  drawLPTurbine();
+  drawGenerator();
+  drawCondenser();
+  drawFWPump();
+  drawCoolingTower();
+
+  requestAnimationFrame(frame);
 }
-
-requestAnimationFrame(animate);
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
