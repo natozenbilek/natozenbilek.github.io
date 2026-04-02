@@ -30,7 +30,7 @@ canvas{display:block}
 .ctrl label{font-size:.86rem;color:#4a4a45;white-space:nowrap}
 .ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:90px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:5px 10px;border-radius:6px;font-size:.84rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;text-align:center}
+.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:5px 10px;border-radius:6px;font-size:.84rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;text-align:center;min-width:76px}
 .b.rs{background:#e8eef8;border-color:#8aaac8;color:#2a4a6a}
 .b.rs:hover{background:#d8e4f2}
 .b:hover{background:#e8e6de}
@@ -108,7 +108,7 @@ canvas{display:block}
   <button class="b" id="btnMCP">MCP Trip</button>
   <button class="b" id="btnPipe">Pipe Rupture</button>
   <div class="sep"></div>
-  <button class="b" id="btnSound">Sound: OFF</button>
+  <button class="b" id="btnSound" style="min-width:88px">Sound: OFF</button>
   <div class="sep"></div>
   <button class="b rs" id="btnReset">Reset</button>
 </div>
@@ -126,8 +126,11 @@ function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight;
   const top = 50, bot = 58;
-  sc = Math.min((W - 36) / 1080, (H - top - bot) / 700);
-  ox = (W - 1080 * sc) / 2;
+  const lPad = 210, rPad = 240;
+  const avail = W - lPad - rPad;
+  sc = Math.min(avail / 1080, (H - top - bot) / 700);
+  if (sc * 1080 > W * 0.85) sc = W * 0.85 / 1080;
+  ox = lPad + (avail - 1080 * sc) / 2;
   oy = top + ((H - top - bot) - 700 * sc) / 2;
 }
 resize();
@@ -136,8 +139,22 @@ addEventListener('resize', resize);
 function tx(x) { return ox + x * sc; }
 function ty(y) { return oy + y * sc; }
 function ts(v) { return v * sc; }
-function wx(px) { return (px - ox) / sc; }
-function wy(py) { return (py - oy) / sc; }
+const zoom = { cx: 540, cy: 350, level: 1, tCx: 540, tCy: 350, tLevel: 1, active: false };
+
+function wx(px) {
+  if (zoom.level > 1.02) {
+    const zx = tx(zoom.cx);
+    px = (px - zx) / zoom.level + zx;
+  }
+  return (px - ox) / sc;
+}
+function wy(py) {
+  if (zoom.level > 1.02) {
+    const zy = ty(zoom.cy);
+    py = (py - zy) / zoom.level + zy;
+  }
+  return (py - oy) / sc;
+}
 
 // ═══════════════ TOOLTIP SYSTEM ═══════════════
 const zones = [
@@ -186,11 +203,11 @@ cv.addEventListener('mousemove', e => {
     if (top < 50) top = 50;
     tipEl.style.left = left + 'px';
     tipEl.style.top = top + 'px';
-    cv.style.cursor = 'help';
+    cv.style.cursor = zoom.active ? 'zoom-out' : 'zoom-in';
   } else {
     tipEl.classList.remove('v');
     tipActive = '';
-    cv.style.cursor = 'default';
+    cv.style.cursor = zoom.active ? 'zoom-out' : 'default';
   }
 });
 
@@ -198,6 +215,38 @@ cv.addEventListener('mouseleave', () => {
   tipEl.classList.remove('v');
   tipActive = '';
 });
+
+// ═══════════════ ZOOM SYSTEM ═══════════════
+cv.addEventListener('click', e => {
+  const mx = wx(e.clientX), my = wy(e.clientY);
+  if (zoom.active) {
+    zoom.tLevel = 1; zoom.tCx = 540; zoom.tCy = 350; zoom.active = false;
+    return;
+  }
+  for (const z of zones) {
+    if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
+      zoom.tCx = z.x + z.w / 2;
+      zoom.tCy = z.y + z.h / 2;
+      zoom.tLevel = Math.min(3, 350 / Math.max(z.w, z.h));
+      zoom.active = true;
+      break;
+    }
+  }
+});
+
+function updateZoom() {
+  zoom.cx += (zoom.tCx - zoom.cx) * 0.08;
+  zoom.cy += (zoom.tCy - zoom.cy) * 0.08;
+  zoom.level += (zoom.tLevel - zoom.level) * 0.08;
+}
+
+function applyZoom() {
+  if (Math.abs(zoom.level - 1) < 0.01) return;
+  const zx = tx(zoom.cx), zy = ty(zoom.cy);
+  cx.translate(zx, zy);
+  cx.scale(zoom.level, zoom.level);
+  cx.translate(-zx, -zy);
+}
 
 // ═══════════════ STATE ═══════════════
 const S = {
@@ -537,8 +586,8 @@ function drawCore() {
   }
 
   label('REACTOR CORE',ccx,ccy+hh+16,10,'#4a4a45',true);
-  label('Graphite-Moderated · 1661 Pressure Channels',ccx,ccy+hh+28,7,'#808078');
-  label('FLOW CONTROL\nVALVES',160,548,7,'#6a6a62');
+  label('Graphite-Moderated · 1661 Channels',ccx,ccy+hh+28,8,'#707068');
+  label('FLOW CONTROL\nVALVES',160,550,8,'#5a5a55',true);
 }
 
 // ═══════════════ DRUM SEPARATOR ═══════════════
@@ -723,12 +772,15 @@ function drawCoolingTower() {
   cx.closePath();cx.fill();cx.stroke();
 
   const pf=S.power/100;
-  if(pf>.08) for(let p=0;p<4;p++){
-    const px=ctcx+Math.sin(S.time*.7+p*1.4)*6;
-    const py=top-4-p*7-(S.time*12+p*10)%35;
-    const a=pf*.18*(1-p*.2);
-    if(a>0){cx.fillStyle=`rgba(155,165,175,${a})`;
-    cx.beginPath();cx.arc(tx(px),ty(py),ts(3.5+p*1.2),0,Math.PI*2);cx.fill();}
+  if(pf>.05) for(let p=0;p<8;p++){
+    const px=ctcx+Math.sin(S.time*.6+p*1.1)*7;
+    const py=top-5-p*6-(S.time*10+p*8)%50;
+    const a=pf*.35*(1-p*.1);
+    if(a>0){
+      const r=4+p*1.5+Math.sin(S.time*.8+p)*1.5;
+      cx.fillStyle=`rgba(180,190,200,${Math.min(.4,a)})`;
+      cx.beginPath();cx.arc(tx(px),ty(py),ts(r),0,Math.PI*2);cx.fill();
+    }
   }
   label('COOLING\nTOWER',ctcx,bot+10,9,'#5a5a52',true);
 }
@@ -1057,8 +1109,10 @@ let last=0;
 function frame(t){
   const dt=Math.min(.05,(t-last)/1000);last=t;S.time+=dt;
   updatePhysics(dt);
+  updateZoom();
 
   cx.save();
+  applyZoom();
   if(S.shake>0){
     cx.translate((Math.random()-.5)*S.shake*sc,(Math.random()-.5)*S.shake*sc);
     S.shake*=.92;
@@ -1085,6 +1139,12 @@ function frame(t){
   drawGraph();
 
   cx.restore();
+
+  if(zoom.active){
+    cx.fillStyle='rgba(0,0,0,.5)';cx.font='bold 13px "Segoe UI",sans-serif';
+    cx.textAlign='center';cx.fillText('Click anywhere to zoom out',W/2,H-70);
+  }
+
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
