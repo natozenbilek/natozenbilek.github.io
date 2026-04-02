@@ -84,89 +84,64 @@ canvas{display:block}
 /* ── Metric group divider ── */
 .mg{border-top:1px solid rgba(210,208,199,.45);margin:4px 0 10px}
 
-/* ── Status bar ── */
-#statusBar{position:fixed;top:48px;left:0;right:0;height:3px;z-index:25;background:#2a8a2a;transition:background .6s}
-#statusBar.warn{background:#aa8820}
-#statusBar.crit{background:#cc4020}
-@keyframes sb-blink{0%,49%{background:#cc1010}50%,100%{background:#3a0000}}
-#statusBar.emerg{animation:sb-blink .35s linear infinite}
-
-/* ── Control bar (dark) ── */
+/* ── Control bar ── */
 .ctrl{
   position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
-  display:flex;gap:10px;align-items:stretch;
+  display:flex;gap:8px;align-items:stretch;
   z-index:20;
-  background:rgba(16,16,14,.97);
+  background:var(--surface);
   backdrop-filter:blur(16px);
-  border:1px solid #3c3c3a;
+  border:1px solid var(--border);
   border-radius:16px;
-  padding:10px 16px;
-  box-shadow:0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.025);
+  padding:10px 14px;
+  box-shadow:var(--shadow-md);
   white-space:nowrap;max-width:96vw;overflow-x:auto;
 }
-.cg{display:flex;flex-direction:column;gap:5px;align-items:stretch}
-.cg-lbl{font-size:.57rem;text-transform:uppercase;letter-spacing:1.7px;color:#4a4a48;font-weight:700;line-height:1;text-align:center;padding-bottom:4px;border-bottom:1px solid #282826}
+.cg{display:flex;flex-direction:column;gap:4px;align-items:center}
+.cg-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-3);font-weight:700;line-height:1}
 .cg-row{display:flex;gap:5px;align-items:center}
-.csep{width:1px;background:#282826;align-self:stretch;margin:0 2px}
 .ctrl input[type=range]{
   -webkit-appearance:none;appearance:none;
-  width:82px;height:3px;
-  background:#363634;
+  width:95px;height:3px;
+  background:rgba(210,208,199,.8);
   border-radius:4px;outline:none;cursor:pointer;
 }
 .ctrl input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;
-  width:14px;height:14px;border-radius:50%;
+  width:15px;height:15px;border-radius:50%;
   background:#5a7a9a;
   cursor:pointer;
-  border:2px solid #101010;
-  box-shadow:0 1px 5px rgba(0,0,0,.55),0 0 0 1px rgba(90,122,154,.22);
+  border:2.5px solid #fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.22),0 0 0 1px rgba(90,122,154,.18);
   transition:transform .15s;
 }
-.ctrl input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.12)}
+.ctrl input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.1)}
 
-/* ── Buttons (dark panel) ── */
+/* ── Buttons ── */
 .b{
-  background:#242422;
-  border:1px solid #404040;
-  color:#acacA4;
+  background:rgba(240,239,232,.85);
+  border:1px solid rgba(210,208,199,.85);
+  color:var(--text-1);
   padding:6px 11px;
-  border-radius:8px;
+  border-radius:9px;
   font-size:.81rem;
   cursor:pointer;
-  transition:background .15s,border-color .15s,color .15s,box-shadow .15s;
+  transition:background .15s,border-color .15s,transform .12s,box-shadow .15s;
   font-family:inherit;font-weight:600;
-  text-align:center;min-width:76px;
+  text-align:center;min-width:78px;
   letter-spacing:.05px;
   line-height:1.2;
 }
-.b:hover{background:#323230;border-color:#545450;color:#ccccc4}
-.b:active{opacity:.85}
-.b.rs{background:#0c1a2c;border-color:#2a4a7a;color:#5282b2}
-.b.rs:hover{background:#12203a}
-.b.on{background:#0e1e0e;border-color:#328832;color:#50be50;box-shadow:0 0 8px rgba(50,136,50,.18)}
-.b.sc{background:#200a0a;border-color:#882424;color:#c84040;font-weight:700;letter-spacing:.5px}
-.b.sc:hover{background:#2c0e0e}
-.b.ch{background:#201608;border-color:#745215;color:#b48020}
-.b.ch:hover{background:#281e0c}
-.b.b-scram{padding:9px 18px;font-size:.93rem;font-weight:700;letter-spacing:1.5px;border-width:2px;border-color:#982222;min-width:88px;box-shadow:0 0 10px rgba(150,34,34,.12)}
+.b:hover{background:rgba(232,230,222,.95);border-color:rgba(192,190,181,.9);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.09)}
+.b:active{transform:translateY(0);box-shadow:none}
 
-/* ── LED indicators ── */
-.led-wrap{display:flex;align-items:center;gap:5px}
-.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#161614;box-shadow:inset 0 1px 2px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);flex-shrink:0;transition:background .2s,box-shadow .2s}
-.led.g{background:#26aa26;box-shadow:0 0 6px #26aa26,0 0 14px rgba(38,170,38,.2)}
-.led.r{background:#cc2626;box-shadow:0 0 6px #cc2626,0 0 14px rgba(200,38,38,.2)}
-.led.o{background:#dd7414;box-shadow:0 0 6px #dd7414,0 0 14px rgba(220,116,20,.2)}
-@keyframes led-blink{50%{opacity:.06}}
-.led.blink{animation:led-blink .45s steps(1) infinite}
-
-/* ── Rod % display ── */
-.rod-pct{font-size:.78rem;font-weight:700;color:#5c8cae;min-width:56px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
-
-/* ── Speed buttons ── */
-.spd-lbl{font-size:.7rem;color:#484846;white-space:nowrap}
-.b.spd{min-width:36px;padding:4px 7px;font-size:.76rem}
-.b.spd.active{background:#0a1c2e;border-color:#346890;color:#66a8cc}
+.b.rs{background:rgba(232,238,250,.9);border-color:#8aaac8;color:#1e3e60}
+.b.rs:hover{background:rgba(216,228,244,.97)}
+.b.on{background:rgba(230,246,230,.95);border-color:#5aaa5a;color:#1a521a;box-shadow:0 0 0 2px rgba(90,170,90,.18)}
+.b.sc{background:rgba(252,232,232,.9);border-color:#cc7878;color:#881818;font-weight:700;letter-spacing:.4px}
+.b.sc:hover{background:rgba(248,210,210,.97)}
+.b.ch{background:rgba(255,244,218,.9);border-color:#c8a040;color:#6a4208}
+.b.ch:hover{background:rgba(255,234,190,.97)}
 
 .sep{width:1px;background:rgba(210,208,199,.6);align-self:stretch;margin:0 1px;border-radius:1px}
 
@@ -185,7 +160,6 @@ canvas{display:block}
   <h1>RBMK-1000 Reactor Simulation</h1>
   <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
 </div>
-<div id="statusBar"></div>
 
 
 <div class="p info">
@@ -220,63 +194,37 @@ canvas{display:block}
 </div>
 
 <div class="ctrl">
-
-  <!-- OPERATIONS -->
   <div class="cg">
-    <span class="cg-lbl">Operations</span>
+    <span class="cg-lbl">Control Rods</span>
     <div class="cg-row">
-      <span style="font-size:.75rem;color:#5a5a58">Rods</span>
       <input type="range" id="sRod" min="0" max="100" value="100">
-      <span id="rodVal" class="rod-pct">100% ins.</span>
-    </div>
-    <div class="cg-row">
-      <div class="led-wrap"><span class="led" id="ledAuto"></span><button class="b" id="btnAuto">Auto Run</button></div>
-      <div class="led-wrap"><span class="led" id="ledMCP"></span><button class="b" id="btnMCP">MCP Trip</button></div>
-      <div class="led-wrap"><span class="led" id="ledPipe"></span><button class="b" id="btnPipe">Pipe Rupture</button></div>
+      <button class="b sc" id="btnScram">SCRAM</button>
     </div>
   </div>
-
-  <div class="csep"></div>
-
-  <!-- SCENARIOS -->
+  <div class="sep"></div>
   <div class="cg">
     <span class="cg-lbl">Scenarios</span>
     <div class="cg-row">
-      <div class="led-wrap"><span class="led" id="ledCh"></span><button class="b ch" id="btnChernobyl">Chernobyl</button></div>
+      <button class="b" id="btnAuto">Auto Run</button>
+      <button class="b ch" id="btnChernobyl">Chernobyl</button>
     </div>
   </div>
-
-  <div class="csep"></div>
-
-  <!-- EMERGENCY -->
+  <div class="sep"></div>
   <div class="cg">
-    <span class="cg-lbl">Emergency</span>
+    <span class="cg-lbl">Events</span>
     <div class="cg-row">
-      <div class="led-wrap">
-        <span class="led" id="ledScram"></span>
-        <button class="b sc b-scram" id="btnScram">SCRAM</button>
-      </div>
+      <button class="b" id="btnMCP">MCP Trip</button>
+      <button class="b" id="btnPipe">Pipe Rupture</button>
     </div>
   </div>
-
-  <div class="csep"></div>
-
-  <!-- SETTINGS -->
+  <div class="sep"></div>
   <div class="cg">
-    <span class="cg-lbl">Settings</span>
-    <div class="cg-row">
-      <span class="spd-lbl">Speed:</span>
-      <button class="b spd" data-s="0.5">0.5×</button>
-      <button class="b spd active" data-s="1">1×</button>
-      <button class="b spd" data-s="2">2×</button>
-      <button class="b spd" data-s="4">4×</button>
-    </div>
+    <span class="cg-lbl">System</span>
     <div class="cg-row">
       <button class="b" id="btnSound" style="min-width:90px">Sound: OFF</button>
       <button class="b rs" id="btnReset">Reset</button>
     </div>
   </div>
-
 </div>
 
 <div class="ph" id="phase"></div>
@@ -1251,42 +1199,13 @@ function updateUI() {
   }else{
     dot.className='sdot off';
   }
-
-  // ── Rod % display ──
-  el('rodVal').textContent=Math.round(S.rod*100)+'% ins.';
-
-  // ── LED indicators ──
-  setLed('ledScram', S.scram ? 'r blink' : (S.power>100 ? 'r' : ''));
-  setLed('ledAuto',  S.autoMode ? 'g' : '');
-  setLed('ledMCP',   S.mcpTrip  ? 'r' : '');
-  setLed('ledPipe',  S.pipeRupture ? 'o' : '');
-  setLed('ledCh',    S.chernobyl ? (S.explosion ? 'r blink' : 'o') : '');
-
-  // ── Top status bar ──
-  const sb=el('statusBar');
-  if(S.explosion||S.power>105) sb.className='emerg';
-  else if(S.power>80)          sb.className='crit';
-  else if(S.power>40)          sb.className='warn';
-  else                         sb.className='';
 }
 
 function el(id){return document.getElementById(id);}
-function setLed(id,cls){const l=el(id);if(l)l.className='led'+(cls?' '+cls:'');}
 
 // ═══════════════ CONTROLS ═══════════════
 const sRod=el('sRod');
-sRod.addEventListener('input',e=>{
-  if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;
-  el('rodVal').textContent=Math.round(e.target.value)+'% ins.';
-});
-
-document.querySelectorAll('.b.spd').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    simSpeed=parseFloat(btn.dataset.s);
-    document.querySelectorAll('.b.spd').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
+sRod.addEventListener('input',e=>{if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;});
 
 el('btnScram').addEventListener('click',()=>{
   if(S.chernobyl)return;
@@ -1369,9 +1288,8 @@ function showP(text,danger){
 
 // ═══════════════ MAIN LOOP ═══════════════
 let last=0;
-let simSpeed=1;
 function frame(t){
-  const dt=Math.min(.05,(t-last)/1000)*simSpeed;last=t;S.time+=dt;
+  const dt=Math.min(.05,(t-last)/1000);last=t;S.time+=dt;
   updatePhysics(dt);
   updateZoom();
 
