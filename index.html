@@ -123,17 +123,81 @@
 
     /* ════════ FOOTER ════════ */
     footer.site-footer {
-      max-width: var(--max); margin: 0 auto; padding: 1.5rem var(--pad-x) 2.5rem;
+      max-width: var(--max); margin: 0 auto;
+      padding: 2.5rem var(--pad-x) 2.8rem;
       position: relative;
     }
     footer.site-footer::before {
+      content: '§'; position: absolute; top: 0;
+      left: 50%; transform: translateX(-50%) translateY(-50%);
+      font-size: 0.9rem; color: var(--rule);
+      background: var(--paper); padding: 0 0.8rem;
+      z-index: 1;
+    }
+    footer.site-footer::after {
       content: ''; position: absolute; top: 0;
       left: calc(-50vw + 50%); right: calc(-50vw + 50%);
       height: 1px; background: var(--rule);
     }
-    .footer-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem; }
-    .footer-top span { font-size: 0.8rem; color: var(--light); }
-    .footer-note { font-size: 0.82rem; color: var(--light); font-style: italic; line-height: 1.5; max-width: 55ch; }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1.5rem 2.5rem;
+      align-items: start;
+    }
+
+    .footer-nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .footer-nav-title {
+      font-size: 0.78rem; font-variant: small-caps; font-weight: 700;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.25rem;
+    }
+    .footer-nav a {
+      font-size: 0.82rem; color: var(--light); text-decoration: none;
+      transition: color 0.2s; line-height: 1.6;
+    }
+    .footer-nav a:hover { color: var(--ink); }
+
+    .footer-center { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+    .footer-monogram {
+      font-size: 1.15rem; font-weight: 700; letter-spacing: 0.12em;
+      color: var(--rule); user-select: none;
+    }
+    .footer-contact { display: flex; gap: 1rem; }
+    .footer-contact a {
+      font-size: 0.8rem; color: var(--light); text-decoration: none;
+      border-bottom: 0.5px solid transparent; transition: color 0.2s, border-color 0.2s;
+    }
+    .footer-contact a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .footer-meta { text-align: right; display: flex; flex-direction: column; gap: 0.3rem; }
+    .footer-meta span { font-size: 0.8rem; color: var(--light); line-height: 1.6; }
+
+    .footer-bottom {
+      margin-top: 1.5rem; padding-top: 1rem;
+      border-top: 0.5px solid var(--rule);
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .footer-note { font-size: 0.78rem; color: var(--light); font-style: italic; line-height: 1.5; }
+    .back-to-top {
+      font-size: 0.78rem; color: var(--light); text-decoration: none;
+      font-variant: small-caps; letter-spacing: 0.04em; font-weight: 600;
+      transition: color 0.2s;
+    }
+    .back-to-top:hover { color: var(--ink); }
+
+    @media (max-width: 560px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+        text-align: center;
+      }
+      .footer-meta { text-align: center; }
+      .footer-nav { align-items: center; }
+      .footer-center { order: -1; }
+      .footer-contact { justify-content: center; }
+      .footer-bottom { flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+    }
 
     /* ════════ LOAD ANIM ════════ */
     @keyframes fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -158,6 +222,8 @@
       body { background: #fff; }
       main { max-width: none; }
       .hero-canvas { display: none; }
+      .back-to-top { display: none; }
+      footer.site-footer::before { content: none; }
     }
   </style>
 </head>
@@ -266,13 +332,31 @@
 </main>
 
 <footer class="site-footer">
-  <div class="footer-top">
-    <span>Last updated March 2026</span>
-    <span>Ankara, Turkey</span>
+  <div class="footer-grid">
+    <nav class="footer-nav">
+      <span class="footer-nav-title">navigation</span>
+      <a href="#about">About</a>
+      <a href="#education">Education</a>
+      <a href="#experience">Experience</a>
+      <a href="#projects">Projects</a>
+    </nav>
+    <div class="footer-center">
+      <span class="footer-monogram">N · A · T</span>
+      <div class="footer-contact">
+        <a href="mailto:natozenbilek@gmail.com">Email</a>
+        <a href="https://linkedin.com/in/neziharhantozenbilek" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://open.spotify.com/user/31ysr5yumx5wfhltp375xdmzi2na" rel="noopener noreferrer">Spotify</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <span>Ankara, Turkey</span>
+      <span>Last updated March 2026</span>
+    </div>
   </div>
-  <p class="footer-note">
-    I made this page myself. Plain HTML, CSS, and a little JavaScript.
-  </p>
+  <div class="footer-bottom">
+    <p class="footer-note">Plain HTML, CSS, and a little JavaScript — no frameworks.</p>
+    <a href="#" class="back-to-top">↑ back to top</a>
+  </div>
 </footer>
 
 <script>
