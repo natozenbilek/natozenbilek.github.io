@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBMK Reaktörü - İnteraktif Animasyon</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0c10;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+canvas{display:block}
+
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+.title-bar{position:fixed;top:0;left:0;right:0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(10,12,16,.95),rgba(10,12,16,0));z-index:20;pointer-events:auto}
+.title-bar h1{font-size:1.1rem;font-weight:600;letter-spacing:.5px;color:#79c0ff}
+.title-bar a{color:#606a7a;text-decoration:none;font-size:.85rem;transition:color .3s}
+.title-bar a:hover{color:#79c0ff}
+
+.controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;z-index:20;pointer-events:auto;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.15);border-radius:14px;padding:10px 20px;backdrop-filter:blur(12px)}
+.controls label{font-size:.8rem;color:#8b95a5;white-space:nowrap}
+.controls input[type=range]{-webkit-appearance:none;width:140px;height:4px;background:#2a3140;border-radius:4px;outline:none}
+.controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#79c0ff;cursor:pointer;box-shadow:0 0 8px rgba(121,192,255,.4)}
+.btn{background:rgba(121,192,255,.1);border:1px solid rgba(121,192,255,.25);color:#79c0ff;padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .3s;font-family:inherit}
+.btn:hover{background:rgba(121,192,255,.2);border-color:rgba(121,192,255,.5)}
+.btn.active{background:rgba(255,107,107,.15);border-color:rgba(255,107,107,.4);color:#ff6b6b}
+.btn.scram{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:#ff6b6b}
+.btn.scram:hover{background:rgba(255,107,107,.25)}
+
+.info-panel{position:fixed;top:60px;right:20px;width:220px;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.12);border-radius:12px;padding:14px;z-index:20;pointer-events:auto;backdrop-filter:blur(12px)}
+.info-panel h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#606a7a;margin-bottom:10px}
+.stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat-label{font-size:.8rem;color:#8b95a5}
+.stat-value{font-size:.9rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat-bar{width:100%;height:4px;background:#1a1f2a;border-radius:2px;margin-top:3px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+.legend{position:fixed;top:60px;left:20px;background:rgba(20,24,32,.9);border:1px solid rgba(121,192,255,.12);border-radius:12px;padding:14px;z-index:20;backdrop-filter:blur(12px)}
+.legend h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#606a7a;margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:.78rem;color:#8b95a5}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+.phase-label{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:700;color:#fff;opacity:0;transition:opacity .6s;z-index:30;pointer-events:none;text-shadow:0 0 40px rgba(121,192,255,.5)}
+.phase-label.visible{opacity:1}
+.phase-label.danger{color:#ff6b6b;text-shadow:0 0 40px rgba(255,107,107,.5)}
+</style>
+</head>
+<body>
+
+<canvas id="reactor"></canvas>
+
+<div class="title-bar">
+  <h1>RBMK-1000 Reaktör Simülasyonu</h1>
+  <a href="index.html">Ana Sayfa</a>
+</div>
+
+<div class="legend">
+  <h3>Bileşenler</h3>
+  <div class="legend-item"><div class="legend-dot" style="background:#5a6a7a"></div>Grafit Moderatör</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ffb86b"></div>Yakıt Çubukları (UO₂)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div>Soğutma Suyu</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e0e8f0"></div>Buhar</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a3a4a"></div>Kontrol Çubukları</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6bcf6b"></div>Türbin / Jeneratör</div>
+</div>
+
+<div class="info-panel">
+  <h3>Reaktör Durumu</h3>
+  <div class="stat">
+    <span class="stat-label">Güç Seviyesi</span>
+    <span class="stat-value" id="powerVal" style="color:#8be9a8">0%</span>
+  </div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="powerBar" style="width:0%;background:#8be9a8"></div></div>
+
+  <div class="stat" style="margin-top:12px">
+    <span class="stat-label">Sıcaklık</span>
+    <span class="stat-value" id="tempVal" style="color:#79c0ff">280°C</span>
+  </div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="tempBar" style="width:20%;background:#79c0ff"></div></div>
+
+  <div class="stat" style="margin-top:12px">
+    <span class="stat-label">Buhar Basıncı</span>
+    <span class="stat-value" id="pressVal" style="color:#b8c0cc">0 MPa</span>
+  </div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="pressBar" style="width:0%;background:#b8c0cc"></div></div>
+
+  <div class="stat" style="margin-top:12px">
+    <span class="stat-label">Kontrol Çubukları</span>
+    <span class="stat-value" id="rodVal" style="color:#ffb86b">100%</span>
+  </div>
+  <div class="stat-bar"><div class="stat-bar-fill" id="rodBar" style="width:100%;background:#ffb86b"></div></div>
+
+  <div class="stat" style="margin-top:12px">
+    <span class="stat-label">Elektrik Üretimi</span>
+    <span class="stat-value" id="elecVal" style="color:#6bcf6b">0 MW</span>
+  </div>
+</div>
+
+<div class="controls">
+  <label>Kontrol Çubukları</label>
+  <input type="range" id="rodSlider" min="0" max="100" value="100">
+  <button class="btn scram" id="scramBtn">SCRAM</button>
+  <button class="btn" id="autoBtn">Otomatik Çalıştır</button>
+</div>
+
+<div class="phase-label" id="phaseLabel"></div>
+
+<script>
+const canvas = document.getElementById('reactor');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const state = {
+  rodInsertion: 1,
+  power: 0,
+  temp: 280,
+  pressure: 0,
+  electricity: 0,
+  autoMode: false,
+  autoPhase: 0,
+  autoTimer: 0,
+  scramActive: false,
+  time: 0
+};
+
+const particles = [];
+const steamParticles = [];
+const turbineAngle = { value: 0 };
+
+class WaterParticle {
+  constructor(x, y, channel) {
+    this.x = x;
+    this.y = y;
+    this.channel = channel;
+    this.speed = 0.5 + Math.random() * 0.3;
+    this.phase = Math.random() * Math.PI * 2;
+    this.isSteam = false;
+    this.opacity = 0.6 + Math.random() * 0.4;
+    this.size = 2 + Math.random() * 2;
+  }
+}
+
+class SteamParticle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = (Math.random() - 0.5) * 0.5;
+    this.vy = -1 - Math.random() * 2;
+    this.life = 1;
+    this.decay = 0.005 + Math.random() * 0.008;
+    this.size = 3 + Math.random() * 4;
+  }
+}
+
+class GlowParticle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = (Math.random() - 0.5) * 2;
+    this.vy = (Math.random() - 0.5) * 2;
+    this.life = 1;
+    this.decay = 0.01 + Math.random() * 0.02;
+    this.size = 1 + Math.random() * 2;
+  }
+}
+
+const glowParticles = [];
+
+const rodSlider = document.getElementById('rodSlider');
+const scramBtn = document.getElementById('scramBtn');
+const autoBtn = document.getElementById('autoBtn');
+const phaseLabel = document.getElementById('phaseLabel');
+
+rodSlider.addEventListener('input', e => {
+  if (!state.autoMode) {
+    state.rodInsertion = e.target.value / 100;
+  }
+});
+
+scramBtn.addEventListener('click', () => {
+  state.scramActive = true;
+  state.autoMode = false;
+  autoBtn.textContent = 'Otomatik Çalıştır';
+  autoBtn.classList.remove('active');
+  showPhase('SCRAM! Acil Kapatma', true);
+});
+
+autoBtn.addEventListener('click', () => {
+  state.autoMode = !state.autoMode;
+  if (state.autoMode) {
+    state.autoPhase = 0;
+    state.autoTimer = 0;
+    state.scramActive = false;
+    autoBtn.textContent = 'Durdur';
+    autoBtn.classList.add('active');
+    showPhase('Reaktör Başlatılıyor...');
+  } else {
+    autoBtn.textContent = 'Otomatik Çalıştır';
+    autoBtn.classList.remove('active');
+  }
+});
+
+function showPhase(text, danger = false) {
+  phaseLabel.textContent = text;
+  phaseLabel.className = 'phase-label visible' + (danger ? ' danger' : '');
+  setTimeout(() => phaseLabel.classList.remove('visible'), 2000);
+}
+
+function updatePhysics(dt) {
+  if (state.scramActive) {
+    state.rodInsertion = Math.min(1, state.rodInsertion + dt * 0.8);
+    rodSlider.value = state.rodInsertion * 100;
+    if (state.rodInsertion >= 0.99) state.scramActive = false;
+  }
+
+  if (state.autoMode) {
+    state.autoTimer += dt;
+    switch (state.autoPhase) {
+      case 0:
+        state.rodInsertion = Math.max(0.3, state.rodInsertion - dt * 0.08);
+        if (state.rodInsertion <= 0.3) {
+          state.autoPhase = 1;
+          showPhase('Kritiklik Seviyesine Ulaşıldı');
+        }
+        break;
+      case 1:
+        state.rodInsertion = Math.max(0.15, state.rodInsertion - dt * 0.03);
+        if (state.power > 60) {
+          state.autoPhase = 2;
+          showPhase('Tam Güç Operasyonu');
+        }
+        break;
+      case 2:
+        state.rodInsertion = 0.15 + Math.sin(state.time * 0.3) * 0.03;
+        if (state.autoTimer > 25) {
+          state.autoPhase = 3;
+          showPhase('Güç Azaltılıyor...');
+        }
+        break;
+      case 3:
+        state.rodInsertion = Math.min(1, state.rodInsertion + dt * 0.06);
+        if (state.rodInsertion >= 0.95) {
+          state.autoPhase = 4;
+          state.autoTimer = 0;
+          showPhase('Reaktör Kapatıldı');
+        }
+        break;
+      case 4:
+        if (state.autoTimer > 4) {
+          state.autoPhase = 0;
+          state.autoTimer = 0;
+          showPhase('Reaktör Başlatılıyor...');
+        }
+        break;
+    }
+    rodSlider.value = state.rodInsertion * 100;
+  }
+
+  const reactivity = Math.max(0, (1 - state.rodInsertion) * 1.2 - 0.05);
+  const targetPower = Math.min(100, reactivity * 100);
+  state.power += (targetPower - state.power) * dt * 0.5;
+  state.power = Math.max(0, Math.min(100, state.power));
+
+  const targetTemp = 280 + state.power * 4.2;
+  state.temp += (targetTemp - state.temp) * dt * 0.3;
+
+  const targetPressure = state.power * 0.07;
+  state.pressure += (targetPressure - state.pressure) * dt * 0.4;
+
+  const efficiency = state.power > 5 ? 0.33 : 0;
+  state.electricity = state.power * 10 * efficiency;
+
+  updateUI();
+}
+
+function updateUI() {
+  const p = state.power;
+  const pColor = p > 80 ? '#ff6b6b' : p > 50 ? '#ffb86b' : '#8be9a8';
+  document.getElementById('powerVal').textContent = p.toFixed(1) + '%';
+  document.getElementById('powerVal').style.color = pColor;
+  document.getElementById('powerBar').style.width = p + '%';
+  document.getElementById('powerBar').style.background = pColor;
+
+  const t = state.temp;
+  const tColor = t > 500 ? '#ff6b6b' : t > 400 ? '#ffb86b' : '#79c0ff';
+  document.getElementById('tempVal').textContent = t.toFixed(0) + '°C';
+  document.getElementById('tempVal').style.color = tColor;
+  document.getElementById('tempBar').style.width = Math.min(100, (t / 700) * 100) + '%';
+  document.getElementById('tempBar').style.background = tColor;
+
+  document.getElementById('pressVal').textContent = state.pressure.toFixed(2) + ' MPa';
+  document.getElementById('pressBar').style.width = Math.min(100, (state.pressure / 7) * 100) + '%';
+
+  document.getElementById('rodVal').textContent = (state.rodInsertion * 100).toFixed(0) + '%';
+  document.getElementById('rodBar').style.width = (state.rodInsertion * 100) + '%';
+
+  document.getElementById('elecVal').textContent = state.electricity.toFixed(0) + ' MW';
+}
+
+function drawReactor() {
+  const cx = W * 0.38;
+  const cy = H * 0.48;
+  const scale = Math.min(W, H) / 900;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  const coreW = 320;
+  const coreH = 380;
+
+  // Reactor vessel outer shell
+  ctx.strokeStyle = '#3a4050';
+  ctx.lineWidth = 4;
+  ctx.fillStyle = '#15181f';
+  roundRect(ctx, -coreW/2 - 30, -coreH/2 - 30, coreW + 60, coreH + 60, 16);
+  ctx.fill();
+  ctx.stroke();
+
+  // Graphite blocks
+  const blockSize = 36;
+  const cols = Math.floor(coreW / blockSize);
+  const rows = Math.floor(coreH / blockSize);
+  const startX = -coreW/2 + (coreW - cols * blockSize) / 2;
+  const startY = -coreH/2 + (coreH - rows * blockSize) / 2;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const bx = startX + c * blockSize;
+      const by = startY + r * blockSize;
+      const glow = state.power / 100;
+      const baseR = 50 + glow * 20;
+      const baseG = 55 + glow * 10;
+      const baseB = 65 - glow * 10;
+      const noise = Math.sin(r * 3.7 + c * 2.1 + state.time) * 5;
+      ctx.fillStyle = `rgb(${baseR + noise},${baseG + noise},${baseB})`;
+      ctx.fillRect(bx + 1, by + 1, blockSize - 2, blockSize - 2);
+    }
+  }
+
+  // Fuel channels (pressure tubes)
+  const channels = [
+    { x: -100, y: 0 },
+    { x: -50, y: 0 },
+    { x: 0, y: 0 },
+    { x: 50, y: 0 },
+    { x: 100, y: 0 },
+  ];
+
+  channels.forEach((ch, i) => {
+    const channelH = coreH - 40;
+    const channelTop = -channelH / 2;
+
+    // Pressure tube
+    ctx.fillStyle = '#2a2a35';
+    ctx.fillRect(ch.x - 8, channelTop, 16, channelH);
+
+    // Fuel glow
+    const glowIntensity = state.power / 100;
+    if (glowIntensity > 0.05) {
+      const grad = ctx.createRadialGradient(ch.x, ch.y, 0, ch.x, ch.y, 30 + glowIntensity * 40);
+      grad.addColorStop(0, `rgba(255,180,80,${glowIntensity * 0.4})`);
+      grad.addColorStop(0.5, `rgba(255,100,40,${glowIntensity * 0.15})`);
+      grad.addColorStop(1, 'rgba(255,80,40,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(ch.x - 50, channelTop, 100, channelH);
+    }
+
+    // Fuel pellets
+    const pelletCount = 12;
+    for (let p = 0; p < pelletCount; p++) {
+      const py = channelTop + 15 + p * ((channelH - 30) / pelletCount);
+      const brightness = 0.4 + glowIntensity * 0.6;
+      const r = Math.floor(200 * brightness + 55);
+      const g = Math.floor(140 * brightness + 40);
+      const b = Math.floor(50 * brightness);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(ch.x - 4, py, 8, (channelH - 30) / pelletCount - 3);
+    }
+
+    // Water flow in channel
+    const waterSpeed = 0.5 + state.power * 0.03;
+    for (let w = 0; w < 8; w++) {
+      const wy = channelTop + ((state.time * waterSpeed * 50 + w * channelH / 8) % channelH);
+      const steamTransition = Math.max(0, (wy - channelTop) / channelH);
+      const isSteam = steamTransition > 0.5 && state.power > 10;
+
+      if (isSteam) {
+        ctx.fillStyle = `rgba(200,220,240,${0.15 + state.power * 0.003})`;
+        ctx.beginPath();
+        ctx.arc(ch.x + Math.sin(state.time * 3 + w) * 3, wy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = `rgba(60,140,255,${0.3 + state.power * 0.003})`;
+        ctx.beginPath();
+        ctx.arc(ch.x, wy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+
+  // Control rods
+  const controlRods = [-75, -25, 25, 75];
+  const rodFullLength = coreH - 20;
+  const rodInserted = rodFullLength * state.rodInsertion;
+
+  controlRods.forEach((rx, i) => {
+    const rodTop = -coreH/2 - 30;
+
+    // Rod guide tube
+    ctx.fillStyle = '#252530';
+    ctx.fillRect(rx - 5, rodTop - 60, 10, 60);
+
+    // Rod actuator
+    ctx.fillStyle = '#404555';
+    ctx.fillRect(rx - 8, rodTop - 70 + (1 - state.rodInsertion) * 50, 16, 20);
+
+    // Control rod
+    const rodStart = rodTop;
+    const gradient = ctx.createLinearGradient(rx - 4, 0, rx + 4, 0);
+    gradient.addColorStop(0, '#2a2d35');
+    gradient.addColorStop(0.5, '#454a55');
+    gradient.addColorStop(1, '#2a2d35');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(rx - 4, rodStart, 8, rodInserted);
+
+    // Rod tip (boron carbide absorber)
+    if (rodInserted > 5) {
+      ctx.fillStyle = '#1a1a22';
+      ctx.fillRect(rx - 5, rodStart + rodInserted - 8, 10, 8);
+    }
+  });
+
+  // Core glow overlay
+  if (state.power > 5) {
+    const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreW * 0.7);
+    const intensity = state.power / 100;
+    if (state.power > 80) {
+      coreGlow.addColorStop(0, `rgba(255,100,60,${intensity * 0.12})`);
+      coreGlow.addColorStop(1, 'rgba(255,50,30,0)');
+    } else {
+      coreGlow.addColorStop(0, `rgba(255,180,100,${intensity * 0.08})`);
+      coreGlow.addColorStop(1, 'rgba(255,150,80,0)');
+    }
+    ctx.fillStyle = coreGlow;
+    ctx.fillRect(-coreW/2 - 30, -coreH/2 - 30, coreW + 60, coreH + 60);
+  }
+
+  // Fission particles
+  if (state.power > 10 && Math.random() < state.power * 0.005) {
+    const ch = channels[Math.floor(Math.random() * channels.length)];
+    glowParticles.push(new GlowParticle(ch.x, (Math.random() - 0.5) * coreH * 0.6));
+  }
+
+  glowParticles.forEach((p, idx) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) { glowParticles.splice(idx, 1); return; }
+    ctx.fillStyle = `rgba(255,200,100,${p.life * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Labels
+  ctx.fillStyle = '#606a7a';
+  ctx.font = '11px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('GRAFİT ÇEKİRDEK', 0, coreH/2 + 50);
+
+  ctx.fillStyle = '#806030';
+  ctx.fillText('YAKIT KANALLARI', 0, -coreH/2 - 45);
+
+  controlRods.forEach((rx, i) => {
+    if (i === 0) {
+      ctx.fillStyle = '#505a6a';
+      ctx.fillText('KONTROL', rx, -coreH/2 - 90);
+      ctx.fillText('ÇUBUKLARI', rx, -coreH/2 - 78);
+    }
+  });
+
+  ctx.restore();
+
+  // Steam pipes and turbine
+  drawSteamSystem(cx, cy, scale);
+}
+
+function drawSteamSystem(cx, cy, scale) {
+  const pipeStartX = cx + 180 * scale;
+  const pipeStartY = cy - 120 * scale;
+  const turbineX = W * 0.72;
+  const turbineY = H * 0.35;
+  const turbineR = 50 * scale;
+
+  // Steam pipe from reactor to turbine
+  ctx.strokeStyle = '#2a3040';
+  ctx.lineWidth = 12 * scale;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pipeStartX, pipeStartY);
+  ctx.quadraticCurveTo(pipeStartX + 80 * scale, pipeStartY - 50 * scale, turbineX - turbineR - 20, turbineY - 30);
+  ctx.stroke();
+
+  // Steam label
+  if (state.power > 10) {
+    ctx.fillStyle = `rgba(200,220,240,${0.3 + state.power * 0.004})`;
+    ctx.font = `${10 * scale}px "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('BUHAR →', (pipeStartX + turbineX) / 2, pipeStartY - 50 * scale);
+  }
+
+  // Steam particles along pipe
+  if (state.power > 5) {
+    for (let i = 0; i < 15; i++) {
+      const t = ((state.time * 0.3 + i * 0.07) % 1);
+      const px = pipeStartX + (turbineX - turbineR - 20 - pipeStartX) * t;
+      const py = pipeStartY + (turbineY - 30 - pipeStartY) * t - Math.sin(t * Math.PI) * 40 * scale;
+      const alpha = state.power / 100 * 0.4 * Math.sin(t * Math.PI);
+      ctx.fillStyle = `rgba(200,220,240,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(px + Math.sin(state.time * 2 + i) * 5, py, 3 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Turbine
+  const turbineSpeed = state.power * 0.08;
+  turbineAngle.value += turbineSpeed * 0.016;
+
+  ctx.save();
+  ctx.translate(turbineX, turbineY);
+
+  // Turbine housing
+  ctx.fillStyle = '#1a2030';
+  ctx.strokeStyle = '#2a3545';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, turbineR + 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Turbine blades
+  const bladeCount = 8;
+  for (let b = 0; b < bladeCount; b++) {
+    const angle = turbineAngle.value + (b * Math.PI * 2 / bladeCount);
+    const intensity = Math.min(1, state.power / 50);
+    const gr = 80 + intensity * 40;
+    const gg = 160 + intensity * 40;
+    const gb = 80 + intensity * 40;
+    ctx.strokeStyle = `rgba(${gr},${gg},${gb},${0.5 + intensity * 0.4})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(angle) * turbineR, Math.sin(angle) * turbineR);
+    ctx.stroke();
+
+    // Blade tips
+    ctx.fillStyle = `rgba(${gr},${gg},${gb},${0.3 + intensity * 0.3})`;
+    ctx.beginPath();
+    ctx.arc(Math.cos(angle) * turbineR, Math.sin(angle) * turbineR, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Center hub
+  ctx.fillStyle = '#3a4555';
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#606a7a';
+  ctx.font = '11px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TÜRBİN', 0, turbineR + 28);
+
+  ctx.restore();
+
+  // Generator
+  const genX = turbineX + 100 * scale;
+  const genY = turbineY + 90 * scale;
+
+  // Shaft from turbine to generator
+  ctx.strokeStyle = '#3a4555';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(turbineX, turbineY + turbineR + 10);
+  ctx.lineTo(genX, genY - 25);
+  ctx.stroke();
+
+  // Generator body
+  ctx.fillStyle = '#1a2530';
+  ctx.strokeStyle = '#2a4040';
+  ctx.lineWidth = 2;
+  roundRect(ctx, genX - 35, genY - 25, 70, 50, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  // Generator electricity symbol
+  if (state.electricity > 0) {
+    const elecGlow = ctx.createRadialGradient(genX, genY, 0, genX, genY, 40);
+    elecGlow.addColorStop(0, `rgba(107,207,107,${state.power * 0.003})`);
+    elecGlow.addColorStop(1, 'rgba(107,207,107,0)');
+    ctx.fillStyle = elecGlow;
+    ctx.fillRect(genX - 40, genY - 40, 80, 80);
+
+    ctx.fillStyle = `rgba(107,207,107,${0.5 + state.power * 0.005})`;
+    ctx.font = 'bold 16px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', genX, genY + 5);
+  }
+
+  ctx.fillStyle = '#606a7a';
+  ctx.font = '11px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('JENERATÖR', genX, genY + 40);
+  ctx.fillText(state.electricity.toFixed(0) + ' MW', genX, genY + 54);
+
+  // Return pipe (water)
+  const returnPipeY = cy + 140 * scale;
+  ctx.strokeStyle = '#1a2a40';
+  ctx.lineWidth = 10 * scale;
+  ctx.beginPath();
+  ctx.moveTo(turbineX + turbineR + 20, turbineY + 30);
+  ctx.quadraticCurveTo(turbineX + 60 * scale, returnPipeY, pipeStartX, returnPipeY);
+  ctx.lineTo(pipeStartX - 30 * scale, returnPipeY);
+  ctx.stroke();
+
+  // Return water label
+  if (state.power > 10) {
+    ctx.fillStyle = 'rgba(60,140,255,0.4)';
+    ctx.font = `${10 * scale}px "Segoe UI", sans-serif`;
+    ctx.fillText('← SU (Yoğuşma)', (pipeStartX + turbineX) / 2, returnPipeY + 20 * scale);
+  }
+
+  // Water particles in return pipe
+  if (state.power > 5) {
+    for (let i = 0; i < 10; i++) {
+      const t = ((state.time * 0.2 + i * 0.1) % 1);
+      const px = turbineX + turbineR + 20 - (turbineX + turbineR + 20 - pipeStartX + 30 * scale) * t;
+      const py = returnPipeY + Math.sin(t * Math.PI) * -20 * scale * (1 - t);
+      ctx.fillStyle = `rgba(60,140,255,${0.3 * Math.sin(t * Math.PI)})`;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Condenser
+  const condX = turbineX + 80 * scale;
+  const condY = returnPipeY - 20 * scale;
+  ctx.fillStyle = '#151a25';
+  ctx.strokeStyle = '#253040';
+  ctx.lineWidth = 2;
+  roundRect(ctx, condX - 25, condY - 15, 50, 30, 6);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#506070';
+  ctx.font = '9px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('YOĞUŞTURUCU', condX, condY + 28);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawBackground() {
+  ctx.fillStyle = '#0a0c10';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(40,50,65,0.15)';
+  ctx.lineWidth = 1;
+  const gridSize = 50;
+  for (let x = 0; x < W; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+}
+
+let lastTime = 0;
+function animate(timestamp) {
+  const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+  lastTime = timestamp;
+  state.time += dt;
+
+  updatePhysics(dt);
+  drawBackground();
+  drawReactor();
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
