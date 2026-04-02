@@ -151,19 +151,95 @@ canvas{display:block}
 
 .flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
 .flash.on{opacity:1}
+
+/* ── Skip link & screen-reader text ── */
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);
+  white-space:nowrap;border:0;
+}
+.skip{
+  position:absolute;left:12px;top:8px;z-index:100;padding:10px 16px;background:#1e3e60;color:#fff;
+  font-size:.85rem;font-weight:600;border-radius:8px;text-decoration:none;transform:translateY(-120%);
+  transition:transform .2s;
+}
+.skip:focus{transform:translateY(0);outline:2px solid #fff;outline-offset:2px}
+
+/* ── Help & bar note ── */
+.help-d{margin-top:12px;padding-top:10px;border-top:1px solid rgba(210,208,199,.45)}
+.help-d summary{
+  cursor:pointer;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-2);
+  list-style-position:outside;
+}
+.help-d summary:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px;border-radius:4px}
+.help-d p{margin:8px 0 0;font-size:.74rem;line-height:1.45;color:var(--text-2)}
+.help-d kbd{
+  display:inline-block;padding:.1em .45em;font-size:.85em;font-family:inherit;
+  background:rgba(218,216,207,.65);border:1px solid rgba(180,178,170,.9);border-radius:4px;
+  box-shadow:0 1px 0 rgba(255,255,255,.8);
+}
+.bar-right{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:4px;max-width:min(100%,540px)}
+.bar-note{font-size:.65rem;color:var(--text-3);margin:0;line-height:1.35;max-width:440px}
+.bar{flex-wrap:wrap;align-items:flex-start;row-gap:6px;min-height:48px;height:auto;padding:8px 22px}
+.bar h1{flex-shrink:0}
+
+/* ── Focus rings ── */
+.b:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
+#c:focus-visible{outline:3px solid #5a7a9a;outline-offset:-3px}
+
+/* ── Firefox range ── */
+.ctrl input[type=range]::-moz-range-track{
+  background:rgba(210,208,199,.8);border-radius:4px;height:3px;
+}
+.ctrl input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:#5a7a9a;cursor:pointer;
+  border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.22),0 0 0 1px rgba(90,122,154,.18);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sdot.warn,.sdot.crit{animation:none!important}
+  .ph,.sf,.flash,.b{transition:none!important}
+  .ctrl input[type=range]::-webkit-slider-thumb{transition:none}
+  .flash.on{opacity:0!important}
+}
+
+@media (max-width:719px){
+  .bar{padding:8px 14px 8px 12px}
+  .bar-right{align-items:flex-start;text-align:left;max-width:100%}
+  .info{
+    top:auto;right:10px;left:10px;bottom:108px;width:auto;max-height:min(40vh,300px);
+  }
+  .ctrl{
+    bottom:8px;left:8px;right:8px;transform:none;max-width:none;padding:10px 12px;
+    flex-wrap:wrap;justify-content:center;white-space:normal;max-height:min(38vh,280px);overflow-y:auto;
+  }
+  .cg{width:100%;max-width:100%}
+  .cg-row{flex-wrap:wrap;justify-content:center;gap:8px}
+  .b{min-height:44px;min-width:min(44px,100%);padding:10px 14px}
+  .ctrl input[type=range]{width:min(140px,50vw);height:6px}
+  .ctrl input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+  .ctrl input[type=range]::-moz-range-thumb{width:20px;height:20px}
+  .ctrl input[type=range]::-moz-range-track{height:6px}
+  .sep{display:none}
+  body{overflow-x:hidden;overflow-y:auto}
+}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<a class="skip" href="#ctrl-bar">Skip to controls</a>
+<canvas id="c" tabindex="0" role="img" lang="en"
+  aria-label="RBMK-1000 primary heat system diagram. Click a labeled plant region to zoom in; click again or press Escape to zoom out."></canvas>
 
 <div class="bar">
-  <h1>RBMK-1000 Reactor Simulation</h1>
-  <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
+  <h1 id="page-title">RBMK-1000 Reactor Simulation</h1>
+  <div class="bar-right">
+    <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
+    <p class="bar-note" role="note">Educational model only — behavior and numbers are illustrative, not validated against any real plant or accident sequence.</p>
+  </div>
 </div>
 
 
-<div class="p info">
-  <h3><span class="sdot off" id="statusDot"></span>Reactor Status</h3>
+<div class="p info" role="region" aria-labelledby="status-heading">
+  <h3 id="status-heading"><span class="sdot off" id="statusDot" aria-hidden="true"></span>Reactor Status</h3>
 
   <div class="st"><span class="sl">Thermal Power</span><span class="sv" id="vP">0 MWt</span></div>
   <div class="sb"><div class="sf" id="bP" style="width:0%"></div></div>
@@ -191,55 +267,75 @@ canvas{display:block}
   <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
   <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
   <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
+
+  <details class="help-d" id="helpDetails" lang="en">
+    <summary id="helpSummary">How to use</summary>
+    <p>Click a component in the diagram to zoom in and read a short description. Click anywhere on the diagram or press <kbd>Esc</kbd> to zoom out. Adjust <strong>Control rods</strong> with the slider (withdrawn toward 100% increases power in this toy model). <strong>SCRAM</strong> drives rods in. <strong>Auto Run</strong> plays a scripted startup and shutdown. <strong>Chernobyl</strong> is a dramatized historical scenario with flashing screen and optional sound — use discretion. Keyboard: focus the diagram with <kbd>Tab</kbd>, then <kbd>Esc</kbd> exits zoom.</p>
+  </details>
 </div>
 
-<div class="ctrl">
+<div class="ctrl" id="ctrl-bar" role="toolbar" aria-label="Reactor simulation controls">
   <div class="cg">
-    <span class="cg-lbl">Control Rods</span>
+    <label class="cg-lbl" id="lbl-rods" for="sRod">Control Rods</label>
     <div class="cg-row">
-      <input type="range" id="sRod" min="0" max="100" value="100">
-      <button class="b sc" id="btnScram">SCRAM</button>
+      <input type="range" id="sRod" min="0" max="100" value="100"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"
+        aria-label="Control rods: 0 percent fully inserted, 100 percent fully withdrawn">
+      <button type="button" class="b sc" id="btnScram" aria-label="SCRAM — emergency shutdown, insert control rods">SCRAM</button>
     </div>
   </div>
-  <div class="sep"></div>
+  <div class="sep" aria-hidden="true"></div>
   <div class="cg">
     <span class="cg-lbl">Scenarios</span>
     <div class="cg-row">
-      <button class="b" id="btnAuto">Auto Run</button>
-      <button class="b ch" id="btnChernobyl">Chernobyl</button>
+      <button type="button" class="b" id="btnAuto" aria-pressed="false" aria-label="Auto Run — scripted startup and shutdown sequence">Auto Run</button>
+      <span id="chernobyl-note" class="sr-only">Dramatized 1986 accident scenario: sudden power excursion, full-screen flash, and loud sound if audio is enabled.</span>
+      <button type="button" class="b ch" id="btnChernobyl" aria-describedby="chernobyl-note" aria-label="Start Chernobyl scenario (sensitive content)">Chernobyl</button>
     </div>
   </div>
-  <div class="sep"></div>
+  <div class="sep" aria-hidden="true"></div>
   <div class="cg">
     <span class="cg-lbl">Events</span>
     <div class="cg-row">
-      <button class="b" id="btnMCP">MCP Trip</button>
-      <button class="b" id="btnPipe">Pipe Rupture</button>
+      <button type="button" class="b" id="btnMCP" aria-pressed="false" aria-label="Toggle main circulation pump trip">MCP Trip</button>
+      <button type="button" class="b" id="btnPipe" aria-pressed="false" aria-label="Toggle condenser pipe rupture">Pipe Rupture</button>
     </div>
   </div>
-  <div class="sep"></div>
+  <div class="sep" aria-hidden="true"></div>
   <div class="cg">
     <span class="cg-lbl">System</span>
     <div class="cg-row">
-      <button class="b" id="btnSound" style="min-width:90px">Sound: OFF</button>
-      <button class="b rs" id="btnReset">Reset</button>
+      <button type="button" class="b" id="btnSound" style="min-width:90px" aria-pressed="false" aria-label="Toggle reactor and turbine sound">Sound: OFF</button>
+      <button type="button" class="b rs" id="btnReset" aria-label="Reset simulation to initial state">Reset</button>
     </div>
   </div>
 </div>
 
-<div class="ph" id="phase"></div>
-<div class="flash" id="flash"></div>
+<div class="ph" id="phase" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
 
 <script>
-const cv = document.getElementById('c');
+function el(id) { return document.getElementById(id); }
+const cv = el('c');
 const cx = cv.getContext('2d');
+const sRod = el('sRod');
 let W, H, sc, ox, oy;
+
+let prefersReduceMotion = false;
+(function initMotionPref() {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  prefersReduceMotion = mq.matches;
+  mq.addEventListener('change', ev => { prefersReduceMotion = ev.matches; });
+})();
 
 function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight;
-  const top = 54, bot = 62;
-  const lPad = 20, rPad = 240;
+  const narrow = W < 720;
+  const top = narrow ? 64 : 54;
+  const bot = narrow ? 200 : 62;
+  const lPad = narrow ? 12 : 20;
+  const rPad = narrow ? 12 : 240;
   const avail = W - lPad - rPad;
   sc = Math.min(avail / 1080, (H - top - bot) / 700);
   ox = (W - 1080 * sc) / 2;
@@ -252,6 +348,32 @@ function tx(x) { return ox + x * sc; }
 function ty(y) { return oy + y * sc; }
 function ts(v) { return v * sc; }
 const zoom = { cx: 540, cy: 350, level: 1, tCx: 540, tCy: 350, tLevel: 1, active: false, zone: null, infoAlpha: 0 };
+
+function resetZoom() {
+  zoom.tLevel = 1; zoom.tCx = 540; zoom.tCy = 350; zoom.active = false;
+  zoom.zone = null; zoom.infoAlpha = 0;
+}
+
+cv.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && zoom.active) {
+    resetZoom();
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  const helpKey = e.key === '?' || (e.key === '/' && e.shiftKey);
+  if (!helpKey) return;
+  const t = e.target;
+  const tag = t && t.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+  const d = el('helpDetails');
+  if (d) {
+    d.open = true;
+    el('helpSummary').focus();
+    e.preventDefault();
+  }
+});
 
 function wx(px) {
   if (zoom.level > 1.02) {
@@ -307,8 +429,7 @@ cv.addEventListener('mousemove', e => {
 cv.addEventListener('click', e => {
   const mx = wx(e.clientX), my = wy(e.clientY);
   if (zoom.active) {
-    zoom.tLevel = 1; zoom.tCx = 540; zoom.tCy = 350; zoom.active = false;
-    zoom.zone = null; zoom.infoAlpha = 0;
+    resetZoom();
     return;
   }
   for (const z of zones) {
@@ -1034,7 +1155,7 @@ function updatePhysics(dt) {
       S.scramTipDone=true;
       S.rod=Math.min(1,S.rod+dt*0.055);
     }
-    document.getElementById('sRod').value=S.rod*100;
+    sRod.value=S.rod*100;
     if(S.rod>=.99){S.scram=false;S.scramTimer=0;S.scramTipDone=false;}
   }
 
@@ -1048,7 +1169,7 @@ function updatePhysics(dt) {
       case 3:S.rod=Math.min(1,S.rod+dt*.05);if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown');}break;
       case 4:if(S.autoTimer>5){S.autoPhase=0;S.autoTimer=0;showP('Reactor Startup...');}break;
     }
-    document.getElementById('sRod').value=S.rod*100;
+    sRod.value=S.rod*100;
   }
 
   // Chernobyl scenario
@@ -1138,26 +1259,29 @@ function updateChernobyl(dt) {
     S.chPhase = idx;
     const p = chScript[idx];
     if(p.msg) showP(p.msg, p.surge || p.explode || p.easter);
-    if(p.rod !== undefined) { S.rod = p.rod; document.getElementById('sRod').value = S.rod * 100; }
+    if(p.rod !== undefined) { S.rod = p.rod; sRod.value = S.rod * 100; }
     if(p.xenon !== undefined) { S.xenon = p.xenon / 25; S.iodine = p.xenon / 15; }
     if(p.mcpTrip) S.mcpTrip = true;
     if(p.scram) { S.scram = true; S.scramTimer = 0; playAlarm(); }
     if(p.surge) { S.rod = 0.03; S.power = Math.max(S.power, 80); }
     if(p.explode) {
       S.power = 300; S.explosion = true;
-      S.shake = 5;
-      document.getElementById('flash').classList.add('on');
-      playBoom();
-      setTimeout(() => document.getElementById('flash').classList.remove('on'), 800);
+      if (!prefersReduceMotion) {
+        S.shake = 5;
+        el('flash').classList.add('on');
+        playBoom();
+        setTimeout(() => el('flash').classList.remove('on'), 800);
+      }
     }
     if(p.easter) {
       S.shake = 0;
       chResetTid = setTimeout(() => {
         S.chernobyl=false;S.explosion=false;S.mcpTrip=false;S.pipeRupture=false;
         S.power=0;S.rod=1;S.scram=false;S.scramTimer=0;S.scramTipDone=false;
-        el('sRod').value=100;
-        el('btnMCP').classList.remove('on');
-        el('btnPipe').classList.remove('on');
+        sRod.value=100;
+        el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+        el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
+        resetZoom();
         chResetTid=0;
       }, 5000);
     }
@@ -1199,18 +1323,21 @@ function updateUI() {
   }else{
     dot.className='sdot off';
   }
+
+  sRod.setAttribute('aria-valuenow', String(Math.round(S.rod * 100)));
 }
 
-function el(id){return document.getElementById(id);}
-
 // ═══════════════ CONTROLS ═══════════════
-const sRod=el('sRod');
-sRod.addEventListener('input',e=>{if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;});
+sRod.addEventListener('input',e=>{
+  if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;
+  sRod.setAttribute('aria-valuenow', String(Math.round(S.rod * 100)));
+});
 
 el('btnScram').addEventListener('click',()=>{
   if(S.chernobyl)return;
   S.scram=true;S.scramTimer=0;S.scramTipDone=false;
   S.autoMode=false;el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
+  el('btnAuto').setAttribute('aria-pressed','false');
   showP('SCRAM — Emergency Shutdown',true); playAlarm();
 });
 
@@ -1218,8 +1345,9 @@ el('btnAuto').addEventListener('click',()=>{
   if(S.chernobyl)return;
   S.autoMode=!S.autoMode;
   if(S.autoMode){S.autoPhase=0;S.autoTimer=0;S.scram=false;S.mcpTrip=false;S.pipeRupture=false;
-    el('btnAuto').textContent='Stop';el('btnAuto').classList.add('on');showP('Reactor Startup...');
-  }else{el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');}
+    el('btnAuto').textContent='Stop';el('btnAuto').classList.add('on');el('btnAuto').setAttribute('aria-pressed','true');
+    showP('Reactor Startup...');
+  }else{el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');}
 });
 
 let chResetTid = 0;
@@ -1229,9 +1357,9 @@ el('btnChernobyl').addEventListener('click',()=>{
   S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
   S.power=80;S.rod=.3;S.xenon=0;S.iodine=0;
   if(chResetTid){clearTimeout(chResetTid);chResetTid=0;}
-  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
-  el('btnMCP').classList.remove('on');
-  el('btnPipe').classList.remove('on');
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
+  el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+  el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
   showP('☢ CHERNOBYL SCENARIO ☢\nApril 26, 1986',true);
 });
 
@@ -1239,6 +1367,7 @@ el('btnMCP').addEventListener('click',()=>{
   if(S.chernobyl)return;
   S.mcpTrip=!S.mcpTrip;
   el('btnMCP').classList.toggle('on');
+  el('btnMCP').setAttribute('aria-pressed', S.mcpTrip ? 'true' : 'false');
   showP(S.mcpTrip?'⚠ MCP TRIP — Pump Failure!':'MCP Restored',S.mcpTrip);
 });
 
@@ -1246,6 +1375,7 @@ el('btnPipe').addEventListener('click',()=>{
   if(S.chernobyl)return;
   S.pipeRupture=!S.pipeRupture;
   el('btnPipe').classList.toggle('on');
+  el('btnPipe').setAttribute('aria-pressed', S.pipeRupture ? 'true' : 'false');
   showP(S.pipeRupture?'⚠ PIPE RUPTURE — Pressure Loss!':'Pipe Sealed',S.pipeRupture);
 });
 
@@ -1262,11 +1392,11 @@ el('btnReset').addEventListener('click',()=>{
   S.explosion=false;
   if(chResetTid){clearTimeout(chResetTid);chResetTid=0;}
   powerHist.length=0;
-  zoom.tLevel=1;zoom.tCx=540;zoom.tCy=350;zoom.active=false;zoom.zone=null;zoom.infoAlpha=0;
-  el('sRod').value=100;
-  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
-  el('btnMCP').classList.remove('on');
-  el('btnPipe').classList.remove('on');
+  resetZoom();
+  sRod.value=100;
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
+  el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+  el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
   el('flash').classList.remove('on');
   showP('Reactor Reset — All Systems Nominal');
 });
@@ -1276,6 +1406,7 @@ el('btnSound').addEventListener('click',()=>{
   S.soundOn=!S.soundOn;
   el('btnSound').textContent='Sound: '+(S.soundOn?'ON':'OFF');
   el('btnSound').classList.toggle('on',S.soundOn);
+  el('btnSound').setAttribute('aria-pressed', S.soundOn ? 'true' : 'false');
   if(S.soundOn&&ac.state==='suspended')ac.resume();
 });
 
@@ -1295,9 +1426,11 @@ function frame(t){
 
   cx.save();
   applyZoom();
-  if(S.shake>0){
+  if(!prefersReduceMotion && S.shake>0){
     cx.translate((Math.random()-.5)*S.shake*sc,(Math.random()-.5)*S.shake*sc);
     S.shake*=.92;
+  } else if(prefersReduceMotion && S.shake>0){
+    S.shake=0;
   }
 
   drawBG();
