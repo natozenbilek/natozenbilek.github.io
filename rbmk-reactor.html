@@ -26,9 +26,9 @@ canvas{display:block}
 .sb{width:100%;height:2.5px;background:#e8e6de;border-radius:2px;margin-top:1px;margin-bottom:6px;overflow:hidden}
 .sf{height:100%;border-radius:2px;transition:width .3s,background .3s}
 
-.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05);flex-wrap:wrap;justify-content:center;max-width:95vw;overflow:hidden}
+.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);white-space:nowrap}
 .ctrl label{font-size:.74rem;color:#5a5a55;white-space:nowrap}
-.ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:120px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
+.ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:90px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:4px 10px;border-radius:6px;font-size:.74rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;min-width:72px;text-align:center}
 .b:hover{background:#e8e6de}
@@ -684,6 +684,11 @@ function drawGraph() {
   rr(gx,gy,gw,gh,4);cx.fillStyle='rgba(255,255,255,.7)';cx.fill();
   cx.strokeStyle='#d0cec5';cx.lineWidth=ts(.8);cx.stroke();
 
+  cx.save();
+  cx.beginPath();
+  cx.rect(tx(gx+1),ty(gy+1),ts(gw-2),ts(gh-2));
+  cx.clip();
+
   cx.fillStyle='rgba(200,50,50,.06)';
   cx.fillRect(tx(gx+2),ty(gy+2),ts(gw-4),ts(gh*.15));
 
@@ -702,6 +707,8 @@ function drawGraph() {
   const dangerY=gy+gh-3-(100/130)*(gh-6);
   cx.beginPath();cx.moveTo(tx(gx+3),ty(dangerY));cx.lineTo(tx(gx+gw-3),ty(dangerY));cx.stroke();
   cx.setLineDash([]);
+
+  cx.restore();
 
   label('Thermal Power History (MWt)',gx+gw/2,gy-4,7.5,'#6a6a62');
   label('3200',gx-16,dangerY-1,7,'rgba(180,40,40,.6)');
