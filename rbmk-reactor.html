@@ -31,10 +31,21 @@ canvas{display:block}
   z-index:20;
   box-shadow:var(--shadow-sm);
 }
+.bar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
 .bar h1{
   font-size:.86rem;font-weight:700;color:#1e1e24;letter-spacing:.2px;
-  line-height:1.2;white-space:nowrap;margin:0;align-self:center;
+  line-height:1.2;white-space:nowrap;margin:0;
 }
+.help-open-btn{
+  flex-shrink:0;
+  font:inherit;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;
+  color:#1e3e60;background:rgba(232,238,250,.95);
+  border:1px solid #8aaac8;border-radius:8px;padding:6px 12px;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .12s;
+  white-space:nowrap;
+}
+.help-open-btn:hover{background:rgba(216,228,244,.98);border-color:#6a8ab8}
+.help-open-btn:active{transform:scale(.98)}
 
 /* ── Base panel ── */
 .p{
@@ -167,18 +178,62 @@ canvas{display:block}
 }
 .skip:focus{transform:translateY(0);outline:2px solid #fff;outline-offset:2px}
 
-/* ── Help & bar note ── */
-.help-d{margin-top:12px;padding-top:10px;border-top:1px solid rgba(210,208,199,.45)}
-.help-d summary{
-  cursor:pointer;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-2);
-  list-style-position:outside;
+/* ── Help drawer (slide in from right) ── */
+.help-root{position:fixed;inset:0;z-index:45;pointer-events:none}
+.help-root.open{pointer-events:auto}
+.help-backdrop{
+  position:absolute;inset:0;background:rgba(22,24,28,.4);backdrop-filter:blur(5px);
+  opacity:0;transition:opacity .28s ease;
 }
-.help-d summary:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px;border-radius:4px}
-.help-d p{margin:8px 0 0;font-size:.74rem;line-height:1.45;color:var(--text-2)}
-.help-d kbd{
-  display:inline-block;padding:.1em .45em;font-size:.85em;font-family:inherit;
+.help-root.open .help-backdrop{opacity:1}
+.help-drawer{
+  position:absolute;top:0;right:0;bottom:0;z-index:1;
+  width:min(440px,100vw);
+  max-width:100%;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  box-shadow:-8px 0 40px rgba(0,0,0,.12);
+  transform:translateX(100%);transition:transform .34s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.help-root.open .help-drawer{transform:translateX(0)}
+.help-drawer-head{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px 18px;border-bottom:1px solid var(--border);
+  background:rgba(250,249,244,.98);
+}
+.help-drawer-head h2{
+  margin:0;font-size:1.05rem;font-weight:700;color:var(--text-1);letter-spacing:.2px;
+}
+.help-drawer-x{
+  width:38px;height:38px;border:none;border-radius:10px;cursor:pointer;font-size:1.35rem;line-height:1;
+  color:var(--text-2);background:rgba(240,239,232,.9);border:1px solid var(--border);
+  transition:background .15s,color .15s;
+}
+.help-drawer-x:hover{background:rgba(228,226,218,.95);color:var(--text-1)}
+.help-drawer-body{
+  flex:1;overflow-y:auto;padding:16px 18px 28px;
+  font-size:.84rem;line-height:1.5;color:var(--text-2);
+  scrollbar-width:thin;scrollbar-color:rgba(180,178,170,.5) transparent;
+}
+.help-drawer-body::-webkit-scrollbar{width:5px}
+.help-drawer-body::-webkit-scrollbar-thumb{background:rgba(180,178,170,.45);border-radius:5px}
+.help-drawer-body h3{
+  margin:18px 0 8px;font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.3px;color:var(--text-3);
+}
+.help-drawer-body h3:first-child{margin-top:0}
+.help-drawer-body p{margin:0 0 10px}
+.help-drawer-body ul{margin:0 0 10px;padding-left:1.15rem}
+.help-drawer-body li{margin-bottom:6px}
+.help-drawer-body kbd{
+  display:inline-block;padding:.15em .45em;font-size:.82em;font-family:inherit;
   background:rgba(218,216,207,.65);border:1px solid rgba(180,178,170,.9);border-radius:4px;
   box-shadow:0 1px 0 rgba(255,255,255,.8);
+}
+.help-drawer-body .help-note{
+  margin-top:16px;padding:12px 14px;font-size:.78rem;line-height:1.45;
+  background:rgba(255,248,230,.65);border:1px solid rgba(200,160,64,.35);border-radius:10px;color:#5a4820;
 }
 .bar-right{
   min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px;
@@ -193,6 +248,7 @@ canvas{display:block}
 
 /* ── Focus rings ── */
 .b:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
+.help-open-btn:focus-visible,.help-drawer-x:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
 #c:focus-visible{outline:3px solid #5a7a9a;outline-offset:-3px}
 
 /* ── Firefox range ── */
@@ -209,10 +265,12 @@ canvas{display:block}
   .ph,.sf,.flash,.b{transition:none!important}
   .ctrl input[type=range]::-webkit-slider-thumb{transition:none}
   .flash.on{opacity:0!important}
+  .help-backdrop,.help-drawer{transition:none!important}
 }
 
 @media (max-width:719px){
   .bar{grid-template-columns:1fr;padding:6px 12px;gap:6px}
+  .bar-left{width:100%}
   .bar h1{white-space:normal;font-size:.82rem}
   .bar-right{text-align:left}
   .bar-line1,.bar-line2{font-size:.6rem;line-height:1.3;text-align:left}
@@ -241,7 +299,10 @@ canvas{display:block}
   aria-label="RBMK-1000 primary heat system diagram. Click a labeled plant region to zoom in; click again or press Escape to zoom out."></canvas>
 
 <div class="bar">
-  <h1 id="page-title">RBMK-1000 Reactor Simulation</h1>
+  <div class="bar-left">
+    <h1 id="page-title">RBMK-1000 Reactor Simulation</h1>
+    <button type="button" class="help-open-btn" id="btnHelpOpen" aria-expanded="false" aria-controls="helpDrawer" lang="en">How to use</button>
+  </div>
   <div class="bar-right">
     <p class="bar-line1">Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</p>
     <p class="bar-line2" role="note" title="Educational model only — behavior and numbers are illustrative, not validated against any real plant or accident sequence.">Educational only — illustrative; not validated vs. real plant data.</p>
@@ -278,11 +339,6 @@ canvas{display:block}
   <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
   <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
   <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
-
-  <details class="help-d" id="helpDetails" lang="en">
-    <summary id="helpSummary">How to use</summary>
-    <p>Click a component in the diagram to zoom in and read a short description. Click anywhere on the diagram or press <kbd>Esc</kbd> to zoom out. Adjust <strong>Control rods</strong> with the slider (withdrawn toward 100% increases power in this toy model). <strong>SCRAM</strong> drives rods in. <strong>Auto Run</strong> plays a scripted startup and shutdown. <strong>Chernobyl</strong> is a dramatized historical scenario with flashing screen and optional sound — use discretion. Keyboard: focus the diagram with <kbd>Tab</kbd>, then <kbd>Esc</kbd> exits zoom.</p>
-  </details>
 </div>
 
 <div class="ctrl" id="ctrl-bar" role="toolbar" aria-label="Reactor simulation controls">
@@ -325,6 +381,44 @@ canvas{display:block}
 <div class="ph" id="phase" role="status" aria-live="polite" aria-atomic="true"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
+<div id="helpRoot" class="help-root" aria-hidden="true">
+  <div class="help-backdrop" id="helpBackdrop" tabindex="-1"></div>
+  <aside class="help-drawer" id="helpDrawer" role="dialog" aria-modal="true" aria-labelledby="helpDrawerTitle" lang="en">
+    <div class="help-drawer-head">
+      <h2 id="helpDrawerTitle">How to use</h2>
+      <button type="button" class="help-drawer-x" id="btnHelpClose" aria-label="Close help">×</button>
+    </div>
+    <div class="help-drawer-body" tabindex="-1">
+      <h3>Diagram & zoom</h3>
+      <p>Click any highlighted plant region on the diagram to <strong>zoom in</strong> and read a short description in the corner card. Click empty canvas again or press <kbd>Esc</kbd> to zoom out.</p>
+
+      <h3>Control rods</h3>
+      <p>Use the bottom <strong>Control Rods</strong> slider: in this educational model, values toward <strong>100%</strong> mean more withdrawal and <strong>higher power</strong>; toward <strong>0%</strong> means more insertion and lower power. <strong>SCRAM</strong> drives rods in for an emergency shutdown.</p>
+
+      <h3>Scenarios & events</h3>
+      <ul>
+        <li><strong>Auto Run</strong> — scripted startup and shutdown sequence.</li>
+        <li><strong>Chernobyl</strong> — dramatized 1986-style excursion; may show a full-screen flash and loud sound if audio is on. Use discretion.</li>
+        <li><strong>MCP Trip</strong> — main circulation pump failure (flow loss).</li>
+        <li><strong>Pipe Rupture</strong> — condenser / pressure behaviour change in the model.</li>
+        <li><strong>Reset</strong> — returns the toy simulation to a nominal state.</li>
+      </ul>
+
+      <h3>Sound</h3>
+      <p><strong>Sound: ON/OFF</strong> toggles optional hum and turbine-like tones. The browser may require a user click before audio starts.</p>
+
+      <h3>Keyboard</h3>
+      <ul>
+        <li><kbd>Tab</kbd> — move focus (e.g. to the diagram or buttons).</li>
+        <li><kbd>Esc</kbd> — closes this help panel when it is open; otherwise exits diagram zoom.</li>
+        <li><kbd>?</kbd> or <kbd>Shift</kbd>+<kbd>/</kbd> — opens this help panel (when not typing in a field).</li>
+      </ul>
+
+      <p class="help-note" role="note">All behaviour and numbers are illustrative only — not validated against any real RBMK unit or accident sequence.</p>
+    </div>
+  </aside>
+</div>
+
 <script>
 function el(id) { return document.getElementById(id); }
 const cv = el('c');
@@ -365,7 +459,35 @@ function resetZoom() {
   zoom.zone = null; zoom.infoAlpha = 0;
 }
 
+function isHelpOpen() {
+  const r = el('helpRoot');
+  return !!(r && r.classList.contains('open'));
+}
+function openHelpDrawer() {
+  const root = el('helpRoot'), ob = el('btnHelpOpen'), xb = el('btnHelpClose');
+  if (!root) return;
+  root.classList.add('open');
+  root.setAttribute('aria-hidden', 'false');
+  if (ob) ob.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+  if (xb) xb.focus();
+}
+function closeHelpDrawer() {
+  const root = el('helpRoot'), ob = el('btnHelpOpen');
+  if (!root || !root.classList.contains('open')) return;
+  root.classList.remove('open');
+  root.setAttribute('aria-hidden', 'true');
+  if (ob) ob.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+  if (ob) ob.focus();
+}
+
 cv.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && isHelpOpen()) {
+    closeHelpDrawer();
+    e.preventDefault();
+    return;
+  }
   if (e.key === 'Escape' && zoom.active) {
     resetZoom();
     e.preventDefault();
@@ -373,6 +495,11 @@ cv.addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && isHelpOpen()) {
+    closeHelpDrawer();
+    e.preventDefault();
+    return;
+  }
   if (e.key === 'Escape' && zoom.active) {
     resetZoom();
     e.preventDefault();
@@ -383,12 +510,8 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   const tag = t && t.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
-  const d = el('helpDetails');
-  if (d) {
-    d.open = true;
-    el('helpSummary').focus();
-    e.preventDefault();
-  }
+  openHelpDrawer();
+  e.preventDefault();
 });
 
 function wx(px) {
@@ -452,7 +575,8 @@ cv.addEventListener('click', e => {
     if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
       zoom.tCx = z.x + z.w / 2;
       zoom.tCy = z.y + z.h / 2;
-      zoom.tLevel = Math.min(3, 350 / Math.max(z.w, z.h));
+      /* Large zones (e.g. shielding) must not zoom out below 1 — breaks hit-testing and looks wrong */
+      zoom.tLevel = Math.min(3, Math.max(1, 350 / Math.max(z.w, z.h)));
       zoom.active = true;
       zoom.zone = z; zoom.infoAlpha = 0;
       break;
@@ -485,8 +609,20 @@ function drawZoomInfo() {
   const z = zoom.zone;
   const a = zoom.infoAlpha;
   const pad = 16, gap = 6;
-  const pw = Math.min(320, W * 0.3);
-  const px = 16, py = 54;
+  const shield = z.title === 'Concrete Shielding';
+  let pw = shield ? Math.min(340, W * 0.36) : Math.min(320, W * 0.3);
+  /* Shielding diagram is on the left — keep card right of reactor; reserve space for status panel */
+  const statusReserve = 244;
+  let px = 16;
+  if (shield) {
+    const ideal = Math.min(W - pw - statusReserve, Math.max(160, W * 0.3));
+    px = Math.max(12, Math.min(ideal, W - pw - 12));
+    if (W < 640) {
+      pw = Math.min(pw, W - 20);
+      px = 10;
+    }
+  }
+  const py = 54;
 
   cx.font = 'bold 15px "Segoe UI",sans-serif';
   const titleLines = wrapText(z.title, pw - pad * 2);
@@ -689,6 +825,50 @@ function pipeLabelStroke(text,x,y,size,col) {
   cx.restore();
 }
 
+/** Steam–water mixture line: badge + two short lines (easier to read on busy piping) */
+function pipeLabelSteamWaterMix(logicalX, logicalY) {
+  const lines = ['Steam–water', 'mix'];
+  cx.save();
+  const px = Math.max(11, ts(7.8));
+  const lh = px + 4;
+  cx.font = 'bold ' + px + 'px "Segoe UI",sans-serif';
+  cx.textAlign = 'center';
+  let maxW = 0;
+  for (const l of lines) maxW = Math.max(maxW, cx.measureText(l).width);
+  const padX = 12, padY = 9;
+  const boxW = maxW + padX * 2;
+  const boxH = lines.length * lh + padY * 2;
+  const cx0 = tx(logicalX), cy0 = ty(logicalY);
+  const bx = cx0 - boxW / 2;
+  const by = cy0 - boxH / 2 - px * 0.12;
+  const rad = 7;
+
+  cx.fillStyle = 'rgba(252,251,248,.97)';
+  cx.beginPath();
+  cx.moveTo(bx + rad, by);
+  cx.lineTo(bx + boxW - rad, by);
+  cx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + rad);
+  cx.lineTo(bx + boxW, by + boxH - rad);
+  cx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - rad, by + boxH);
+  cx.lineTo(bx + rad, by + boxH);
+  cx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - rad);
+  cx.lineTo(bx, by + rad);
+  cx.quadraticCurveTo(bx, by, bx + rad, by);
+  cx.closePath();
+  cx.fill();
+  cx.strokeStyle = 'rgba(100,58,42,.45)';
+  cx.lineWidth = Math.max(1.2, ts(0.9));
+  cx.stroke();
+
+  cx.fillStyle = '#4a1e12';
+  let ty0 = by + padY + px * 0.92;
+  for (const l of lines) {
+    cx.fillText(l, cx0, ty0);
+    ty0 += lh;
+  }
+  cx.restore();
+}
+
 // ═══════════════ DRAW PIPES ═══════════════
 const pipeColors = {
   mix:     {outer:'#c08070', inner:'#daa898'},
@@ -768,8 +948,14 @@ function drawShielding() {
   cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
   cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
 
-  cx.fillStyle='#707068';cx.font='bold '+Math.max(9.5,ts(8))+'px "Segoe UI",sans-serif';
-  cx.textAlign='center';cx.fillText('CONCRETE SHIELDING',tx(sx+sw/2),ty(sy+11));
+  cx.save();
+  cx.translate(tx(sx + wt * 0.5), ty(sy + sh * 0.52));
+  cx.rotate(-Math.PI / 2);
+  cx.fillStyle = '#5e5c56';
+  cx.font = 'bold ' + Math.max(8.5, ts(7)) + 'px "Segoe UI",sans-serif';
+  cx.textAlign = 'center';
+  cx.fillText('CONCRETE SHIELDING', 0, 0);
+  cx.restore();
   label('UBS',160,160,6.5,'#808078');
   label('LBS',160,524,6.5,'#808078');
 }
@@ -947,11 +1133,10 @@ function drawPump(pcx,pcy,r,lbl,sub) {
     cx.beginPath();cx.moveTo(tx(pcx-r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx+r*.7),ty(pcy+r*.7));cx.stroke();
     cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
   }
-  /* Left of pump, right-aligned — avoids overlapping the power graph (gx≈345) */
   if(sub&&lbl==='MCP'){
-    const lx=pcx-r-8;
-    label(lbl,lx,pcy-6,9.5,'#4a4a45',true,'right');
-    label(sub,lx,pcy+8,7,'#808078',false,'right');
+    const lx = pcx + r + 12;
+    label(lbl, lx, pcy - 4, 9.5, '#4a4a45', true, 'left');
+    label(sub, lx, pcy + 10, 7, '#808078', false, 'left');
   }else{
     label(lbl,pcx,pcy+r+12,9.5,'#4a4a45',true);
     if(sub)label(sub,pcx,pcy+r+24,7,'#808078');
@@ -1100,8 +1285,8 @@ function drawCoolingTower() {
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  /* y=112 pipe row: labels above line; stroke on mix so it never blends into the pipe */
-  pipeLabelStroke('Steam-Water Mix',248,72,6.5,'#905040');
+  /* Mixture riser + horizontal: badge above pipe so label is never confused with the line */
+  pipeLabelSteamWaterMix(248, 68);
   label('Dry Steam',490,72,6.5,'#906830');
   label('Return Water',318,418,6.5,'#306898');
   label('Exhaust',752,305,6.5,'#808078');
@@ -1447,6 +1632,10 @@ el('btnSound').addEventListener('click',()=>{
   el('btnSound').setAttribute('aria-pressed', S.soundOn ? 'true' : 'false');
   if(S.soundOn&&ac.state==='suspended')ac.resume();
 });
+
+el('btnHelpOpen').addEventListener('click',()=>openHelpDrawer());
+el('btnHelpClose').addEventListener('click',()=>closeHelpDrawer());
+el('helpBackdrop').addEventListener('click',()=>closeHelpDrawer());
 
 function showP(text,danger){
   const ph=el('phase');ph.textContent=text;
