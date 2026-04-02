@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBMK-1000 Reactor — Interactive Simulation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0efe8;color:#2c2c2a;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+canvas{display:block}
+
+.bar{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(240,239,232,.93);backdrop-filter:blur(8px);border-bottom:1px solid #d8d6ce;z-index:20}
+.bar h1{font-size:.88rem;font-weight:600;color:#3a3a40;letter-spacing:.3px}
+.bar span{font-size:.72rem;color:#8a8a80}
+.bar a{color:#5a7a9a;text-decoration:none;font-size:.78rem}
+
+.p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.p h3{font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;color:#9a9a90;margin-bottom:6px;font-weight:600}
+
+.legend{top:54px;left:12px;width:168px}
+.li{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.7rem;color:#5a5a55}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,.06)}
+
+.info{top:54px;right:12px;width:200px;max-height:calc(100vh - 120px);overflow-y:auto}
+.st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.sl{font-size:.68rem;color:#7a7a72}
+.sv{font-size:.76rem;font-weight:600;font-variant-numeric:tabular-nums}
+.sb{width:100%;height:2.5px;background:#e8e6de;border-radius:2px;margin-top:1px;margin-bottom:6px;overflow:hidden}
+.sf{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05);flex-wrap:wrap;justify-content:center;max-width:95vw}
+.ctrl label{font-size:.68rem;color:#7a7a72;white-space:nowrap}
+.ctrl input[type=range]{-webkit-appearance:none;width:120px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
+.ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.b{background:#f0efe8;border:1px solid #d0cec5;color:#4a4a45;padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:500}
+.b:hover{background:#e8e6de}
+.b.on{background:#e8f0e8;border-color:#6aaa6a;color:#2a6a2a}
+.b.sc{background:#fde8e8;border-color:#e0a0a0;color:#a03030}
+.b.sc:hover{background:#f8d0d0}
+.b.ch{background:#fff3e0;border-color:#e0c080;color:#806020}
+.b.ch:hover{background:#ffe8c0}
+.sep{width:1px;height:20px;background:#d8d6ce}
+
+.ph{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);font-size:1.4rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .5s;z-index:30;pointer-events:none;text-align:center;line-height:1.4;text-shadow:0 1px 3px rgba(255,255,255,.9);max-width:80vw}
+.ph.v{opacity:1}.ph.d{color:#b02020}
+
+.flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
+.flash.on{opacity:1}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="bar">
+  <h1>RBMK-1000 Reactor Simulation</h1>
+  <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
+  <a href="index.html">Home</a>
+</div>
+
+<div class="p legend">
+  <h3>Components</h3>
+  <div class="li"><div class="ld" style="background:#b0aaa0"></div>Concrete Shielding</div>
+  <div class="li"><div class="ld" style="background:#8a8e96"></div>Graphite Moderator</div>
+  <div class="li"><div class="ld" style="background:#d0903a"></div>Fuel Assemblies (UO₂)</div>
+  <div class="li"><div class="ld" style="background:#4a4a58"></div>Control Rods (B₄C)</div>
+  <div class="li"><div class="ld" style="background:#6a80a0"></div>Pressure Channels</div>
+  <div class="li"><div class="ld" style="background:#3a8ad0"></div>Coolant Water</div>
+  <div class="li"><div class="ld" style="background:#c8d4e0"></div>Steam</div>
+  <div class="li"><div class="ld" style="background:#7a9aaa"></div>Drum Separator</div>
+  <div class="li"><div class="ld" style="background:#5a80a0"></div>MCP (8 pumps)</div>
+  <div class="li"><div class="ld" style="background:#3a8a6a"></div>Turbines &amp; Generator</div>
+  <div class="li"><div class="ld" style="background:#7a8a70"></div>Moisture Separator</div>
+  <div class="li"><div class="ld" style="background:#4a70a0"></div>Condenser</div>
+</div>
+
+<div class="p info">
+  <h3>Reactor Status</h3>
+  <div class="st"><span class="sl">Thermal Power</span><span class="sv" id="vP">0 MWt</span></div>
+  <div class="sb"><div class="sf" id="bP" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Electrical Output</span><span class="sv" id="vE" style="color:#2a6a2a">0 MWe</span></div>
+  <div class="sb"><div class="sf" id="bE" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Core Temperature</span><span class="sv" id="vT">280 °C</span></div>
+  <div class="sb"><div class="sf" id="bT" style="width:20%"></div></div>
+  <div class="st"><span class="sl">Steam Pressure</span><span class="sv" id="vPr">0 MPa</span></div>
+  <div class="sb"><div class="sf" id="bPr" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Control Rods</span><span class="sv" id="vR">100%</span></div>
+  <div class="sb"><div class="sf" id="bR" style="width:100%;background:#c08030"></div></div>
+  <div class="st"><span class="sl">Void Fraction</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
+  <div class="sb"><div class="sf" id="bV" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Reactivity</span><span class="sv" id="vRe">0 pcm</span></div>
+  <div class="st"><span class="sl">Xenon-135</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
+  <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
+  <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
+  <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
+</div>
+
+<div class="ctrl">
+  <label>Control Rods</label>
+  <input type="range" id="sRod" min="0" max="100" value="100">
+  <button class="b sc" id="btnScram">SCRAM</button>
+  <div class="sep"></div>
+  <button class="b" id="btnAuto">Auto Run</button>
+  <button class="b ch" id="btnChernobyl">Chernobyl</button>
+  <div class="sep"></div>
+  <button class="b" id="btnMCP">MCP Trip</button>
+  <button class="b" id="btnPipe">Pipe Rupture</button>
+  <div class="sep"></div>
+  <button class="b" id="btnSound">Sound: OFF</button>
+</div>
+
+<div class="ph" id="phase"></div>
+<div class="flash" id="flash"></div>
+
+<script>
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
+let W, H, sc, ox, oy;
+
+function resize() {
+  W = cv.width = innerWidth;
+  H = cv.height = innerHeight;
+  sc = Math.min(W / 1080, (H - 44) / 700);
+  ox = (W - 1080 * sc) / 2;
+  oy = 44 + ((H - 44) - 700 * sc) / 2;
+}
+resize();
+addEventListener('resize', resize);
+
+function tx(x) { return ox + x * sc; }
+function ty(y) { return oy + y * sc; }
+function ts(v) { return v * sc; }
+
+// ═══════════════ STATE ═══════════════
+const S = {
+  rod: 1, power: 0, temp: 280, pressure: 0, elec: 0, rpm: 0,
+  voidFrac: 0, reactivity: 0, fuelTemp: 300,
+  iodine: 0, xenon: 0, xenonNorm: 0,
+  decayHeat: 0, timeSinceScram: 0, wasScram: false,
+  time: 0, shake: 0,
+  autoMode: false, autoPhase: 0, autoTimer: 0,
+  scram: false, scramTimer: 0, scramTipDone: false,
+  mcpTrip: false, pipeRupture: false,
+  chernobyl: false, chPhase: 0, chTimer: 0,
+  soundOn: false, explosion: false
+};
+
+const powerHist = [];
+const HIST_LEN = 360;
+
+// ═══════════════ AUDIO ═══════════════
+let ac, humO, humG, turbO, turbG, audioReady = false;
+
+function initAudio() {
+  if (audioReady) return;
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  humO = ac.createOscillator(); humO.type = 'sawtooth'; humO.frequency.value = 55;
+  humG = ac.createGain(); humG.gain.value = 0;
+  const humF = ac.createBiquadFilter(); humF.type = 'lowpass'; humF.frequency.value = 150;
+  humO.connect(humF).connect(humG).connect(ac.destination); humO.start();
+
+  turbO = ac.createOscillator(); turbO.type = 'sine'; turbO.frequency.value = 200;
+  turbG = ac.createGain(); turbG.gain.value = 0;
+  turbO.connect(turbG).connect(ac.destination); turbO.start();
+  audioReady = true;
+}
+
+function playAlarm() {
+  if (!audioReady || !S.soundOn) return;
+  const o = ac.createOscillator(); o.type = 'square'; o.frequency.value = 880;
+  const g = ac.createGain(); g.gain.value = 0;
+  o.connect(g).connect(ac.destination); o.start();
+  let t = ac.currentTime;
+  for (let i = 0; i < 8; i++) {
+    g.gain.setValueAtTime(0.04, t + i * 0.3);
+    g.gain.setValueAtTime(0, t + i * 0.3 + 0.15);
+  }
+  o.stop(t + 2.5);
+}
+
+function playBoom() {
+  if (!audioReady || !S.soundOn) return;
+  const buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) {
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.4));
+  }
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const g = ac.createGain(); g.gain.value = 0.15;
+  const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 200;
+  src.connect(f).connect(g).connect(ac.destination); src.start();
+}
+
+function updateAudio() {
+  if (!audioReady) return;
+  const vol = S.soundOn ? 1 : 0;
+  const pf = S.power / 100;
+  humG.gain.linearRampToValueAtTime(pf * 0.025 * vol, ac.currentTime + 0.1);
+  humO.frequency.linearRampToValueAtTime(48 + pf * 20, ac.currentTime + 0.1);
+  turbG.gain.linearRampToValueAtTime((pf > 0.05 ? pf * 0.015 : 0) * vol, ac.currentTime + 0.1);
+  turbO.frequency.linearRampToValueAtTime(180 + pf * 500, ac.currentTime + 0.1);
+}
+
+// ═══════════════ PIPES ═══════════════
+const pipes = {
+  coreToSep:  { pts:[[160,163],[160,52],[332,52],[332,83]], fluid:'mix' },
+  sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,611]], fluid:'water' },
+  mcpToCore:  { pts:[[240,659],[240,695],[85,695],[85,580]], fluid:'water' },
+  sepToHP:    { pts:[[465,102],[500,102]], fluid:'steam' },
+  hpToMSR:    { pts:[[580,112],[608,112]], fluid:'steam' },
+  msrToLP:    { pts:[[642,112],[672,112]], fluid:'steam' },
+  lpToCond:   { pts:[[720,160],[720,451]], fluid:'exhaust' },
+  condToFW:   { pts:[[678,475],[558,475]], fluid:'water' },
+  fwToSep:    { pts:[[540,457],[540,200],[435,200],[435,141]], fluid:'water' },
+  condToCT:   { pts:[[763,480],[870,480]], fluid:'cool' },
+};
+
+Object.values(pipes).forEach(p => {
+  let l = 0;
+  for (let i = 1; i < p.pts.length; i++) {
+    const dx = p.pts[i][0]-p.pts[i-1][0], dy = p.pts[i][1]-p.pts[i-1][1];
+    l += Math.sqrt(dx*dx+dy*dy);
+  }
+  p.len = l;
+});
+
+function ptOnPath(pts, len, t) {
+  let d = t * len;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0]-pts[i-1][0], dy = pts[i][1]-pts[i-1][1];
+    const seg = Math.sqrt(dx*dx+dy*dy);
+    if (d <= seg) { const f=d/seg; return {x:pts[i-1][0]+dx*f, y:pts[i-1][1]+dy*f}; }
+    d -= seg;
+  }
+  return {x:pts[pts.length-1][0], y:pts[pts.length-1][1]};
+}
+
+// ═══════════════ DRAW HELPERS ═══════════════
+function rr(x,y,w,h,r) {
+  const ax=tx(x),ay=ty(y),aw=ts(w),ah=ts(h),ar=ts(r);
+  cx.beginPath();
+  cx.moveTo(ax+ar,ay); cx.lineTo(ax+aw-ar,ay);
+  cx.quadraticCurveTo(ax+aw,ay,ax+aw,ay+ar); cx.lineTo(ax+aw,ay+ah-ar);
+  cx.quadraticCurveTo(ax+aw,ay+ah,ax+aw-ar,ay+ah); cx.lineTo(ax+ar,ay+ah);
+  cx.quadraticCurveTo(ax,ay+ah,ax,ay+ah-ar); cx.lineTo(ax,ay+ar);
+  cx.quadraticCurveTo(ax,ay,ax+ar,ay); cx.closePath();
+}
+
+function arrow(x1,y1,x2,y2,col) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  const ux=dx/len, uy=dy/len, sz=ts(6);
+  cx.strokeStyle=col; cx.lineWidth=ts(1.5); cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(tx(x1),ty(y1)); cx.lineTo(tx(x2),ty(y2)); cx.stroke();
+  cx.fillStyle=col; cx.beginPath();
+  cx.moveTo(tx(x2),ty(y2));
+  cx.lineTo(tx(x2)-ux*sz-uy*sz*0.4, ty(y2)-uy*sz+ux*sz*0.4);
+  cx.lineTo(tx(x2)-ux*sz+uy*sz*0.4, ty(y2)-uy*sz-ux*sz*0.4);
+  cx.fill();
+}
+
+function label(text,x,y,size,col,bold) {
+  cx.fillStyle=col||'#6a6a65';
+  cx.font=(bold?'bold ':'')+ts(size||9)+'px "Segoe UI",sans-serif';
+  cx.textAlign='center';
+  const lines=text.split('\n');
+  lines.forEach((l,i)=>cx.fillText(l,tx(x),ty(y)+i*ts((size||9)+2)));
+}
+
+// ═══════════════ DRAW PIPES ═══════════════
+function drawPipes() {
+  Object.values(pipes).forEach(p => {
+    cx.strokeStyle='#c8c6be'; cx.lineWidth=ts(9); cx.lineCap='round'; cx.lineJoin='round';
+    cx.beginPath(); cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+    for(let i=1;i<p.pts.length;i++) cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));
+    cx.stroke();
+    cx.strokeStyle='#dddbd2'; cx.lineWidth=ts(5);
+    cx.beginPath(); cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+    for(let i=1;i<p.pts.length;i++) cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));
+    cx.stroke();
+  });
+}
+
+function drawFlow() {
+  const pf = S.power / 100;
+  if (pf < 0.01 && S.decayHeat < 1) return;
+  const eff = Math.max(pf, S.decayHeat / 3200 * 3);
+
+  Object.values(pipes).forEach(p => {
+    const n = p.fluid==='steam'?14 : p.fluid==='mix'?16 : p.fluid==='exhaust'?10 : 12;
+    const spd = 0.06 + eff * 0.18;
+    for (let i=0;i<n;i++) {
+      const t = ((S.time*spd + i/n) % 1);
+      const pt = ptOnPath(p.pts, p.len, t);
+      const a = eff * 0.65 * Math.sin(t*Math.PI);
+      let col;
+      if (p.fluid==='water'||p.fluid==='cool') col=`rgba(50,120,200,${a})`;
+      else if (p.fluid==='steam') col=`rgba(150,170,190,${a*1.3})`;
+      else if (p.fluid==='exhaust') col=`rgba(170,180,190,${a*0.7})`;
+      else col = (t%0.14<0.06) ? `rgba(50,120,200,${a})` : `rgba(165,180,195,${a})`;
+      cx.fillStyle=col; cx.beginPath();
+      cx.arc(tx(pt.x),ty(pt.y),ts(p.fluid==='steam'?3.2:2.5),0,Math.PI*2); cx.fill();
+    }
+  });
+}
+
+function drawArrows() {
+  const c = 'rgba(130,130,120,.35)';
+  arrow(160,130,160,60,c); arrow(180,52,310,52,c);
+  arrow(365,180,365,400,c); arrow(340,440,260,440,c);
+  arrow(240,670,240,695,c); arrow(200,695,110,695,c); arrow(85,660,85,600,c);
+  arrow(470,102,495,102,c); arrow(585,112,603,112,c); arrow(647,112,667,112,c);
+  arrow(720,180,720,420,c);
+  arrow(660,475,575,475,c); arrow(540,440,540,220,c); arrow(520,200,450,200,c);
+  arrow(770,480,855,480,c);
+}
+
+// ═══════════════ CONCRETE SHIELDING ═══════════════
+function drawShielding() {
+  const sx=30, sy=100, sw=260, sh=480, wt=16;
+
+  cx.fillStyle='#c8c4b8'; cx.strokeStyle='#a0a098'; cx.lineWidth=ts(1);
+  cx.fillRect(tx(sx),ty(sy),ts(wt),ts(sh));
+  cx.fillRect(tx(sx),ty(sy),ts(sw),ts(wt));
+  cx.fillRect(tx(sx),ty(sy+sh-wt),ts(sw),ts(wt));
+  cx.fillRect(tx(sx+sw-wt),ty(sy),ts(wt),ts(sh));
+
+  for (let i=0;i<sh;i+=8) {
+    cx.strokeStyle='rgba(160,155,145,.25)';
+    cx.beginPath();
+    cx.moveTo(tx(sx),ty(sy+i)); cx.lineTo(tx(sx+wt),ty(sy+i+4)); cx.stroke();
+    cx.beginPath();
+    cx.moveTo(tx(sx+sw-wt),ty(sy+i)); cx.lineTo(tx(sx+sw),ty(sy+i+4)); cx.stroke();
+  }
+
+  cx.fillStyle='#8a8888'; cx.lineWidth=ts(1);
+  cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
+  cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
+
+  label('UBS',160,158,7,'#707070');
+  label('LBS',160,527,7,'#707070');
+  label('CONCRETE\nSHIELDING',160,sy+sh+14,8.5,'#8a8a82');
+}
+
+// ═══════════════ REACTOR CORE ═══════════════
+function drawCore() {
+  const ccx=160,ccy=340,hw=92,hh=168;
+  const L=ccx-hw,T=ccy-hh,W2=hw*2,H2=hh*2;
+  const pf=S.power/100;
+
+  rr(L,T,W2,H2,3); cx.fillStyle='#e5e4dd'; cx.fill();
+  cx.strokeStyle='#b0aea5'; cx.lineWidth=ts(1); cx.stroke();
+
+  const bs=20, cols=Math.floor(W2/bs), rows=Math.floor(H2/bs);
+  const gx=L+(W2-cols*bs)/2, gy=T+(H2-rows*bs)/2;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
+    const bx=gx+c*bs, by=gy+r*bs;
+    const n=Math.sin(r*2.3+c*3.1+S.time*.7)*2.5;
+    const base=142+n, gw=pf*22;
+    cx.fillStyle=`rgb(${base+gw|0},${base+gw*.3|0},${base-gw*.4|0})`;
+    cx.fillRect(tx(bx+.4),ty(by+.4),ts(bs-.8),ts(bs-.8));
+  }
+
+  const fuelX=[88,110,132,160,188,210,232];
+  const chT=T+12, chB=T+H2-12, chH=chB-chT;
+
+  fuelX.forEach(fx => {
+    cx.fillStyle='#a0a8b0';
+    cx.fillRect(tx(fx-5),ty(chT),ts(10),ts(chH));
+    cx.fillStyle='#8a9098';
+    cx.fillRect(tx(fx-5),ty(chT),ts(1.5),ts(chH));
+    cx.fillRect(tx(fx+3.5),ty(chT),ts(1.5),ts(chH));
+
+    for(let p=0;p<16;p++){
+      const py=chT+4+p*((chH-8)/16);
+      const br=.3+pf*.7;
+      cx.fillStyle=`rgb(${200*br+50|0},${115*br+30|0},${25*br+10|0})`;
+      cx.fillRect(tx(fx-3),ty(py),ts(6),ts((chH-8)/16-2));
+    }
+
+    if(pf>.04){
+      const g=cx.createRadialGradient(tx(fx),ty(ccy),0,tx(fx),ty(ccy),ts(18+pf*28));
+      g.addColorStop(0,`rgba(225,135,35,${pf*.18})`);
+      g.addColorStop(1,'rgba(225,100,30,0)');
+      cx.fillStyle=g;
+      cx.fillRect(tx(fx-30),ty(chT),ts(60),ts(chH));
+    }
+
+    if(pf>.02){
+      for(let wi=0;wi<5;wi++){
+        const wt=((S.time*(.35+pf*.5)+wi*.2)%1);
+        const wy=chT+(1-wt)*chH;
+        const steam=wt>.5&&pf>.08;
+        cx.fillStyle=steam
+          ? `rgba(150,175,200,${pf*.3*Math.sin(wt*Math.PI)})`
+          : `rgba(50,120,200,${pf*.35*Math.sin(wt*Math.PI)})`;
+        cx.beginPath();
+        cx.arc(tx(fx+Math.sin(S.time*2.5+wi)*1.5),ty(wy),ts(steam?2.2:1.8),0,Math.PI*2);
+        cx.fill();
+      }
+    }
+  });
+
+  // Cherenkov glow
+  if(pf>.85){
+    const ci=(pf-.85)/.15;
+    fuelX.forEach(fx=>{
+      const g=cx.createRadialGradient(tx(fx),ty(ccy),ts(3),tx(fx),ty(ccy),ts(25));
+      g.addColorStop(0,`rgba(40,80,255,${ci*.12})`);
+      g.addColorStop(1,'rgba(30,60,220,0)');
+      cx.fillStyle=g;
+      cx.fillRect(tx(fx-25),ty(chT),ts(50),ts(chH));
+    });
+  }
+
+  const rodX=[99,144,176,221];
+  const rodFull=H2-24;
+  const rodIns=rodFull*S.rod;
+
+  rodX.forEach(rx=>{
+    const rT=T+6;
+    cx.fillStyle='#a0a098';
+    cx.fillRect(tx(rx-2.5),ty(rT-35),ts(5),ts(35));
+    cx.fillStyle='#7a7a78';
+    cx.fillRect(tx(rx-5),ty(rT-42+(1-S.rod)*30),ts(10),ts(12));
+
+    const gr=cx.createLinearGradient(tx(rx-2.5),0,tx(rx+2.5),0);
+    gr.addColorStop(0,'#4a4a52'); gr.addColorStop(.5,'#606068'); gr.addColorStop(1,'#4a4a52');
+    cx.fillStyle=gr;
+    cx.fillRect(tx(rx-2.5),ty(rT),ts(5),ts(rodIns));
+    if(rodIns>4){cx.fillStyle='#35353d';cx.fillRect(tx(rx-3),ty(rT+rodIns-5),ts(6),ts(5));}
+  });
+
+  // Control valves below LBS
+  fuelX.forEach(fx=>{
+    cx.fillStyle='#8a8888';
+    cx.beginPath();
+    cx.moveTo(tx(fx),ty(530)); cx.lineTo(tx(fx-5),ty(537)); cx.lineTo(tx(fx),ty(544));
+    cx.lineTo(tx(fx+5),ty(537)); cx.closePath(); cx.fill();
+    cx.strokeStyle='#6a6a68'; cx.lineWidth=ts(.8); cx.stroke();
+  });
+
+  if(pf>.04){
+    const cg=cx.createRadialGradient(tx(ccx),ty(ccy),0,tx(ccx),ty(ccy),ts(hw*1.1));
+    const dang=pf>.8;
+    cg.addColorStop(0,`rgba(${dang?'220,75,25':'215,155,55'},${pf*(dang?.1:.07)})`);
+    cg.addColorStop(1,`rgba(${dang?'200,50,20':'200,140,50'},0)`);
+    cx.fillStyle=cg; cx.fillRect(tx(L-10),ty(T-10),ts(W2+20),ts(H2+20));
+  }
+
+  if(pf>.04){
+    const nc=Math.floor(pf*25);
+    for(let n=0;n<nc;n++){
+      const nx=ccx+(Math.sin(S.time*1.3+n*7.3)*.5+Math.sin(S.time*.7+n*3.1)*.5)*hw*.65;
+      const ny=ccy+(Math.cos(S.time*1.8+n*5.1)*.5+Math.cos(S.time*1.1+n*2.7)*.5)*hh*.65;
+      cx.fillStyle=`rgba(90,150,225,${.12+pf*.22})`;
+      cx.beginPath(); cx.arc(tx(nx),ty(ny),ts(1),0,Math.PI*2); cx.fill();
+    }
+  }
+
+  label('REACTOR CORE',ccx,ccy+hh+16,9.5,'#6a6a65',true);
+  label('Graphite-Moderated\n1661 Pressure Channels',ccx,ccy+hh+28,7.5,'#9a9a90');
+  label('CONTROL\nVALVES',160,548,6.5,'#7a7a75');
+}
+
+// ═══════════════ DRUM SEPARATOR ═══════════════
+function drawDrumSep() {
+  const dcx=400,dcy=112,dw=130,dh=58;
+  const L=dcx-dw/2,T=dcy-dh/2;
+  const cap=ts(dh*.4);
+  const bL=tx(L+dh*.4),bR=tx(L+dw-dh*.4),bT=ty(T),bB=ty(T+dh);
+
+  cx.fillStyle='#d5d9dd'; cx.strokeStyle='#95a0a8'; cx.lineWidth=ts(1.8);
+  cx.beginPath(); cx.ellipse(bL,ty(dcy),cap,ts(dh/2),0,0,Math.PI*2); cx.fill(); cx.stroke();
+  cx.fillStyle='#dce0e4'; cx.fillRect(bL,bT,bR-bL,bB-bT);
+  cx.beginPath();cx.moveTo(bL,bT);cx.lineTo(bR,bT);cx.moveTo(bL,bB);cx.lineTo(bR,bB);
+  cx.strokeStyle='#95a0a8';cx.stroke();
+  cx.fillStyle='#d5d9dd'; cx.beginPath();cx.ellipse(bR,ty(dcy),cap,ts(dh/2),0,0,Math.PI*2);cx.fill();cx.stroke();
+
+  const pf=S.power/100;
+  const wLev=.42+pf*.12;
+  const wTop=ty(dcy+dh/2*(1-wLev*2));
+  cx.save();cx.beginPath();cx.rect(bL-cap,bT,bR-bL+cap*2,bB-bT);cx.clip();
+  cx.fillStyle=`rgba(50,120,200,${.06+pf*.1})`;cx.fillRect(bL-cap,wTop,bR-bL+cap*2,bB-wTop);
+  if(pf>.08) for(let b=0;b<12;b++){
+    const bx=dcx-dw*.28+Math.sin(S.time*1.4+b*2.7)*dw*.28;
+    const by=dcy+dh*.08+Math.cos(S.time*1.8+b*1.9)*dh*.12;
+    cx.fillStyle=`rgba(150,185,215,${pf*.25})`;
+    cx.beginPath();cx.arc(tx(bx),ty(by),ts(1.2+Math.sin(S.time+b)*.6),0,Math.PI*2);cx.fill();
+  }
+  cx.restore();
+  label('DRUM SEPARATOR',dcx,dcy+dh/2+14,9,'#6a6a65',true);
+  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+25,7,'#9a9a90');
+}
+
+// ═══════════════ PUMP (shared) ═══════════════
+function drawPump(pcx,pcy,r,lbl,sub) {
+  const pf=S.power/100;
+  cx.fillStyle='#ced6de';cx.strokeStyle='#8a9aa8';cx.lineWidth=ts(1.8);
+  cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
+  const spd=S.time*(1+pf*4)*(S.mcpTrip&&lbl==='MCP'?.1:1);
+  cx.save();cx.translate(tx(pcx),ty(pcy));cx.rotate(spd);
+  cx.strokeStyle=`rgba(70,100,130,${.25+pf*.5})`;cx.lineWidth=ts(2);
+  for(let b=0;b<6;b++){
+    const a=b*Math.PI/3;
+    cx.beginPath();cx.moveTo(0,0);
+    cx.quadraticCurveTo(Math.cos(a+.4)*ts(r*.4),Math.sin(a+.4)*ts(r*.4),Math.cos(a)*ts(r*.7),Math.sin(a)*ts(r*.7));
+    cx.stroke();
+  }
+  cx.restore();
+  cx.fillStyle='#8a9aaa';cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(4),0,Math.PI*2);cx.fill();
+  if(S.mcpTrip&&lbl==='MCP'){
+    cx.strokeStyle='rgba(200,50,50,.6)';cx.lineWidth=ts(2);
+    cx.beginPath();cx.moveTo(tx(pcx-r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx+r*.7),ty(pcy+r*.7));cx.stroke();
+    cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
+  }
+  label(lbl,pcx,pcy+r+12,8.5,'#6a6a65',true);
+  if(sub)label(sub,pcx,pcy+r+22,6.5,'#9a9a90');
+}
+
+// ═══════════════ TURBINE (shared) ═══════════════
+function drawTurbine(tcx,tcy,r,lbl,blades) {
+  const pf=S.power/100;
+  cx.fillStyle='#deeae6';cx.strokeStyle='#6a9a88';cx.lineWidth=ts(2.2);
+  cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
+  cx.strokeStyle='#8ab8a8';cx.lineWidth=ts(.8);
+  cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(r*.85),0,Math.PI*2);cx.stroke();
+
+  const ang=S.time*(.4+pf*7);
+  cx.save();cx.translate(tx(tcx),ty(tcy));cx.rotate(ang);
+  for(let b=0;b<blades;b++){
+    const a=b*Math.PI*2/blades, int=.18+pf*.6;
+    cx.strokeStyle=`rgba(45,115,85,${int})`;cx.lineWidth=ts(1.8);
+    cx.beginPath();
+    const inner=ts(5), outer=ts(r*.78);
+    cx.moveTo(inner*Math.cos(a),inner*Math.sin(a));
+    cx.quadraticCurveTo(
+      (inner+(outer-inner)*.5)*Math.cos(a+.15),(inner+(outer-inner)*.5)*Math.sin(a+.15),
+      outer*Math.cos(a),outer*Math.sin(a));
+    cx.stroke();
+    cx.fillStyle=`rgba(45,115,85,${int*.6})`;cx.beginPath();
+    cx.arc(outer*Math.cos(a),outer*Math.sin(a),ts(2.2),0,Math.PI*2);cx.fill();
+  }
+  cx.restore();
+  cx.fillStyle='#6a9a88';cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(5),0,Math.PI*2);cx.fill();
+  label(lbl,tcx,tcy+r+14,9,'#5a7a6a',true);
+}
+
+// ═══════════════ MOISTURE SEPARATOR ═══════════════
+function drawMSR() {
+  const mx=625,my=112,mw=30,mh=50;
+  rr(mx-mw/2,my-mh/2,mw,mh,4);
+  cx.fillStyle='#e0e4d8';cx.fill();cx.strokeStyle='#8a9a80';cx.lineWidth=ts(1.5);cx.stroke();
+
+  const pf=S.power/100;
+  if(pf>.05) for(let d=0;d<6;d++){
+    const dx=mx-mw*.2+Math.sin(S.time*2+d*1.3)*mw*.2;
+    const dy=my+mh*.1+((S.time*30+d*15)%mh*.6);
+    cx.fillStyle=`rgba(80,130,200,${pf*.25})`;
+    cx.beginPath();cx.arc(tx(dx),ty(dy),ts(1.2),0,Math.PI*2);cx.fill();
+  }
+
+  cx.strokeStyle=`rgba(80,130,200,${.1+pf*.15})`;cx.lineWidth=ts(.8);
+  for(let v=0;v<3;v++){
+    const vy=my-mh*.25+v*mh*.25;
+    cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));
+    cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke();
+  }
+  label('MSR',mx,my+mh/2+12,7.5,'#6a7a60',true);
+}
+
+// ═══════════════ GENERATOR ═══════════════
+function drawGenerator() {
+  const gx=850,gy=112,gw=55,gh=62;
+  rr(gx-gw/2,gy-gh/2,gw,gh,5);
+  cx.fillStyle='#deeade';cx.fill();cx.strokeStyle='#5a8a5a';cx.lineWidth=ts(1.8);cx.stroke();
+  const pf=S.power/100;
+
+  cx.save();cx.translate(tx(gx),ty(gy));
+  const ca=S.time*(.4+pf*5);
+  for(let c=0;c<3;c++){
+    const a=ca+c*Math.PI*2/3,int=.12+pf*.45;
+    cx.strokeStyle=`rgba(40,100,40,${int})`;cx.lineWidth=ts(1.2);
+    cx.beginPath();cx.ellipse(0,0,ts(17),ts(24),a,0,Math.PI*2);cx.stroke();
+  }
+  cx.restore();
+
+  if(pf>.08){
+    const sa=.25+pf*.5+Math.sin(S.time*7)*.12;
+    cx.fillStyle=`rgba(40,140,40,${sa})`;cx.font=`bold ${ts(16)}px "Segoe UI",sans-serif`;
+    cx.textAlign='center';cx.fillText('⚡',tx(gx),ty(gy+5));
+  }
+  label('GENERATOR',gx,gy+gh/2+14,9,'#4a7a4a',true);
+  label(S.elec.toFixed(0)+' MWe',gx,gy+gh/2+25,8,pf>.08?'#2a6a2a':'#9a9a90');
+}
+
+// ═══════════════ SHAFT ═══════════════
+function drawShaft() {
+  cx.strokeStyle='#a0a898';cx.lineWidth=ts(4.5);cx.lineCap='round';
+  cx.beginPath();cx.moveTo(tx(580),ty(112));cx.lineTo(tx(608),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(642),ty(112));cx.lineTo(tx(672),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(768),ty(112));cx.lineTo(tx(823),ty(112));cx.stroke();
+}
+
+// ═══════════════ CONDENSER ═══════════════
+function drawCondenser() {
+  const ccx=720,ccy=475,cw=85,ch=48;
+  rr(ccx-cw/2,ccy-ch/2,cw,ch,4);
+  cx.fillStyle='#d8e2ea';cx.fill();cx.strokeStyle='#7a90a8';cx.lineWidth=ts(1.8);cx.stroke();
+  const pf=S.power/100;
+  for(let t=0;t<4;t++){
+    const ty_=ccy-ch*.25+t*ch*.17;
+    cx.strokeStyle=`rgba(80,130,180,${.12+pf*.18})`;cx.lineWidth=ts(1.2);
+    cx.beginPath();
+    for(let x=ccx-cw*.38;x<ccx+cw*.38;x+=4){
+      const sx=tx(x),sy=ty(ty_+Math.sin((x+S.time*18)*.14)*2.5);
+      if(x===ccx-cw*.38)cx.moveTo(sx,sy);else cx.lineTo(sx,sy);
+    }
+    cx.stroke();
+  }
+
+  if(S.pipeRupture){
+    for(let l=0;l<8;l++){
+      const lx=ccx+cw*.3+Math.random()*10;
+      const ly=ccy-ch*.3+Math.random()*ch*.6;
+      cx.fillStyle='rgba(50,120,200,.3)';
+      cx.beginPath();cx.arc(tx(lx),ty(ly),ts(1.5),0,Math.PI*2);cx.fill();
+    }
+  }
+
+  label('CONDENSER',ccx,ccy+ch/2+14,9,'#5a7090',true);
+}
+
+// ═══════════════ COOLING TOWER ═══════════════
+function drawCoolingTower() {
+  const ctcx=890,ctcy=475,ctw=45,cth=72;
+  const top=ctcy-cth/2,bot=ctcy+cth/2;
+  cx.fillStyle='#dddad2';cx.strokeStyle='#b0aea5';cx.lineWidth=ts(1.2);
+  cx.beginPath();
+  cx.moveTo(tx(ctcx-ctw*.33),ty(bot));
+  cx.quadraticCurveTo(tx(ctcx-ctw*.18),ty(ctcy+cth*.08),tx(ctcx-ctw*.23),ty(top+cth*.18));
+  cx.lineTo(tx(ctcx-ctw*.28),ty(top));cx.lineTo(tx(ctcx+ctw*.28),ty(top));
+  cx.lineTo(tx(ctcx+ctw*.23),ty(top+cth*.18));
+  cx.quadraticCurveTo(tx(ctcx+ctw*.18),ty(ctcy+cth*.08),tx(ctcx+ctw*.33),ty(bot));
+  cx.closePath();cx.fill();cx.stroke();
+
+  const pf=S.power/100;
+  if(pf>.08) for(let p=0;p<4;p++){
+    const px=ctcx+Math.sin(S.time*.7+p*1.4)*6;
+    const py=top-4-p*7-(S.time*12+p*10)%35;
+    const a=pf*.18*(1-p*.2);
+    if(a>0){cx.fillStyle=`rgba(155,165,175,${a})`;
+    cx.beginPath();cx.arc(tx(px),ty(py),ts(3.5+p*1.2),0,Math.PI*2);cx.fill();}
+  }
+  label('COOLING\nTOWER',ctcx,bot+10,7.5,'#8a8a85');
+}
+
+// ═══════════════ PIPE LABELS ═══════════════
+function drawPipeLabels() {
+  label('Steam-Water\nMixture',240,44,7.5,'#9a9a90');
+  label('Dry Steam',484,90,7.5,'#9a9a90');
+  label('Separated\nWater',310,390,7.5,'#9a9a90');
+  label('Exhaust\nSteam',738,310,7.5,'#9a9a90');
+  label('Condensate',600,490,7.5,'#9a9a90');
+  label('Feedwater',555,178,7.5,'#9a9a90');
+  label('Cooling\nWater',820,495,7,'#9a9a90');
+}
+
+// ═══════════════ LEAK PARTICLES ═══════════════
+function drawLeaks() {
+  if(S.pressure<6) return;
+  const int=(S.pressure-6)/2;
+  const joints=[[332,83],[465,102],[720,160],[678,475]];
+  joints.forEach(j=>{
+    for(let l=0;l<3;l++){
+      const lx=j[0]+(Math.random()-.5)*8;
+      const ly=j[1]+(Math.random()-.5)*8;
+      cx.fillStyle=`rgba(200,210,220,${int*.3*Math.random()})`;
+      cx.beginPath();cx.arc(tx(lx),ty(ly),ts(1.5+Math.random()*2),0,Math.PI*2);cx.fill();
+    }
+  });
+}
+
+// ═══════════════ POWER GRAPH ═══════════════
+function drawGraph() {
+  const gx=340,gy=610,gw=380,gh=75;
+
+  rr(gx,gy,gw,gh,4);cx.fillStyle='rgba(255,255,255,.7)';cx.fill();
+  cx.strokeStyle='#d0cec5';cx.lineWidth=ts(.8);cx.stroke();
+
+  cx.fillStyle='rgba(200,50,50,.06)';
+  cx.fillRect(tx(gx+2),ty(gy+2),ts(gw-4),ts(gh*.15));
+
+  if(powerHist.length>1){
+    cx.strokeStyle='#4a8a6a';cx.lineWidth=ts(1.2);
+    cx.beginPath();
+    for(let i=0;i<powerHist.length;i++){
+      const px=gx+3+i*(gw-6)/HIST_LEN;
+      const py=gy+gh-3-(powerHist[i]/130)*(gh-6);
+      if(i===0)cx.moveTo(tx(px),ty(py));else cx.lineTo(tx(px),ty(py));
+    }
+    cx.stroke();
+  }
+
+  cx.strokeStyle='rgba(200,50,50,.25)';cx.lineWidth=ts(.5);cx.setLineDash([ts(3),ts(3)]);
+  const dangerY=gy+gh-3-(100/130)*(gh-6);
+  cx.beginPath();cx.moveTo(tx(gx+3),ty(dangerY));cx.lineTo(tx(gx+gw-3),ty(dangerY));cx.stroke();
+  cx.setLineDash([]);
+
+  label('Power (MWt)',gx+gw/2,gy-4,7,'#8a8a82');
+  label('3200',gx-18,dangerY-1,6,'rgba(200,50,50,.5)');
+  label('0',gx-8,gy+gh-5,6,'#aaa');
+}
+
+// ═══════════════ BACKGROUND ═══════════════
+function drawBG() {
+  cx.fillStyle='#f0efe8';cx.fillRect(0,0,W,H);
+  cx.strokeStyle='#eae8e0';cx.lineWidth=1;
+  const gs=38;
+  for(let x=ox%gs;x<W;x+=gs){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+  for(let y=oy%gs;y<H;y+=gs){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+}
+
+// ═══════════════ PHYSICS ═══════════════
+const VOID_COEFF = 0.18;
+const DOPPLER_COEFF = 0.00015;
+const XENON_ACCEL = 100;
+const LAMBDA_I = 0.1047/3600*XENON_ACCEL;
+const LAMBDA_XE = 0.0753/3600*XENON_ACCEL;
+const YIELD_I = 0.059;
+const YIELD_XE = 0.003;
+const SIGMA_XE = 0.00002*XENON_ACCEL;
+const XENON_WORTH = 3.5;
+
+function updatePhysics(dt) {
+  // SCRAM mechanics
+  if(S.scram){
+    S.scramTimer+=dt;
+    if(S.scramTimer<2&&!S.scramTipDone){
+      S.rod=Math.max(S.rod-dt*0.03,S.rod);
+    } else {
+      S.scramTipDone=true;
+      S.rod=Math.min(1,S.rod+dt*0.055);
+    }
+    document.getElementById('sRod').value=S.rod*100;
+    if(S.rod>=.99){S.scram=false;S.scramTimer=0;S.scramTipDone=false;}
+  }
+
+  // Auto mode
+  if(S.autoMode&&!S.chernobyl){
+    S.autoTimer+=dt;
+    switch(S.autoPhase){
+      case 0:S.rod=Math.max(.25,S.rod-dt*.06);if(S.rod<=.25){S.autoPhase=1;showP('Criticality Reached');}break;
+      case 1:S.rod=Math.max(.1,S.rod-dt*.02);if(S.power>60){S.autoPhase=2;showP('Full Power Operation');}break;
+      case 2:S.rod=.1+Math.sin(S.time*.2)*.02;if(S.autoTimer>25){S.autoPhase=3;S.autoTimer=0;showP('Power Reduction');}break;
+      case 3:S.rod=Math.min(1,S.rod+dt*.05);if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown');}break;
+      case 4:if(S.autoTimer>5){S.autoPhase=0;S.autoTimer=0;showP('Reactor Startup...');}break;
+    }
+    document.getElementById('sRod').value=S.rod*100;
+  }
+
+  // Chernobyl scenario
+  if(S.chernobyl) updateChernobyl(dt);
+
+  // Void fraction
+  S.voidFrac = (S.power/100) * 0.4 * (1+(1-S.pressure/7.5)*.3);
+  if(S.mcpTrip) S.voidFrac *= 1.6;
+
+  // Reactivity calculation
+  const rodReact = (1-S.rod)*1.15 - 0.12;
+  const voidReact = S.voidFrac * VOID_COEFF;
+  S.fuelTemp = 300 + S.power * 5;
+  const dopplerReact = -(S.fuelTemp-300) * DOPPLER_COEFF;
+  const xenonReact = -S.xenonNorm * XENON_WORTH * 0.01;
+
+  let scramTipReact = 0;
+  if(S.scram && S.scramTimer < 2 && !S.scramTipDone) {
+    scramTipReact = 0.08 * Math.sin(S.scramTimer * Math.PI / 2);
+  }
+
+  S.reactivity = rodReact + voidReact + dopplerReact + xenonReact + scramTipReact;
+
+  // Power kinetics
+  if(!S.explosion){
+    const maxRate = S.chernobyl ? 200 : 60;
+    const dP = Math.max(-maxRate, Math.min(maxRate, S.reactivity * Math.max(S.power, 0.5) * 0.8));
+    S.power = Math.max(0, Math.min(S.chernobyl?300:150, S.power + dP * dt));
+  }
+
+  // Xenon dynamics
+  const pNorm = S.power / 100;
+  const dI = YIELD_I * pNorm - LAMBDA_I * S.iodine;
+  S.iodine = Math.max(0, S.iodine + dI * dt);
+  const dXe = YIELD_XE * pNorm + LAMBDA_I * S.iodine - LAMBDA_XE * S.xenon - SIGMA_XE * pNorm * S.xenon;
+  S.xenon = Math.max(0, S.xenon + dXe * dt);
+  S.xenonNorm = Math.min(100, S.xenon * 25);
+
+  // Decay heat
+  if(S.rod > 0.95 && S.power < 5) {
+    if(!S.wasScram) { S.wasScram = true; S.timeSinceScram = 0.1; S.decayHeat = Math.max(S.decayHeat, S.power / 100 * 3200 * 0.066); }
+    S.timeSinceScram += dt;
+    S.decayHeat = 3200 * 0.066 * Math.pow(Math.max(0.1, S.timeSinceScram), -0.2);
+  } else {
+    S.wasScram = false;
+    S.decayHeat = 0;
+  }
+
+  // Temperature & pressure with inertia
+  const targetTemp = 280 + S.power * 4.2;
+  S.temp += (targetTemp - S.temp) * dt * 0.25;
+  const targetPres = S.power * 0.069;
+  S.pressure += (targetPres - S.pressure) * dt * 0.3;
+  if(S.pipeRupture) S.pressure *= (1 - dt * 0.3);
+
+  S.rpm = S.power > 3 ? Math.min(3000, S.power * 30) : 0;
+  S.elec = S.power > 3 ? (S.power/100)*3200*0.31 : 0;
+
+  // Screen shake
+  S.shake = S.power > 105 ? (S.power - 105) * 0.4 : 0;
+
+  powerHist.push(S.power);
+  if(powerHist.length > HIST_LEN) powerHist.shift();
+
+  updateAudio();
+  updateUI();
+}
+
+// ═══════════════ CHERNOBYL SCENARIO ═══════════════
+const chScript = [
+  {t:0,  msg:'April 26, 1986, 01:00\nPower reduction test begins...', rod:.7},
+  {t:6,  msg:'Power dropped to 30 MWt\nXenon-135 buildup detected', rod:.55, xenon:60},
+  {t:12, msg:'⚠ Operators withdraw control rods\nORM < 15 rods — Safety violation!', rod:.06},
+  {t:18, msg:'Power recovering: 200 MWt\nTurbine coast-down test initiated', rod:.1, mcpTrip:true},
+  {t:23, msg:'01:23:40 — AZ-5 SCRAM pressed!', scram:true},
+  {t:25, msg:'⚠ GRAPHITE TIP EFFECT\nPositive reactivity insertion!', surge:true},
+  {t:27, msg:'💥 POWER EXCURSION\n30,000 MWt — 100x nominal!', explode:true},
+  {t:31, msg:'3.6 Roentgen.\nNot great, not terrible.', easter:true},
+];
+
+function updateChernobyl(dt) {
+  S.chTimer += dt;
+  const phase = chScript.findIndex(p => p.t > S.chTimer) - 1;
+  if(phase < 0 && S.chTimer < chScript[0].t) return;
+  const idx = phase < 0 ? chScript.length - 1 : phase;
+
+  if(idx !== S.chPhase) {
+    S.chPhase = idx;
+    const p = chScript[idx];
+    if(p.msg) showP(p.msg, p.surge || p.explode || p.easter);
+    if(p.rod !== undefined) { S.rod = p.rod; document.getElementById('sRod').value = S.rod * 100; }
+    if(p.xenon !== undefined) { S.xenon = p.xenon / 25; S.iodine = p.xenon / 15; }
+    if(p.mcpTrip) S.mcpTrip = true;
+    if(p.scram) { S.scram = true; S.scramTimer = 0; playAlarm(); }
+    if(p.surge) { S.rod = 0.03; S.power = Math.max(S.power, 80); }
+    if(p.explode) {
+      S.power = 300; S.explosion = true;
+      S.shake = 15;
+      document.getElementById('flash').classList.add('on');
+      playBoom();
+      setTimeout(() => document.getElementById('flash').classList.remove('on'), 800);
+    }
+    if(p.easter) {
+      S.shake = 0;
+      setTimeout(() => { S.chernobyl = false; S.explosion = false; S.mcpTrip = false; S.power = 0; S.rod = 1; S.scram = false; S.scramTimer = 0; }, 5000);
+    }
+  }
+}
+
+// ═══════════════ UI UPDATE ═══════════════
+function updateUI() {
+  const p=S.power, thermalMW=p/100*3200;
+  const pCol=p>90?'#b03030':p>60?'#c08030':'#3a8a6a';
+  el('vP').textContent=thermalMW.toFixed(0)+' MWt'; el('vP').style.color=pCol;
+  el('bP').style.width=Math.min(100,p)+'%'; el('bP').style.background=pCol;
+  el('vE').textContent=S.elec.toFixed(0)+' MWe';
+  el('bE').style.width=Math.min(100,S.elec/1000*100)+'%'; el('bE').style.background='#3a8a6a';
+  const tCol=S.temp>500?'#b03030':S.temp>400?'#c08030':'#5a8ab0';
+  el('vT').textContent=S.temp.toFixed(0)+' °C'; el('vT').style.color=tCol;
+  el('bT').style.width=Math.min(100,S.temp/700*100)+'%'; el('bT').style.background=tCol;
+  el('vPr').textContent=S.pressure.toFixed(2)+' MPa';
+  el('bPr').style.width=Math.min(100,S.pressure/7*100)+'%';
+  el('vR').textContent=(S.rod*100).toFixed(0)+'%';
+  el('bR').style.width=(S.rod*100)+'%';
+  const vCol=S.voidFrac>.3?'#c06030':'#5a8ab0';
+  el('vV').textContent=(S.voidFrac*100).toFixed(1)+'%'; el('vV').style.color=vCol;
+  el('bV').style.width=Math.min(100,S.voidFrac*250)+'%'; el('bV').style.background=vCol;
+  const rPcm=(S.reactivity*1000).toFixed(0);
+  el('vRe').textContent=rPcm+' pcm'; el('vRe').style.color=S.reactivity>0?'#c03030':'#3a8a6a';
+  el('vX').textContent=S.xenonNorm.toFixed(1)+'%';
+  el('bX').style.width=Math.min(100,S.xenonNorm)+'%';
+  el('vRpm').textContent=S.rpm.toFixed(0)+' rpm';
+  el('bRpm').style.width=Math.min(100,S.rpm/3000*100)+'%';
+}
+
+function el(id){return document.getElementById(id);}
+
+// ═══════════════ CONTROLS ═══════════════
+const sRod=el('sRod');
+sRod.addEventListener('input',e=>{if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;});
+
+el('btnScram').addEventListener('click',()=>{
+  S.scram=true;S.scramTimer=0;S.scramTipDone=false;
+  S.autoMode=false;el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
+  showP('SCRAM — Emergency Shutdown',true); playAlarm();
+});
+
+el('btnAuto').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.autoMode=!S.autoMode;
+  if(S.autoMode){S.autoPhase=0;S.autoTimer=0;S.scram=false;S.mcpTrip=false;S.pipeRupture=false;
+    el('btnAuto').textContent='Stop';el('btnAuto').classList.add('on');showP('Reactor Startup...');
+  }else{el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');}
+});
+
+el('btnChernobyl').addEventListener('click',()=>{
+  S.chernobyl=true;S.chPhase=-1;S.chTimer=0;S.autoMode=false;S.scram=false;S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
+  S.power=80;S.rod=.3;S.xenon=0;S.iodine=0;
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
+  showP('☢ CHERNOBYL SCENARIO ☢\nApril 26, 1986',true);
+});
+
+el('btnMCP').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.mcpTrip=!S.mcpTrip;
+  el('btnMCP').classList.toggle('on');
+  showP(S.mcpTrip?'⚠ MCP TRIP — Pump Failure!':'MCP Restored',S.mcpTrip);
+});
+
+el('btnPipe').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.pipeRupture=!S.pipeRupture;
+  el('btnPipe').classList.toggle('on');
+  showP(S.pipeRupture?'⚠ PIPE RUPTURE — Pressure Loss!':'Pipe Sealed',S.pipeRupture);
+});
+
+el('btnSound').addEventListener('click',()=>{
+  initAudio();
+  S.soundOn=!S.soundOn;
+  el('btnSound').textContent='Sound: '+(S.soundOn?'ON':'OFF');
+  el('btnSound').classList.toggle('on',S.soundOn);
+  if(S.soundOn&&ac.state==='suspended')ac.resume();
+});
+
+function showP(text,danger){
+  const ph=el('phase');ph.textContent=text;
+  ph.className='ph v'+(danger?' d':'');
+  clearTimeout(showP.tid);
+  showP.tid=setTimeout(()=>ph.classList.remove('v'),3000);
+}
+
+// ═══════════════ MAIN LOOP ═══════════════
+let last=0;
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000);last=t;S.time+=dt;
+  updatePhysics(dt);
+
+  cx.save();
+  if(S.shake>0){
+    cx.translate((Math.random()-.5)*S.shake*sc,(Math.random()-.5)*S.shake*sc);
+    S.shake*=.96;
+  }
+
+  drawBG();
+  drawPipes();
+  drawFlow();
+  drawArrows();
+  drawPipeLabels();
+  drawShielding();
+  drawCore();
+  drawDrumSep();
+  drawPump(240,630,24,'MCP','(8 pumps, 2 loops)');
+  drawShaft();
+  drawTurbine(540,112,40,'HP TURBINE',12);
+  drawMSR();
+  drawTurbine(720,112,48,'LP TURBINE',16);
+  drawGenerator();
+  drawCondenser();
+  drawPump(540,475,18,'FW PUMP',null);
+  drawCoolingTower();
+  drawLeaks();
+  drawGraph();
+
+  cx.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
