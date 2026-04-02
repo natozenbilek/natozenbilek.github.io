@@ -12,8 +12,6 @@ canvas{display:block}
 .bar{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(240,239,232,.93);backdrop-filter:blur(8px);border-bottom:1px solid #d8d6ce;z-index:20}
 .bar h1{font-size:.88rem;font-weight:600;color:#3a3a40;letter-spacing:.3px}
 .bar span{font-size:.72rem;color:#8a8a80}
-.bar a{color:#5a7a9a;text-decoration:none;font-size:.78rem}
-
 .p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .p h3{font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;color:#9a9a90;margin-bottom:6px;font-weight:600}
 
@@ -30,7 +28,7 @@ canvas{display:block}
 
 .ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05);flex-wrap:wrap;justify-content:center;max-width:95vw}
 .ctrl label{font-size:.68rem;color:#7a7a72;white-space:nowrap}
-.ctrl input[type=range]{-webkit-appearance:none;width:120px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
+.ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:120px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .b{background:#f0efe8;border:1px solid #d0cec5;color:#4a4a45;padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:500}
 .b:hover{background:#e8e6de}
@@ -54,7 +52,6 @@ canvas{display:block}
 <div class="bar">
   <h1>RBMK-1000 Reactor Simulation</h1>
   <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
-  <a href="index.html">Home</a>
 </div>
 
 <div class="p legend">
@@ -67,7 +64,7 @@ canvas{display:block}
   <div class="li"><div class="ld" style="background:#3a8ad0"></div>Coolant Water</div>
   <div class="li"><div class="ld" style="background:#c8d4e0"></div>Steam</div>
   <div class="li"><div class="ld" style="background:#7a9aaa"></div>Drum Separator</div>
-  <div class="li"><div class="ld" style="background:#5a80a0"></div>MCP (8 pumps)</div>
+  <div class="li"><div class="ld" style="background:#5a80a0"></div>Circulation Pumps</div>
   <div class="li"><div class="ld" style="background:#3a8a6a"></div>Turbines &amp; Generator</div>
   <div class="li"><div class="ld" style="background:#7a8a70"></div>Moisture Separator</div>
   <div class="li"><div class="ld" style="background:#4a70a0"></div>Condenser</div>
@@ -85,10 +82,10 @@ canvas{display:block}
   <div class="sb"><div class="sf" id="bPr" style="width:0%"></div></div>
   <div class="st"><span class="sl">Control Rods</span><span class="sv" id="vR">100%</span></div>
   <div class="sb"><div class="sf" id="bR" style="width:100%;background:#c08030"></div></div>
-  <div class="st"><span class="sl">Void Fraction</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
+  <div class="st"><span class="sl">Void Fraction (steam %)</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
   <div class="sb"><div class="sf" id="bV" style="width:0%"></div></div>
-  <div class="st"><span class="sl">Reactivity</span><span class="sv" id="vRe">0 pcm</span></div>
-  <div class="st"><span class="sl">Xenon-135</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
+  <div class="st"><span class="sl">Reactivity (chain rxn)</span><span class="sv" id="vRe">0 pcm</span></div>
+  <div class="st"><span class="sl">Xenon-135 (poison)</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
   <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
   <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
   <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
@@ -119,9 +116,10 @@ let W, H, sc, ox, oy;
 function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight;
-  sc = Math.min(W / 1080, (H - 44) / 700);
+  const top = 50, bot = 58;
+  sc = Math.min((W - 36) / 1080, (H - top - bot) / 700);
   ox = (W - 1080 * sc) / 2;
-  oy = 44 + ((H - 44) - 700 * sc) / 2;
+  oy = top + ((H - top - bot) - 700 * sc) / 2;
 }
 resize();
 addEventListener('resize', resize);
@@ -203,8 +201,8 @@ function updateAudio() {
 // ═══════════════ PIPES ═══════════════
 const pipes = {
   coreToSep:  { pts:[[160,163],[160,52],[332,52],[332,83]], fluid:'mix' },
-  sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,611]], fluid:'water' },
-  mcpToCore:  { pts:[[240,659],[240,695],[85,695],[85,580]], fluid:'water' },
+  sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,595]], fluid:'water' },
+  mcpToCore:  { pts:[[240,640],[240,670],[85,670],[85,580]], fluid:'water' },
   sepToHP:    { pts:[[465,102],[500,102]], fluid:'steam' },
   hpToMSR:    { pts:[[580,112],[608,112]], fluid:'steam' },
   msrToLP:    { pts:[[642,112],[672,112]], fluid:'steam' },
@@ -306,7 +304,7 @@ function drawArrows() {
   const c = 'rgba(130,130,120,.35)';
   arrow(160,130,160,60,c); arrow(180,52,310,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
-  arrow(240,670,240,695,c); arrow(200,695,110,695,c); arrow(85,660,85,600,c);
+  arrow(240,648,240,670,c); arrow(200,670,110,670,c); arrow(85,645,85,600,c);
   arrow(470,102,495,102,c); arrow(585,112,603,112,c); arrow(647,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c); arrow(540,440,540,220,c); arrow(520,200,450,200,c);
@@ -335,8 +333,8 @@ function drawShielding() {
   cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
   cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
 
-  label('UBS',160,158,7,'#707070');
-  label('LBS',160,527,7,'#707070');
+  label('Upper Bio Shield',160,157,6.5,'#707070');
+  label('Lower Bio Shield',160,528,6.5,'#707070');
   label('CONCRETE\nSHIELDING',160,sy+sh+14,8.5,'#8a8a82');
 }
 
@@ -458,7 +456,7 @@ function drawCore() {
 
   label('REACTOR CORE',ccx,ccy+hh+16,9.5,'#6a6a65',true);
   label('Graphite-Moderated\n1661 Pressure Channels',ccx,ccy+hh+28,7.5,'#9a9a90');
-  label('CONTROL\nVALVES',160,548,6.5,'#7a7a75');
+  label('FLOW CONTROL\nVALVES',160,548,6,'#7a7a75');
 }
 
 // ═══════════════ DRUM SEPARATOR ═══════════════
@@ -564,7 +562,7 @@ function drawMSR() {
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));
     cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke();
   }
-  label('MSR',mx,my+mh/2+12,7.5,'#6a7a60',true);
+  label('MOISTURE\nSEPARATOR',mx,my+mh/2+10,6.5,'#6a7a60',true);
 }
 
 // ═══════════════ GENERATOR ═══════════════
@@ -655,13 +653,13 @@ function drawCoolingTower() {
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam-Water\nMixture',240,44,7.5,'#9a9a90');
-  label('Dry Steam',484,90,7.5,'#9a9a90');
-  label('Separated\nWater',310,390,7.5,'#9a9a90');
-  label('Exhaust\nSteam',738,310,7.5,'#9a9a90');
-  label('Condensate',600,490,7.5,'#9a9a90');
-  label('Feedwater',555,178,7.5,'#9a9a90');
-  label('Cooling\nWater',820,495,7,'#9a9a90');
+  label('Steam + Water\nMixture (to separator)',240,42,7,'#8a8a82');
+  label('Dry Steam\n(to turbine)',484,88,7,'#8a8a82');
+  label('Water Return\n(to pump)',308,385,7,'#8a8a82');
+  label('Spent Steam\n(low pressure)',738,305,7,'#8a8a82');
+  label('Condensed Water',598,490,7,'#8a8a82');
+  label('Feedwater\n(back to separator)',555,175,7,'#8a8a82');
+  label('Cooling Water\n(to tower)',820,498,6.5,'#8a8a82');
 }
 
 // ═══════════════ LEAK PARTICLES ═══════════════
@@ -681,7 +679,7 @@ function drawLeaks() {
 
 // ═══════════════ POWER GRAPH ═══════════════
 function drawGraph() {
-  const gx=340,gy=610,gw=380,gh=75;
+  const gx=345,gy=590,gw=370,gh=68;
 
   rr(gx,gy,gw,gh,4);cx.fillStyle='rgba(255,255,255,.7)';cx.fill();
   cx.strokeStyle='#d0cec5';cx.lineWidth=ts(.8);cx.stroke();
@@ -705,9 +703,9 @@ function drawGraph() {
   cx.beginPath();cx.moveTo(tx(gx+3),ty(dangerY));cx.lineTo(tx(gx+gw-3),ty(dangerY));cx.stroke();
   cx.setLineDash([]);
 
-  label('Power (MWt)',gx+gw/2,gy-4,7,'#8a8a82');
-  label('3200',gx-18,dangerY-1,6,'rgba(200,50,50,.5)');
-  label('0',gx-8,gy+gh-5,6,'#aaa');
+  label('Thermal Power History (MWt)',gx+gw/2,gy-4,6.5,'#8a8a82');
+  label('3200',gx-16,dangerY-1,5.5,'rgba(200,50,50,.45)');
+  label('0',gx-8,gy+gh-5,5.5,'#aaa');
 }
 
 // ═══════════════ BACKGROUND ═══════════════
@@ -966,7 +964,7 @@ function frame(t){
   drawShielding();
   drawCore();
   drawDrumSep();
-  drawPump(240,630,24,'MCP','(8 pumps, 2 loops)');
+  drawPump(240,616,24,'MCP','(8 pumps, 2 loops)');
   drawShaft();
   drawTurbine(540,112,40,'HP TURBINE',12);
   drawMSR();
