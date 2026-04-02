@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBMK-1000 Reactor — Interactive Simulation</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f0efe8">
+<style>
+:root,[data-theme="light"]{
+  --bg:#f0efe8;
+  --surface:rgba(252,251,247,.97);
+  --surface-solid:#fcfbf7;
+  --border:rgba(210,208,199,.75);
+  --text-1:#2c2c2a;
+  --text-2:#5a5a52;
+  --text-3:#9a9a90;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.06),0 2px 10px rgba(0,0,0,.05);
+  --shadow-md:0 4px 24px rgba(0,0,0,.1),0 1px 4px rgba(0,0,0,.06);
+  --canvas-bg:#f0efe8;
+  --grid-line:#eae8e0;
+  --font-ui:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans",Arial,sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#1a1b1e;
+  --surface:rgba(32,33,38,.97);
+  --surface-solid:#202126;
+  --border:rgba(60,62,68,.75);
+  --text-1:#e0dfd8;
+  --text-2:#a0a098;
+  --text-3:#6a6a62;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.2),0 2px 10px rgba(0,0,0,.15);
+  --shadow-md:0 4px 24px rgba(0,0,0,.3),0 1px 4px rgba(0,0,0,.15);
+  --canvas-bg:#1a1b1e;
+  --grid-line:#252628;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--text-1);
+  font-family:var(--font-ui);
+  font-synthesis:none;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;height:100vh;
+}
+canvas{display:block}
+
+.bar{
+  position:fixed;top:0;left:0;right:0;
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  align-items:center;gap:10px 16px;
+  min-height:44px;padding:6px 18px;
+  background:var(--surface);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  z-index:20;
+  box-shadow:var(--shadow-sm);
+}
+.bar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.bar h1{
+  font-size:.86rem;font-weight:700;color:var(--text-1);letter-spacing:.2px;
+  line-height:1.2;white-space:nowrap;margin:0;
+}
+.help-open-btn,.theme-btn{
+  flex-shrink:0;
+  font:inherit;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;
+  color:#1e3e60;background:rgba(232,238,250,.95);
+  border:1px solid #8aaac8;border-radius:8px;padding:6px 12px;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .12s;
+  white-space:nowrap;
+}
+[data-theme="dark"] .help-open-btn,[data-theme="dark"] .theme-btn{
+  color:#8ac0f0;background:rgba(40,55,80,.8);border-color:#4a6a90;
+}
+.help-open-btn:hover,.theme-btn:hover{background:rgba(216,228,244,.98);border-color:#6a8ab8}
+[data-theme="dark"] .help-open-btn:hover,[data-theme="dark"] .theme-btn:hover{background:rgba(50,70,100,.9)}
+.help-open-btn:active,.theme-btn:active{transform:scale(.98)}
+
+.p{
+  position:fixed;
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px 16px;
+  z-index:20;
+  box-shadow:var(--shadow-md);
+}
+.p h3{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:1.8px;
+  color:var(--text-3);margin-bottom:12px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
+
+.sdot{
+  width:7px;height:7px;border-radius:50%;
+  background:#3a8a6a;
+  box-shadow:0 0 0 2px rgba(58,138,106,.15),0 0 8px rgba(58,138,106,.55);
+  flex-shrink:0;transition:background .4s,box-shadow .4s;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.sdot.warn{background:#c08030;box-shadow:0 0 0 2px rgba(192,128,48,.15),0 0 8px rgba(192,128,48,.6);animation:blink 1.2s ease infinite}
+.sdot.crit{background:#c03030;box-shadow:0 0 0 2px rgba(192,48,48,.15),0 0 10px rgba(192,48,48,.7);animation:blink .6s ease infinite}
+.sdot.off{background:#b0aea5;box-shadow:none;animation:none}
+
+.info{top:58px;right:12px;width:224px;max-height:calc(100vh - 124px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(180,178,170,.4) transparent}
+.info::-webkit-scrollbar{width:3px}
+.info::-webkit-scrollbar-thumb{background:rgba(180,178,170,.4);border-radius:3px}
+
+.st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;gap:10px;position:relative;z-index:1}
+.sl{font-size:.8rem;color:var(--text-2);letter-spacing:.01em;flex:1;min-width:0}
+.sv{font-size:.9rem;font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.02em;flex-shrink:0;padding-left:6px;background:var(--surface)}
+
+.sb{width:100%;height:4px;background:rgba(218,216,207,.55);border-radius:4px;margin-top:6px;margin-bottom:9px;overflow:hidden;clear:both;position:relative;z-index:0}
+[data-theme="dark"] .sb{background:rgba(60,62,68,.55)}
+.sf{height:100%;border-radius:4px;transition:width .35s cubic-bezier(.4,0,.2,1),background .35s}
+
+.mg{border-top:1px solid rgba(210,208,199,.45);margin:4px 0 10px}
+[data-theme="dark"] .mg{border-color:rgba(60,62,68,.45)}
+
+.ctrl{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;align-items:stretch;
+  z-index:20;
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:10px 14px;
+  box-shadow:var(--shadow-md);
+  white-space:nowrap;max-width:96vw;overflow-x:auto;
+}
+.cg{display:flex;flex-direction:column;gap:4px;align-items:center}
+.cg-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-3);font-weight:700;line-height:1}
+.cg-row{display:flex;gap:5px;align-items:center}
+.ctrl input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:95px;height:3px;
+  background:rgba(210,208,199,.8);
+  border-radius:4px;outline:none;cursor:pointer;
+}
+[data-theme="dark"] .ctrl input[type=range]{background:rgba(80,82,88,.8)}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:15px;height:15px;border-radius:50%;
+  background:#5a7a9a;cursor:pointer;
+  border:2.5px solid #fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.22),0 0 0 1px rgba(90,122,154,.18);
+  transition:transform .15s;
+}
+.ctrl input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.1)}
+
+.b{
+  background:rgba(240,239,232,.85);
+  border:1px solid rgba(210,208,199,.85);
+  color:var(--text-1);
+  padding:6px 11px;border-radius:9px;font-size:.81rem;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .12s,box-shadow .15s;
+  font-family:inherit;font-weight:600;text-align:center;min-width:78px;
+  letter-spacing:.05px;line-height:1.2;
+}
+[data-theme="dark"] .b{background:rgba(45,47,55,.85);border-color:rgba(70,72,80,.85)}
+.b:hover{background:rgba(232,230,222,.95);border-color:rgba(192,190,181,.9);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.09)}
+[data-theme="dark"] .b:hover{background:rgba(55,58,68,.95);border-color:rgba(80,82,90,.9)}
+.b:active{transform:translateY(0);box-shadow:none}
+
+.b.rs{background:rgba(232,238,250,.9);border-color:#8aaac8;color:#1e3e60}
+[data-theme="dark"] .b.rs{background:rgba(30,50,80,.6);border-color:#4a6a90;color:#8ac0f0}
+.b.rs:hover{background:rgba(216,228,244,.97)}
+.b.on{background:rgba(230,246,230,.95);border-color:#5aaa5a;color:#1a521a;box-shadow:0 0 0 2px rgba(90,170,90,.18)}
+[data-theme="dark"] .b.on{background:rgba(25,60,25,.6);border-color:#3a8a3a;color:#6ada6a}
+.b.sc{background:rgba(252,232,232,.9);border-color:#cc7878;color:#881818;font-weight:700;letter-spacing:.4px}
+[data-theme="dark"] .b.sc{background:rgba(80,25,25,.6);border-color:#a05050;color:#f08080}
+.b.sc:hover{background:rgba(248,210,210,.97)}
+.b.ch{background:rgba(255,244,218,.9);border-color:#c8a040;color:#6a4208}
+[data-theme="dark"] .b.ch{background:rgba(60,45,15,.6);border-color:#8a7030;color:#d0b060}
+.b.ch:hover{background:rgba(255,234,190,.97)}
+.b.pa{background:rgba(245,240,255,.9);border-color:#9a8ac8;color:#3a2870}
+[data-theme="dark"] .b.pa{background:rgba(40,30,70,.6);border-color:#6a5a90;color:#b0a0e0}
+
+.b.ts-active{box-shadow:0 0 0 2px rgba(90,122,154,.35);background:rgba(220,230,245,.95)}
+[data-theme="dark"] .b.ts-active{box-shadow:0 0 0 2px rgba(90,122,154,.35);background:rgba(35,50,75,.8)}
+
+.sep{width:1px;background:rgba(210,208,199,.6);align-self:stretch;margin:0 1px;border-radius:1px}
+[data-theme="dark"] .sep{background:rgba(60,62,68,.6)}
+
+.ph{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);font-size:1.35rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .5s;z-index:30;pointer-events:none;text-align:center;line-height:1.45;text-shadow:0 1px 4px rgba(255,255,255,.92);max-width:80vw}
+[data-theme="dark"] .ph{color:#8ab8e8;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.ph.v{opacity:1}.ph.d{color:#aa1818}
+[data-theme="dark"] .ph.d{color:#f06060}
+
+.flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
+.flash.on{opacity:1}
+
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);
+  white-space:nowrap;border:0;
+}
+.skip{
+  position:absolute;left:12px;top:8px;z-index:100;padding:10px 16px;background:#1e3e60;color:#fff;
+  font-size:.85rem;font-weight:600;border-radius:8px;text-decoration:none;transform:translateY(-120%);
+  transition:transform .2s;
+}
+.skip:focus{transform:translateY(0);outline:2px solid #fff;outline-offset:2px}
+
+/* ── Tooltip ── */
+.tooltip{
+  position:fixed;z-index:35;pointer-events:none;
+  background:rgba(20,22,28,.92);color:#ddd;
+  border:1px solid rgba(100,160,220,.3);
+  border-radius:10px;padding:10px 14px;
+  max-width:280px;font-size:.78rem;line-height:1.5;
+  opacity:0;transition:opacity .2s;
+  backdrop-filter:blur(8px);
+}
+.tooltip.v{opacity:1}
+.tooltip h4{color:rgba(130,190,240,1);font-size:.82rem;margin:0 0 4px;font-weight:700}
+.tooltip p{margin:0;color:rgba(220,220,215,.9)}
+
+/* ── Achievement toast ── */
+.achiev{
+  position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);
+  z-index:40;
+  background:rgba(20,22,28,.92);color:#e0dfd8;
+  border:1px solid rgba(200,170,60,.5);border-radius:12px;
+  padding:12px 20px;font-size:.82rem;font-weight:600;
+  text-align:center;opacity:0;transition:opacity .4s,transform .4s;
+  pointer-events:none;backdrop-filter:blur(10px);
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+.achiev.v{opacity:1;transform:translateX(-50%) translateY(0)}
+.achiev .a-icon{font-size:1.2rem;margin-right:6px}
+.achiev .a-name{color:#f0d060;font-weight:700}
+
+/* ── Debrief modal ── */
+.debrief-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(10,12,18,.7);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+}
+.debrief-overlay.open{display:flex}
+.debrief{
+  background:var(--surface-solid);border:1px solid var(--border);border-radius:18px;
+  padding:28px 32px;max-width:520px;width:92vw;max-height:85vh;overflow-y:auto;
+  box-shadow:0 8px 40px rgba(0,0,0,.25);
+}
+.debrief h2{font-size:1.1rem;font-weight:700;margin:0 0 4px;color:var(--text-1)}
+.debrief .d-sub{font-size:.72rem;color:var(--text-3);margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+.debrief .d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.debrief .d-card{
+  background:rgba(240,239,232,.6);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;
+}
+[data-theme="dark"] .debrief .d-card{background:rgba(40,42,50,.6)}
+.debrief .d-card .d-val{font-size:1.1rem;font-weight:700;color:var(--text-1)}
+.debrief .d-card .d-lbl{font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+.debrief .d-events{margin:0 0 16px;padding:0;list-style:none}
+.debrief .d-events li{
+  font-size:.8rem;color:var(--text-2);padding:4px 0;
+  border-bottom:1px solid rgba(210,208,199,.3);
+}
+[data-theme="dark"] .debrief .d-events li{border-color:rgba(60,62,68,.3)}
+.debrief .d-events li:last-child{border:none}
+.debrief .d-events .d-time{color:var(--text-3);font-variant-numeric:tabular-nums;margin-right:8px;font-size:.72rem}
+.debrief .d-rating{text-align:center;margin:10px 0;font-size:1.3rem;font-weight:700}
+.debrief .d-close{
+  display:block;width:100%;margin-top:12px;padding:10px;
+  background:rgba(232,238,250,.9);border:1px solid #8aaac8;color:#1e3e60;
+  border-radius:10px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:background .15s;
+}
+[data-theme="dark"] .debrief .d-close{background:rgba(30,50,80,.6);border-color:#4a6a90;color:#8ac0f0}
+.debrief .d-close:hover{background:rgba(216,228,244,.97)}
+
+/* ── Help drawer ── */
+.help-root{position:fixed;inset:0;z-index:45;pointer-events:none}
+.help-root.open{pointer-events:auto}
+.help-backdrop{
+  position:absolute;inset:0;background:rgba(22,24,28,.4);backdrop-filter:blur(5px);
+  opacity:0;transition:opacity .28s ease;
+}
+.help-root.open .help-backdrop{opacity:1}
+.help-drawer{
+  position:absolute;top:0;right:0;bottom:0;z-index:1;
+  width:min(460px,100vw);max-width:100%;
+  background:var(--surface-solid);
+  border-left:1px solid var(--border);
+  box-shadow:-8px 0 40px rgba(0,0,0,.12);
+  transform:translateX(100%);transition:transform .34s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.help-root.open .help-drawer{transform:translateX(0)}
+.help-drawer-head{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px 18px;border-bottom:1px solid var(--border);
+  background:var(--surface);
+}
+.help-drawer-head h2{margin:0;font-size:1.05rem;font-weight:700;color:var(--text-1);letter-spacing:.2px}
+.help-drawer-x{
+  width:38px;height:38px;border:none;border-radius:10px;cursor:pointer;font-size:1.35rem;line-height:1;
+  color:var(--text-2);background:rgba(240,239,232,.9);border:1px solid var(--border);
+  transition:background .15s,color .15s;
+}
+[data-theme="dark"] .help-drawer-x{background:rgba(50,52,60,.9)}
+.help-drawer-x:hover{background:rgba(228,226,218,.95);color:var(--text-1)}
+.help-drawer-body{
+  flex:1;overflow-y:auto;padding:16px 18px 28px;
+  font-size:.875rem;line-height:1.58;color:var(--text-2);
+  scrollbar-width:thin;scrollbar-color:rgba(180,178,170,.5) transparent;
+}
+.help-drawer-body::-webkit-scrollbar{width:5px}
+.help-drawer-body::-webkit-scrollbar-thumb{background:rgba(180,178,170,.45);border-radius:5px}
+.help-drawer-body h3{
+  margin:18px 0 8px;font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.3px;color:var(--text-3);
+}
+.help-drawer-body h3:first-child{margin-top:0}
+.help-drawer-body p{margin:0 0 10px}
+.help-drawer-body ul{margin:0 0 10px;padding-left:1.15rem}
+.help-drawer-body li{margin-bottom:6px}
+.help-drawer-body kbd{
+  display:inline-block;padding:.15em .45em;font-size:.82em;font-family:inherit;
+  background:rgba(218,216,207,.65);border:1px solid rgba(180,178,170,.9);border-radius:4px;
+  box-shadow:0 1px 0 rgba(255,255,255,.8);
+}
+[data-theme="dark"] .help-drawer-body kbd{background:rgba(60,62,70,.65);border-color:rgba(80,82,90,.9);box-shadow:none}
+.help-drawer-body .help-note{
+  margin-top:16px;padding:12px 14px;font-size:.78rem;line-height:1.45;
+  background:rgba(255,248,230,.65);border:1px solid rgba(200,160,64,.35);border-radius:10px;color:#5a4820;
+}
+[data-theme="dark"] .help-drawer-body .help-note{background:rgba(60,50,20,.4);border-color:rgba(120,100,40,.4);color:#c0a860}
+.bar-right{
+  min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px;
+  text-align:right;line-height:1.25;
+}
+.bar-line1,.bar-line2{
+  margin:0;font-size:.64rem;color:var(--text-3);letter-spacing:.02px;
+  max-width:100%;word-wrap:break-word;overflow-wrap:anywhere;
+}
+.bar-line1{opacity:.96}
+.bar-line2{font-size:.62rem;opacity:.88}
+
+.b:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
+.help-open-btn:focus-visible,.help-drawer-x:focus-visible,.theme-btn:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
+#c:focus-visible{outline:3px solid #5a7a9a;outline-offset:-3px}
+
+.ctrl input[type=range]::-moz-range-track{background:rgba(210,208,199,.8);border-radius:4px;height:3px}
+.ctrl input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:#5a7a9a;cursor:pointer;
+  border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.22),0 0 0 1px rgba(90,122,154,.18);
+}
+
+/* ── Mode selector ── */
+.mode-sel{
+  font:inherit;font-size:.72rem;font-weight:600;
+  padding:4px 8px;border-radius:7px;
+  background:rgba(240,239,232,.85);border:1px solid var(--border);
+  color:var(--text-1);cursor:pointer;
+}
+[data-theme="dark"] .mode-sel{background:rgba(45,47,55,.85);color:var(--text-1)}
+
+/* ── Variant selector ── */
+.variant-sel{
+  font:inherit;font-size:.72rem;font-weight:600;
+  padding:4px 8px;border-radius:7px;
+  background:rgba(240,239,232,.85);border:1px solid var(--border);
+  color:var(--text-1);cursor:pointer;
+}
+[data-theme="dark"] .variant-sel{background:rgba(45,47,55,.85);color:var(--text-1)}
+
+@media (prefers-reduced-motion:reduce){
+  .sdot.warn,.sdot.crit{animation:none!important}
+  .ph,.sf,.flash,.b,.tooltip,.achiev{transition:none!important}
+  .ctrl input[type=range]::-webkit-slider-thumb{transition:none}
+  .flash.on{opacity:0!important}
+  .help-backdrop,.help-drawer{transition:none!important}
+}
+
+@media (max-width:719px){
+  .bar{grid-template-columns:1fr;padding:6px 12px;gap:6px}
+  .bar-left{width:100%;gap:8px}
+  .bar h1{white-space:normal;font-size:.82rem}
+  .bar-right{text-align:left;align-items:flex-start}
+  .bar-line1,.bar-line2{font-size:.6rem;line-height:1.3;text-align:left}
+  .info{
+    top:auto;right:10px;left:10px;bottom:108px;width:auto;max-height:min(40vh,300px);
+  }
+  .ctrl{
+    bottom:8px;left:8px;right:8px;transform:none;max-width:none;padding:10px 12px;
+    flex-wrap:wrap;justify-content:center;white-space:normal;max-height:min(42vh,320px);overflow-y:auto;
+  }
+  .cg{width:100%;max-width:100%}
+  .cg-row{flex-wrap:wrap;justify-content:center;gap:8px}
+  .b{min-height:44px;min-width:min(44px,100%);padding:10px 14px}
+  .ctrl input[type=range]{width:min(140px,50vw);height:6px}
+  .ctrl input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+  .ctrl input[type=range]::-moz-range-thumb{width:20px;height:20px}
+  .ctrl input[type=range]::-moz-range-track{height:6px}
+  .sep{display:none}
+  body{overflow-x:hidden;overflow-y:auto}
+  .tooltip{max-width:200px;font-size:.72rem}
+  .debrief{padding:20px;max-width:95vw}
+  .debrief .d-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#ctrl-bar">Skip to controls</a>
+<canvas id="c" tabindex="0" role="img" lang="en"
+  aria-label="RBMK-1000 primary heat system diagram. Click a labeled plant region to zoom in; click again or press Escape to zoom out."></canvas>
+
+<div class="bar">
+  <div class="bar-left">
+    <h1 id="page-title">RBMK-1000 Reactor Simulation</h1>
+    <button type="button" class="help-open-btn" id="btnHelpOpen" aria-expanded="false" aria-controls="helpDrawer" lang="en">How to use</button>
+    <button type="button" class="theme-btn" id="btnTheme" aria-label="Toggle dark mode">Dark</button>
+  </div>
+  <div class="bar-right">
+    <p class="bar-line1" id="barDesc">Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</p>
+    <p class="bar-line2" role="note">Educational only — illustrative; not validated vs. real plant data.</p>
+  </div>
+</div>
+
+<div class="p info" role="region" aria-labelledby="status-heading">
+  <h3 id="status-heading"><span class="sdot off" id="statusDot" aria-hidden="true"></span>Reactor Status</h3>
+
+  <div class="st"><span class="sl">Thermal Power</span><span class="sv" id="vP">0 MWt</span></div>
+  <div class="sb"><div class="sf" id="bP" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Electrical Output</span><span class="sv" id="vE" style="color:#2a6a2a">0 MWe</span></div>
+  <div class="sb"><div class="sf" id="bE" style="width:0%"></div></div>
+
+  <div class="mg"></div>
+
+  <div class="st"><span class="sl">Core Temperature</span><span class="sv" id="vT">280 °C</span></div>
+  <div class="sb"><div class="sf" id="bT" style="width:20%"></div></div>
+  <div class="st"><span class="sl">Fuel Temperature</span><span class="sv" id="vFt">300 °C</span></div>
+  <div class="sb"><div class="sf" id="bFt" style="width:0%"></div></div>
+  <div class="st"><span class="sl">Steam Pressure</span><span class="sv" id="vPr">0 MPa</span></div>
+  <div class="sb"><div class="sf" id="bPr" style="width:0%"></div></div>
+
+  <div class="mg"></div>
+
+  <div class="st"><span class="sl">Control Rods</span><span class="sv" id="vR">100%</span></div>
+  <div class="sb"><div class="sf" id="bR" style="width:100%;background:#c08030"></div></div>
+  <div class="st"><span class="sl">Void Fraction</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
+  <div class="sb"><div class="sf" id="bV" style="width:0%"></div></div>
+
+  <div class="mg"></div>
+
+  <div class="st"><span class="sl">Reactivity</span><span class="sv" id="vRe">0 pcm</span></div>
+  <div class="st"><span class="sl">Xenon-135</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
+  <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
+  <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
+  <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
+</div>
+
+<div class="ctrl" id="ctrl-bar" role="toolbar" aria-label="Reactor simulation controls">
+  <div class="cg">
+    <label class="cg-lbl" for="sRod">Control Rods</label>
+    <div class="cg-row">
+      <input type="range" id="sRod" min="0" max="100" value="100"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"
+        aria-label="Control rods: 0% fully inserted, 100% fully withdrawn">
+      <button type="button" class="b sc" id="btnScram" aria-label="SCRAM — emergency shutdown">SCRAM</button>
+    </div>
+  </div>
+  <div class="sep" aria-hidden="true"></div>
+  <div class="cg">
+    <span class="cg-lbl">Time</span>
+    <div class="cg-row">
+      <button type="button" class="b pa" id="btnPause" aria-pressed="false">▶ Play</button>
+      <button type="button" class="b ts-active" data-ts="1" aria-label="1x speed">1x</button>
+      <button type="button" class="b" data-ts="2" aria-label="2x speed">2x</button>
+      <button type="button" class="b" data-ts="5" aria-label="5x speed">5x</button>
+    </div>
+  </div>
+  <div class="sep" aria-hidden="true"></div>
+  <div class="cg">
+    <span class="cg-lbl">Mode / Variant</span>
+    <div class="cg-row">
+      <select class="mode-sel" id="selMode" aria-label="Training mode">
+        <option value="free">Free Play</option>
+        <option value="normal">Normal Ops</option>
+        <option value="safety">Safety Training</option>
+        <option value="accident">Accident Analysis</option>
+      </select>
+      <select class="variant-sel" id="selVariant" aria-label="RBMK variant">
+        <option value="1000">RBMK-1000</option>
+        <option value="1500">RBMK-1500</option>
+      </select>
+    </div>
+  </div>
+  <div class="sep" aria-hidden="true"></div>
+  <div class="cg">
+    <span class="cg-lbl">Scenarios</span>
+    <div class="cg-row">
+      <button type="button" class="b" id="btnAuto" aria-pressed="false">Auto Run</button>
+      <span id="chernobyl-note" class="sr-only">Dramatized 1986 accident scenario.</span>
+      <button type="button" class="b ch" id="btnChernobyl" aria-describedby="chernobyl-note">Chernobyl</button>
+    </div>
+  </div>
+  <div class="sep" aria-hidden="true"></div>
+  <div class="cg">
+    <span class="cg-lbl">Events</span>
+    <div class="cg-row">
+      <button type="button" class="b" id="btnMCP" aria-pressed="false">MCP Trip</button>
+      <button type="button" class="b" id="btnPipe" aria-pressed="false">Pipe Rupture</button>
+    </div>
+  </div>
+  <div class="sep" aria-hidden="true"></div>
+  <div class="cg">
+    <span class="cg-lbl">System</span>
+    <div class="cg-row">
+      <button type="button" class="b" id="btnSound" style="min-width:82px" aria-pressed="false">Sound: OFF</button>
+      <button type="button" class="b" id="btnDebrief" aria-label="Show debrief">Debrief</button>
+      <button type="button" class="b" id="btnShare" aria-label="Share state via URL">Share</button>
+      <button type="button" class="b rs" id="btnReset" aria-label="Reset simulation">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="ph" id="phase" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="tooltip" id="tooltip"><h4 id="ttTitle"></h4><p id="ttInfo"></p></div>
+<div class="achiev" id="achiev" aria-live="polite"><span class="a-icon">🏆</span> <span class="a-name" id="achievName"></span></div>
+
+<div class="debrief-overlay" id="debriefOverlay">
+  <div class="debrief" id="debriefPanel">
+    <h2>Simulation Debrief</h2>
+    <div class="d-sub" id="debriefSub">Session Analysis</div>
+    <div class="d-grid" id="debriefGrid"></div>
+    <h3 style="font-size:.68rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-3);margin:12px 0 8px">Event Timeline</h3>
+    <ul class="d-events" id="debriefEvents"></ul>
+    <div class="d-rating" id="debriefRating"></div>
+    <button type="button" class="d-close" id="btnDebriefClose">Close</button>
+  </div>
+</div>
+
+<div id="helpRoot" class="help-root" aria-hidden="true">
+  <div class="help-backdrop" id="helpBackdrop" tabindex="-1"></div>
+  <aside class="help-drawer" id="helpDrawer" role="dialog" aria-modal="true" aria-labelledby="helpDrawerTitle" lang="en">
+    <div class="help-drawer-head">
+      <h2 id="helpDrawerTitle">How to use</h2>
+      <button type="button" class="help-drawer-x" id="btnHelpClose" aria-label="Close help">×</button>
+    </div>
+    <div class="help-drawer-body" tabindex="-1">
+      <h3>Diagram & zoom</h3>
+      <p>Click any highlighted plant region on the diagram to <strong>zoom in</strong> and read a short description. Click empty canvas or press <kbd>Esc</kbd> to zoom out. <strong>Hover</strong> over a region to see a quick tooltip.</p>
+
+      <h3>Control rods</h3>
+      <p>Use the <strong>Control Rods</strong> slider: <strong>100%</strong> = more withdrawal / higher power; <strong>0%</strong> = full insertion / lower power. <strong>SCRAM</strong> = emergency rod insertion (includes graphite tip effect in first ~2 seconds).</p>
+
+      <h3>Time control</h3>
+      <p><strong>▶/⏸</strong> toggles pause. Speed buttons <strong>1x / 2x / 5x</strong> control simulation rate. Keyboard: <kbd>Space</kbd> = pause, <kbd>1</kbd>–<kbd>3</kbd> = speed.</p>
+
+      <h3>Training modes</h3>
+      <ul>
+        <li><strong>Free Play</strong> — full manual control, no restrictions.</li>
+        <li><strong>Normal Ops</strong> — guided startup/shutdown, safety warnings enforced.</li>
+        <li><strong>Safety Training</strong> — random events trigger; respond correctly.</li>
+        <li><strong>Accident Analysis</strong> — review past session with timeline markers.</li>
+      </ul>
+
+      <h3>RBMK variants</h3>
+      <p><strong>RBMK-1000</strong> (3200 MWt, 1000 MWe) and <strong>RBMK-1500</strong> (4800 MWt, 1500 MWe) have different core parameters and void coefficients.</p>
+
+      <h3>Scenarios & events</h3>
+      <ul>
+        <li><strong>Auto Run</strong> — scripted startup and shutdown sequence.</li>
+        <li><strong>Chernobyl</strong> — dramatized 1986-style excursion.</li>
+        <li><strong>MCP Trip</strong> — main circulation pump failure.</li>
+        <li><strong>Pipe Rupture</strong> — condenser pressure loss.</li>
+      </ul>
+
+      <h3>Keyboard shortcuts</h3>
+      <ul>
+        <li><kbd>Space</kbd> — pause / resume</li>
+        <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> — 1x, 2x, 5x speed</li>
+        <li><kbd>S</kbd> — SCRAM</li>
+        <li><kbd>R</kbd> — Reset</li>
+        <li><kbd>A</kbd> — Auto Run toggle</li>
+        <li><kbd>D</kbd> — Dark mode toggle</li>
+        <li><kbd>Esc</kbd> — close panels / zoom out</li>
+        <li><kbd>?</kbd> — open this help</li>
+      </ul>
+
+      <h3>Debrief & achievements</h3>
+      <p>Click <strong>Debrief</strong> to review peak values, event timeline, and operator rating. Achievements unlock as you explore different reactor states.</p>
+
+      <h3>Share</h3>
+      <p>Click <strong>Share</strong> to copy a URL encoding the current simulation state. Anyone opening that link will start with the same parameters.</p>
+
+      <p class="help-note" role="note">All behaviour and numbers are illustrative only — not validated against any real RBMK unit or accident sequence.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   §1  UTILITIES
+   ═══════════════════════════════════════════════════ */
+function el(id){return document.getElementById(id)}
+const cv=el('c'), cx=cv.getContext('2d');
+const FONT_UI='ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans",Arial,sans-serif';
+function cFont(px,bold){return (bold?'bold ':'')+px+'px '+FONT_UI}
+
+/* ═══════════════════════════════════════════════════
+   §2  CANVAS & RESIZE
+   ═══════════════════════════════════════════════════ */
+const sRod=el('sRod');
+let W,H,sc,ox,oy;
+let prefersReduceMotion=false;
+(function(){
+  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  prefersReduceMotion=mq.matches;
+  mq.addEventListener('change',ev=>{prefersReduceMotion=ev.matches});
+})();
+
+function resize(){
+  W=cv.width=innerWidth; H=cv.height=innerHeight;
+  const narrow=W<720;
+  const top=narrow?72:54, bot=narrow?220:62;
+  const lPad=narrow?12:20, rPad=narrow?12:240;
+  const avail=W-lPad-rPad;
+  sc=Math.min(avail/1080,(H-top-bot)/700);
+  ox=(W-1080*sc)/2; oy=top+((H-top-bot)-700*sc)/2;
+}
+resize();
+addEventListener('resize',resize);
+
+function tx(x){return ox+x*sc}
+function ty(y){return oy+y*sc}
+function ts(v){return v*sc}
+
+/* ═══════════════════════════════════════════════════
+   §3  ZOOM SYSTEM
+   ═══════════════════════════════════════════════════ */
+const zoom={cx:540,cy:350,level:1,tCx:540,tCy:350,tLevel:1,active:false,zone:null,infoAlpha:0};
+function resetZoom(){zoom.tLevel=1;zoom.tCx=540;zoom.tCy=350;zoom.active=false;zoom.zone=null;zoom.infoAlpha=0}
+
+/* ═══════════════════════════════════════════════════
+   §4  HELP DRAWER
+   ═══════════════════════════════════════════════════ */
+function isHelpOpen(){const r=el('helpRoot');return !!(r&&r.classList.contains('open'))}
+function openHelpDrawer(){
+  const root=el('helpRoot'),ob=el('btnHelpOpen'),xb=el('btnHelpClose');
+  if(!root)return;
+  root.classList.add('open');root.setAttribute('aria-hidden','false');
+  if(ob)ob.setAttribute('aria-expanded','true');
+  document.body.style.overflow='hidden';
+  if(xb)xb.focus();
+}
+function closeHelpDrawer(){
+  const root=el('helpRoot'),ob=el('btnHelpOpen');
+  if(!root||!root.classList.contains('open'))return;
+  root.classList.remove('open');root.setAttribute('aria-hidden','true');
+  if(ob)ob.setAttribute('aria-expanded','false');
+  document.body.style.overflow='';
+  if(ob)ob.focus();
+}
+
+/* ═══════════════════════════════════════════════════
+   §5  RBMK VARIANT DEFINITIONS
+   ═══════════════════════════════════════════════════ */
+const VARIANTS={
+  '1000':{name:'RBMK-1000',thermalMW:3200,elecMW:1000,channels:1661,voidCoeff:0.20,graphiteMass:1850,
+          desc:'Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe'},
+  '1500':{name:'RBMK-1500',thermalMW:4800,elecMW:1500,channels:1661,voidCoeff:0.25,graphiteMass:2400,
+          desc:'Channel-Type · Graphite-Moderated · Boiling Water · 4800 MWt / 1500 MWe'},
+};
+let V=VARIANTS['1000'];
+
+/* ═══════════════════════════════════════════════════
+   §6  STATE (class-like structured object)
+   ═══════════════════════════════════════════════════ */
+function createState(){
+  return {
+    rod:1,power:0,temp:280,pressure:0,elec:0,rpm:0,
+    voidFrac:0,reactivity:0,fuelTemp:300,
+    iodine:0,xenon:0,xenonNorm:0,
+    decayHeat:0,timeSinceScram:0,wasScram:false,
+    time:0,shake:0,
+    autoMode:false,autoPhase:0,autoTimer:0,
+    scram:false,scramTimer:0,scramTipDone:false,
+    mcpTrip:false,pipeRupture:false,
+    chernobyl:false,chPhase:0,chTimer:0,
+    soundOn:false,explosion:false,
+    paused:false,timeScale:1,
+    mode:'free',
+    peakPower:0,peakTemp:0,peakPressure:0,peakVoid:0,
+    safetyViolations:0,
+    safetyEventTimer:0,safetyEventActive:null,safetyEventDeadline:0,
+  };
+}
+let S=createState();
+
+/* ═══════════════════════════════════════════════════
+   §7  CIRCULAR BUFFER for power history
+   ═══════════════════════════════════════════════════ */
+const HIST_LEN=360;
+class RingBuffer{
+  constructor(cap){this.buf=new Float32Array(cap);this.cap=cap;this.head=0;this.len=0}
+  push(v){this.buf[this.head]=v;this.head=(this.head+1)%this.cap;if(this.len<this.cap)this.len++}
+  get(i){return this.buf[(this.head-this.len+i+this.cap)%this.cap]}
+  clear(){this.head=0;this.len=0}
+}
+const powerHist=new RingBuffer(HIST_LEN);
+
+/* ═══════════════════════════════════════════════════
+   §8  EVENT LOG (for debrief)
+   ═══════════════════════════════════════════════════ */
+const eventLog=[];
+function logEvent(msg){eventLog.push({t:S.time,msg})}
+
+/* ═══════════════════════════════════════════════════
+   §9  ACHIEVEMENTS
+   ═══════════════════════════════════════════════════ */
+const ACHIEV_DEFS=[
+  {id:'firstCrit',   name:'First Criticality',    desc:'Achieve criticality (power > 1%)',      check:()=>S.power>1},
+  {id:'fullPower',   name:'Full Power',            desc:'Reach 100% thermal power',             check:()=>S.power>=100},
+  {id:'scramMaster', name:'SCRAM Master',          desc:'Successfully initiate SCRAM',           check:()=>S.scram},
+  {id:'xenonPit',    name:'Xenon Pit',             desc:'Xenon-135 exceeds 50%',                check:()=>S.xenonNorm>50},
+  {id:'voidSurvivor',name:'Void Survivor',         desc:'Void fraction exceeds 30%',            check:()=>S.voidFrac>.30},
+  {id:'chernobyl',   name:'Chernobyl Witness',     desc:'Complete the Chernobyl scenario',      check:()=>S.explosion},
+  {id:'overpower',   name:'Playing with Fire',     desc:'Exceed 120% power',                    check:()=>S.power>120},
+  {id:'stableOps',   name:'Stable Operator',       desc:'Hold 45-55% power for 20 seconds',    check:null},
+  {id:'coldShutdown',name:'Cold Shutdown',          desc:'Bring reactor to cold shutdown',        check:()=>S.rod>=.99&&S.power<.5&&S.temp<290},
+  {id:'notGreat',    name:'3.6 Roentgen',           desc:'Not great, not terrible.',             check:null},
+];
+const unlockedAchievements=new Set();
+let stableTimer=0;
+let achievQueue=[];
+let achievShowing=false;
+
+function checkAchievements(dt){
+  if(S.power>=45&&S.power<=55){stableTimer+=dt;if(stableTimer>=20)tryUnlock('stableOps')}
+  else stableTimer=0;
+  for(const a of ACHIEV_DEFS){
+    if(a.check&&!unlockedAchievements.has(a.id)&&a.check())tryUnlock(a.id);
+  }
+}
+function tryUnlock(id){
+  if(unlockedAchievements.has(id))return;
+  unlockedAchievements.add(id);
+  const a=ACHIEV_DEFS.find(d=>d.id===id);
+  if(!a)return;
+  logEvent('Achievement: '+a.name);
+  achievQueue.push(a.name);
+  if(!achievShowing)showNextAchiev();
+}
+function showNextAchiev(){
+  if(!achievQueue.length){achievShowing=false;return}
+  achievShowing=true;
+  const name=achievQueue.shift();
+  el('achievName').textContent=name;
+  el('achiev').classList.add('v');
+  setTimeout(()=>{el('achiev').classList.remove('v');setTimeout(showNextAchiev,400)},3000);
+}
+
+/* ═══════════════════════════════════════════════════
+   §10  AUDIO SYSTEM (enhanced)
+   ═══════════════════════════════════════════════════ */
+let ac,humO,humG,turbO,turbG,noiseNode,noiseG,audioReady=false;
+
+function initAudio(){
+  if(audioReady)return;
+  ac=new(window.AudioContext||window.webkitAudioContext)();
+  humO=ac.createOscillator();humO.type='sawtooth';humO.frequency.value=55;
+  humG=ac.createGain();humG.gain.value=0;
+  const humF=ac.createBiquadFilter();humF.type='lowpass';humF.frequency.value=150;
+  humO.connect(humF).connect(humG).connect(ac.destination);humO.start();
+
+  turbO=ac.createOscillator();turbO.type='sine';turbO.frequency.value=200;
+  turbG=ac.createGain();turbG.gain.value=0;
+  const turbF=ac.createBiquadFilter();turbF.type='bandpass';turbF.frequency.value=400;turbF.Q.value=2;
+  turbO.connect(turbF).connect(turbG).connect(ac.destination);turbO.start();
+
+  const bufLen=ac.sampleRate*2;
+  const noiseBuf=ac.createBuffer(1,bufLen,ac.sampleRate);
+  const nd=noiseBuf.getChannelData(0);
+  for(let i=0;i<bufLen;i++)nd[i]=(Math.random()*2-1);
+  noiseNode=ac.createBufferSource();noiseNode.buffer=noiseBuf;noiseNode.loop=true;
+  noiseG=ac.createGain();noiseG.gain.value=0;
+  const noiseF=ac.createBiquadFilter();noiseF.type='lowpass';noiseF.frequency.value=80;
+  noiseNode.connect(noiseF).connect(noiseG).connect(ac.destination);noiseNode.start();
+
+  audioReady=true;
+}
+
+function playAlarm(){
+  if(!audioReady||!S.soundOn)return;
+  const o=ac.createOscillator();o.type='square';o.frequency.value=880;
+  const g=ac.createGain();g.gain.value=0;
+  o.connect(g).connect(ac.destination);o.start();
+  let t=ac.currentTime;
+  for(let i=0;i<8;i++){g.gain.setValueAtTime(0.04,t+i*0.3);g.gain.setValueAtTime(0,t+i*0.3+0.15)}
+  o.stop(t+2.5);
+}
+
+function playBoom(){
+  if(!audioReady||!S.soundOn)return;
+  const buf=ac.createBuffer(2,ac.sampleRate*3,ac.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);
+    for(let i=0;i<d.length;i++){
+      const env=Math.exp(-i/(ac.sampleRate*0.5));
+      d[i]=(Math.random()*2-1)*env+(Math.sin(i/ac.sampleRate*60*Math.PI*2)*.3*Math.exp(-i/(ac.sampleRate*.15)));
+    }
+  }
+  const src=ac.createBufferSource();src.buffer=buf;
+  const g=ac.createGain();g.gain.value=0.18;
+  const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=250;
+  src.connect(f).connect(g).connect(ac.destination);src.start();
+}
+
+function updateAudio(){
+  if(!audioReady)return;
+  const vol=S.soundOn?1:0;
+  const pf=S.power/100;
+  const t=ac.currentTime+0.1;
+  humG.gain.linearRampToValueAtTime(pf*0.028*vol,t);
+  humO.frequency.linearRampToValueAtTime(48+pf*22,t);
+  turbG.gain.linearRampToValueAtTime((pf>0.05?pf*0.018:0)*vol,t);
+  turbO.frequency.linearRampToValueAtTime(180+pf*500,t);
+  noiseG.gain.linearRampToValueAtTime(pf*0.008*vol,t);
+}
+
+/* ═══════════════════════════════════════════════════
+   §11  ZONES (tooltip + zoom targets)
+   ═══════════════════════════════════════════════════ */
+const zones=[
+  {x:68,y:172,w:184,h:336,title:'Reactor Core',
+   info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite (mass: 1850 t) serves as neutron moderator while light water acts as both coolant and neutron absorber — the key reason for the positive void coefficient unique to RBMK designs.'},
+  {x:30,y:100,w:260,h:480,title:'Concrete Shielding',
+   info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
+  {x:335,y:83,w:130,h:58,title:'Drum Separator',
+   info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
+  {x:216,y:592,w:48,h:48,title:'Main Circulation Pump (MCP)',
+   info:'Eight MCPs arranged in 4 per loop. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+  {x:515,y:72,w:80,h:80,title:'HP Turbine',
+   info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
+  {x:610,y:87,w:30,h:50,title:'Moisture Separator / Reheater',
+   info:'Chevron-type vane separators remove water droplets from HP exhaust (moisture ~12% → <0.5%). Prevents blade erosion in LP turbine, improves cycle efficiency by ~3%.'},
+  {x:672,y:64,w:96,h:96,title:'LP Turbine',
+   info:'Low-pressure turbine. Inlet: ~1.2 MPa dry steam. Exhaust: ~4 kPa to condenser. Produces ~60% of total electrical output due to larger enthalpy drop.'},
+  {x:823,y:81,w:55,h:62,title:'Generator',
+   info:'TVV-500 hydrogen-cooled synchronous generator. Output: 500 MWe per unit (2 units = 1000 MWe). Voltage: 24 kV, stepped up to 330/750 kV for grid transmission.'},
+  {x:678,y:451,w:85,h:48,title:'Condenser',
+   info:'Shell-and-tube heat exchanger with ~30,000 titanium alloy tubes. Condenses exhaust steam at ~4 kPa (~30°C). Cooling water flow: ~120,000 m³/h.'},
+  {x:522,y:457,w:36,h:36,title:'Feedwater Pump',
+   info:'Multi-stage centrifugal pump returning condensed water at 7 MPa. Feedwater passes through LP heaters, deaerator, and HP heaters for regenerative heating.'},
+  {x:868,y:439,w:45,h:72,title:'Cooling Tower',
+   info:'Natural-draft hyperbolic cooling tower (~150m). Dissipates ~2200 MWt waste heat. Evaporation rate: ~1.5% of flow (~1800 m³/h).'},
+];
+
+/* ═══════════════════════════════════════════════════
+   §12  TOOLTIP HOVER SYSTEM
+   ═══════════════════════════════════════════════════ */
+let hoveredZone=null;
+const ttEl=el('tooltip'),ttTitle=el('ttTitle'),ttInfo=el('ttInfo');
+
+cv.addEventListener('mousemove',e=>{
+  const mx=wx(e.clientX),my=wy(e.clientY);
+  let found=null;
+  for(const z of zones){
+    if(mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h){found=z;break}
+  }
+  hoveredZone=found;
+  if(found&&!zoom.active){
+    ttTitle.textContent=found.title;
+    ttInfo.textContent=found.info.slice(0,120)+'…';
+    let ttX=e.clientX+16,ttY=e.clientY+16;
+    if(ttX+290>W)ttX=e.clientX-296;
+    if(ttY+120>H)ttY=e.clientY-126;
+    ttEl.style.left=ttX+'px';ttEl.style.top=ttY+'px';
+    ttEl.classList.add('v');
+  }else{
+    ttEl.classList.remove('v');
+  }
+  cv.style.cursor=zoom.active?'zoom-out':(found?'zoom-in':'default');
+});
+cv.addEventListener('mouseleave',()=>{ttEl.classList.remove('v');hoveredZone=null});
+
+/* ═══════════════════════════════════════════════════
+   §13  ZOOM CLICK
+   ═══════════════════════════════════════════════════ */
+cv.addEventListener('click',e=>{
+  const mx=wx(e.clientX),my=wy(e.clientY);
+  if(zoom.active){resetZoom();return}
+  for(const z of zones){
+    if(mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h){
+      zoom.tCx=z.x+z.w/2;zoom.tCy=z.y+z.h/2;
+      zoom.tLevel=Math.min(3,Math.max(1,350/Math.max(z.w,z.h)));
+      zoom.active=true;zoom.zone=z;zoom.infoAlpha=0;
+      ttEl.classList.remove('v');
+      break;
+    }
+  }
+});
+
+function wx(px){
+  if(zoom.level>1.02){const zx=tx(zoom.cx);px=(px-zx)/zoom.level+zx}
+  return(px-ox)/sc;
+}
+function wy(py){
+  if(zoom.level>1.02){const zy=ty(zoom.cy);py=(py-zy)/zoom.level+zy}
+  return(py-oy)/sc;
+}
+
+function updateZoom(){
+  zoom.cx+=(zoom.tCx-zoom.cx)*.08;zoom.cy+=(zoom.tCy-zoom.cy)*.08;
+  zoom.level+=(zoom.tLevel-zoom.level)*.08;
+  if(zoom.active&&zoom.zone)zoom.infoAlpha=Math.min(1,zoom.infoAlpha+.04);
+  else zoom.infoAlpha=Math.max(0,zoom.infoAlpha-.08);
+}
+
+/* ═══════════════════════════════════════════════════
+   §14  PIPES
+   ═══════════════════════════════════════════════════ */
+const pipes={
+  coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
+  sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
+  mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
+  sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
+  hpToMSR:{pts:[[595,112],[610,112]],fluid:'steam'},
+  msrToLP:{pts:[[640,112],[672,112]],fluid:'steam'},
+  lpToCond:{pts:[[720,160],[720,451]],fluid:'exhaust'},
+  condToFW:{pts:[[678,475],[558,475]],fluid:'water'},
+  fwToSep:{pts:[[540,457],[540,200],[435,200],[435,141]],fluid:'water'},
+  condToCT:{pts:[[763,480],[870,480]],fluid:'cool'},
+};
+Object.values(pipes).forEach(p=>{
+  let l=0;
+  for(let i=1;i<p.pts.length;i++){const dx=p.pts[i][0]-p.pts[i-1][0],dy=p.pts[i][1]-p.pts[i-1][1];l+=Math.sqrt(dx*dx+dy*dy)}
+  p.len=l;
+});
+function ptOnPath(pts,len,t){
+  let d=t*len;
+  for(let i=1;i<pts.length;i++){
+    const dx=pts[i][0]-pts[i-1][0],dy=pts[i][1]-pts[i-1][1],seg=Math.sqrt(dx*dx+dy*dy);
+    if(d<=seg){const f=d/seg;return{x:pts[i-1][0]+dx*f,y:pts[i-1][1]+dy*f}}
+    d-=seg;
+  }
+  return{x:pts[pts.length-1][0],y:pts[pts.length-1][1]};
+}
+
+/* ═══════════════════════════════════════════════════
+   §15  DRAW HELPERS
+   ═══════════════════════════════════════════════════ */
+function rr(x,y,w,h,r){
+  const ax=tx(x),ay=ty(y),aw=ts(w),ah=ts(h),ar=ts(r);
+  cx.beginPath();
+  cx.moveTo(ax+ar,ay);cx.lineTo(ax+aw-ar,ay);
+  cx.quadraticCurveTo(ax+aw,ay,ax+aw,ay+ar);cx.lineTo(ax+aw,ay+ah-ar);
+  cx.quadraticCurveTo(ax+aw,ay+ah,ax+aw-ar,ay+ah);cx.lineTo(ax+ar,ay+ah);
+  cx.quadraticCurveTo(ax,ay+ah,ax,ay+ah-ar);cx.lineTo(ax,ay+ar);
+  cx.quadraticCurveTo(ax,ay,ax+ar,ay);cx.closePath();
+}
+function arrow(x1,y1,x2,y2,col){
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy),ux=dx/len,uy=dy/len,sz=ts(6);
+  cx.strokeStyle=col;cx.lineWidth=ts(1.5);cx.lineCap='round';
+  cx.beginPath();cx.moveTo(tx(x1),ty(y1));cx.lineTo(tx(x2),ty(y2));cx.stroke();
+  cx.fillStyle=col;cx.beginPath();cx.moveTo(tx(x2),ty(y2));
+  cx.lineTo(tx(x2)-ux*sz-uy*sz*.4,ty(y2)-uy*sz+ux*sz*.4);
+  cx.lineTo(tx(x2)-ux*sz+uy*sz*.4,ty(y2)-uy*sz-ux*sz*.4);cx.fill();
+}
+function label(text,x,y,size,col,bold,align){
+  size=size||9;const px=Math.max(9.5,ts(size));
+  cx.fillStyle=col||'#5a5a55';cx.font=cFont(px,!!bold);cx.textAlign=align||'center';
+  text.split('\n').forEach((l,i)=>cx.fillText(l,tx(x),ty(y)+i*(px+2)));
+}
+function pipeLabelStroke(text,x,y,size,col){
+  size=size||6.5;const px=Math.max(9.5,ts(size));
+  cx.save();cx.font=cFont(px,false);cx.textAlign='center';
+  cx.lineWidth=Math.max(2,ts(2.2));cx.lineJoin='round';
+  cx.strokeStyle=isDark?'rgba(26,27,30,.95)':'rgba(252,251,247,.95)';
+  cx.strokeText(text,tx(x),ty(y));cx.fillStyle=col||'#5a5a55';
+  cx.fillText(text,tx(x),ty(y));cx.restore();
+}
+
+/* ═══════════════════════════════════════════════════
+   §16  DRAW: PIPES
+   ═══════════════════════════════════════════════════ */
+const pipeColors={
+  mix:{outer:'#c08070',inner:'#daa898'},steam:{outer:'#c09050',inner:'#e0b878'},
+  water:{outer:'#5090c0',inner:'#80b8e0'},exhaust:{outer:'#a0a098',inner:'#c8c8c0'},
+  cool:{outer:'#4088b8',inner:'#70b0d8'},
+};
+function drawPipes(){
+  Object.values(pipes).forEach(p=>{
+    const pc=pipeColors[p.fluid]||pipeColors.water;
+    cx.strokeStyle=pc.outer;cx.lineWidth=ts(9);cx.lineCap='round';cx.lineJoin='round';
+    cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+    for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
+    cx.strokeStyle=pc.inner;cx.lineWidth=ts(5);
+    cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+    for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
+  });
+}
+function drawFlow(){
+  const pf=S.power/100;
+  if(pf<.01&&S.decayHeat<1)return;
+  const eff=Math.max(pf,S.decayHeat/V.thermalMW*3);
+  Object.values(pipes).forEach(p=>{
+    const n=p.fluid==='steam'?14:p.fluid==='mix'?16:p.fluid==='exhaust'?10:12;
+    const spd=.06+eff*.18;
+    for(let i=0;i<n;i++){
+      const t=((S.time*spd+i/n)%1),pt=ptOnPath(p.pts,p.len,t);
+      const a=eff*.65*Math.sin(t*Math.PI);
+      let col;
+      if(p.fluid==='water'||p.fluid==='cool')col=`rgba(50,120,200,${a})`;
+      else if(p.fluid==='steam')col=`rgba(150,170,190,${a*1.3})`;
+      else if(p.fluid==='exhaust')col=`rgba(170,180,190,${a*.7})`;
+      else col=(t%.14<.06)?`rgba(50,120,200,${a})`:`rgba(165,180,195,${a})`;
+      cx.fillStyle=col;cx.beginPath();
+      cx.arc(tx(pt.x),ty(pt.y),ts(p.fluid==='steam'?3.2:2.5),0,Math.PI*2);cx.fill();
+    }
+  });
+}
+function drawArrows(){
+  const c='rgba(80,90,100,.7)';
+  arrow(160,150,160,120,c);arrow(180,112,315,112,c);
+  arrow(365,180,365,400,c);arrow(340,440,260,440,c);
+  arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
+  arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
+  arrow(720,180,720,420,c);
+  arrow(660,475,575,475,c);arrow(540,440,540,220,c);arrow(520,200,450,200,c);
+  arrow(770,480,855,480,c);
+}
+
+/* ═══════════════════════════════════════════════════
+   §17  DRAW: PLANT COMPONENTS
+   ═══════════════════════════════════════════════════ */
+function drawShielding(){
+  const sx=30,sy=100,sw=260,sh=480,wt=16;
+  cx.fillStyle=isDark?'#4a4842':'#c8c4b8';cx.strokeStyle=isDark?'#6a6860':'#a0a098';cx.lineWidth=ts(1);
+  cx.fillRect(tx(sx),ty(sy),ts(wt),ts(sh));cx.fillRect(tx(sx),ty(sy),ts(sw),ts(wt));
+  cx.fillRect(tx(sx),ty(sy+sh-wt),ts(sw),ts(wt));cx.fillRect(tx(sx+sw-wt),ty(sy),ts(wt),ts(sh));
+  for(let i=0;i<sh;i+=8){
+    cx.strokeStyle=isDark?'rgba(80,78,72,.25)':'rgba(160,155,145,.25)';
+    cx.beginPath();cx.moveTo(tx(sx),ty(sy+i));cx.lineTo(tx(sx+wt),ty(sy+i+4));cx.stroke();
+    cx.beginPath();cx.moveTo(tx(sx+sw-wt),ty(sy+i));cx.lineTo(tx(sx+sw),ty(sy+i+4));cx.stroke();
+  }
+  cx.fillStyle=isDark?'#5a5858':'#8a8888';cx.lineWidth=ts(1);
+  cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
+  cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
+  cx.save();cx.translate(tx(sx+wt*.5),ty(sy+sh*.52));cx.rotate(-Math.PI/2);
+  cx.fillStyle=isDark?'#a0a098':'#5e5c56';cx.font=cFont(Math.max(8.5,ts(7)),true);cx.textAlign='center';
+  cx.fillText('CONCRETE SHIELDING',0,0);cx.restore();
+  label('UBS',160,160,6.5,isDark?'#908880':'#808078');
+  label('LBS',160,524,6.5,isDark?'#908880':'#808078');
+}
+
+function drawCore(){
+  const ccx=160,ccy=340,hw=92,hh=168;
+  const L=ccx-hw,T=ccy-hh,W2=hw*2,H2=hh*2;
+  const pf=Math.min(1,S.power/100);
+  rr(L,T,W2,H2,3);cx.fillStyle=isDark?'#2a2a28':'#e5e4dd';cx.fill();
+  cx.strokeStyle=isDark?'#4a4a45':'#b0aea5';cx.lineWidth=ts(1);cx.stroke();
+  const bs=20,cols=Math.floor(W2/bs),rows=Math.floor(H2/bs);
+  const gx=L+(W2-cols*bs)/2,gy=T+(H2-rows*bs)/2;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const bx=gx+c*bs,by=gy+r*bs,n=Math.sin(r*2.3+c*3.1+S.time*.7)*2.5;
+    if(isDark){
+      const base=40+n,gw=pf*25;
+      cx.fillStyle=`rgb(${base+gw|0},${base+gw*.3|0},${Math.max(0,base-gw*.4)|0})`;
+    }else{
+      const base=142+n,gw=pf*22;
+      cx.fillStyle=`rgb(${base+gw|0},${base+gw*.3|0},${Math.max(0,base-gw*.4)|0})`;
+    }
+    cx.fillRect(tx(bx+.4),ty(by+.4),ts(bs-.8),ts(bs-.8));
+  }
+  const fuelX=[88,110,132,160,188,210,232];
+  const chT=T+12,chB=T+H2-12,chH=chB-chT;
+  fuelX.forEach(fx=>{
+    cx.fillStyle=isDark?'#606870':'#a0a8b0';
+    cx.fillRect(tx(fx-5),ty(chT),ts(10),ts(chH));
+    cx.fillStyle=isDark?'#505860':'#8a9098';
+    cx.fillRect(tx(fx-5),ty(chT),ts(1.5),ts(chH));cx.fillRect(tx(fx+3.5),ty(chT),ts(1.5),ts(chH));
+    for(let p=0;p<16;p++){
+      const py=chT+4+p*((chH-8)/16),br=.3+pf*.7;
+      cx.fillStyle=`rgb(${200*br+50|0},${115*br+30|0},${25*br+10|0})`;
+      cx.fillRect(tx(fx-3),ty(py),ts(6),ts((chH-8)/16-2));
+    }
+    if(pf>.04){
+      const g=cx.createRadialGradient(tx(fx),ty(ccy),0,tx(fx),ty(ccy),ts(18+pf*28));
+      g.addColorStop(0,`rgba(225,135,35,${pf*.18})`);g.addColorStop(1,'rgba(225,100,30,0)');
+      cx.fillStyle=g;cx.fillRect(tx(fx-30),ty(chT),ts(60),ts(chH));
+    }
+    if(pf>.02){
+      for(let wi=0;wi<5;wi++){
+        const wt=((S.time*(.35+pf*.5)+wi*.2)%1),wy=chT+(1-wt)*chH;
+        const steam=wt>.5&&pf>.08;
+        cx.fillStyle=steam?`rgba(150,175,200,${pf*.3*Math.sin(wt*Math.PI)})`:`rgba(50,120,200,${pf*.35*Math.sin(wt*Math.PI)})`;
+        cx.beginPath();cx.arc(tx(fx+Math.sin(S.time*2.5+wi)*1.5),ty(wy),ts(steam?2.2:1.8),0,Math.PI*2);cx.fill();
+      }
+    }
+  });
+  if(pf>.85){
+    const ci=(pf-.85)/.15;
+    fuelX.forEach(fx=>{
+      const g=cx.createRadialGradient(tx(fx),ty(ccy),ts(3),tx(fx),ty(ccy),ts(25));
+      g.addColorStop(0,`rgba(40,80,255,${ci*.12})`);g.addColorStop(1,'rgba(30,60,220,0)');
+      cx.fillStyle=g;cx.fillRect(tx(fx-25),ty(chT),ts(50),ts(chH));
+    });
+  }
+  const rodX=[99,144,176,221],rodFull=H2-24,rodIns=rodFull*S.rod;
+  rodX.forEach(rx=>{
+    const rT=T+6;
+    cx.fillStyle=isDark?'#606060':'#a0a098';cx.fillRect(tx(rx-2.5),ty(rT-35),ts(5),ts(35));
+    cx.fillStyle=isDark?'#4a4a48':'#7a7a78';cx.fillRect(tx(rx-5),ty(rT-42+(1-S.rod)*30),ts(10),ts(12));
+    const gr=cx.createLinearGradient(tx(rx-2.5),0,tx(rx+2.5),0);
+    gr.addColorStop(0,isDark?'#303038':'#4a4a52');gr.addColorStop(.5,isDark?'#404048':'#606068');gr.addColorStop(1,isDark?'#303038':'#4a4a52');
+    cx.fillStyle=gr;cx.fillRect(tx(rx-2.5),ty(rT),ts(5),ts(rodIns));
+    if(rodIns>4){cx.fillStyle=isDark?'#25252d':'#35353d';cx.fillRect(tx(rx-3),ty(rT+rodIns-5),ts(6),ts(5))}
+  });
+  fuelX.forEach(fx=>{
+    cx.fillStyle=isDark?'#5a5858':'#8a8888';
+    cx.beginPath();cx.moveTo(tx(fx),ty(530));cx.lineTo(tx(fx-5),ty(537));cx.lineTo(tx(fx),ty(544));cx.lineTo(tx(fx+5),ty(537));cx.closePath();cx.fill();
+    cx.strokeStyle=isDark?'#4a4a48':'#6a6a68';cx.lineWidth=ts(.8);cx.stroke();
+  });
+  if(pf>.04){
+    const cg=cx.createRadialGradient(tx(ccx),ty(ccy),0,tx(ccx),ty(ccy),ts(hw*1.1));
+    const dang=pf>.8;
+    cg.addColorStop(0,`rgba(${dang?'220,75,25':'215,155,55'},${pf*(dang?.1:.07)})`);
+    cg.addColorStop(1,`rgba(${dang?'200,50,20':'200,140,50'},0)`);
+    cx.fillStyle=cg;cx.fillRect(tx(L-10),ty(T-10),ts(W2+20),ts(H2+20));
+  }
+  if(pf>.04){
+    const nc=Math.floor(pf*25);
+    for(let n=0;n<nc;n++){
+      const nx=ccx+(Math.sin(S.time*1.3+n*7.3)*.5+Math.sin(S.time*.7+n*3.1)*.5)*hw*.65;
+      const ny=ccy+(Math.cos(S.time*1.8+n*5.1)*.5+Math.cos(S.time*1.1+n*2.7)*.5)*hh*.65;
+      cx.fillStyle=`rgba(90,150,225,${.12+pf*.22})`;
+      cx.beginPath();cx.arc(tx(nx),ty(ny),ts(1),0,Math.PI*2);cx.fill();
+    }
+  }
+  const labelCol=isDark?'#c0c0b8':'#4a4a45';
+  const subCol=isDark?'#908880':'#808078';
+  label('REACTOR CORE',ccx,598,10,labelCol,true);
+  label('Graphite · '+V.channels+' Ch.',ccx,612,7,subCol);
+  label('VALVES',160,556,6.5,isDark?'#8a8a82':'#6a6a62',true);
+}
+
+function drawDrumSep(){
+  const dcx=400,dcy=112,dw=130,dh=58;
+  const L=dcx-dw/2,T=dcy-dh/2,cap=ts(dh*.4);
+  const bL=tx(L+dh*.4),bR=tx(L+dw-dh*.4),bT=ty(T),bB=ty(T+dh);
+  cx.fillStyle=isDark?'#3a3e42':'#d5d9dd';cx.strokeStyle=isDark?'#5a6468':'#95a0a8';cx.lineWidth=ts(1.8);
+  cx.beginPath();cx.ellipse(bL,ty(dcy),cap,ts(dh/2),0,0,Math.PI*2);cx.fill();cx.stroke();
+  cx.fillStyle=isDark?'#40444a':'#dce0e4';cx.fillRect(bL,bT,bR-bL,bB-bT);
+  cx.beginPath();cx.moveTo(bL,bT);cx.lineTo(bR,bT);cx.moveTo(bL,bB);cx.lineTo(bR,bB);
+  cx.strokeStyle=isDark?'#5a6468':'#95a0a8';cx.stroke();
+  cx.fillStyle=isDark?'#3a3e42':'#d5d9dd';cx.beginPath();cx.ellipse(bR,ty(dcy),cap,ts(dh/2),0,0,Math.PI*2);cx.fill();cx.stroke();
+  const pf=Math.min(1,S.power/100),wLev=.42+pf*.12,wTop=ty(dcy+dh/2*(1-wLev*2));
+  cx.save();cx.beginPath();cx.rect(bL-cap,bT,bR-bL+cap*2,bB-bT);cx.clip();
+  cx.fillStyle=`rgba(50,120,200,${.06+pf*.1})`;cx.fillRect(bL-cap,wTop,bR-bL+cap*2,bB-wTop);
+  if(pf>.08)for(let b=0;b<12;b++){
+    const bx=dcx-dw*.28+Math.sin(S.time*1.4+b*2.7)*dw*.28;
+    const by=dcy+dh*.08+Math.cos(S.time*1.8+b*1.9)*dh*.12;
+    cx.fillStyle=`rgba(150,185,215,${pf*.25})`;
+    cx.beginPath();cx.arc(tx(bx),ty(by),ts(1.2+Math.sin(S.time+b)*.6),0,Math.PI*2);cx.fill();
+  }
+  cx.restore();
+  const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
+  label('DRUM SEPARATOR',dcx,dcy+dh/2+24,10,lc,true);
+  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+38,7,sc2);
+}
+
+function drawPump(pcx,pcy,r,lbl,sub){
+  const pf=Math.min(1,S.power/100);
+  cx.fillStyle=isDark?'#3a4048':'#ced6de';cx.strokeStyle=isDark?'#5a6878':'#8a9aa8';cx.lineWidth=ts(1.8);
+  cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
+  const spd=S.time*(1+pf*4)*(S.mcpTrip&&lbl==='MCP'?.1:1);
+  cx.save();cx.translate(tx(pcx),ty(pcy));cx.rotate(spd);
+  cx.strokeStyle=`rgba(70,100,130,${.25+pf*.5})`;cx.lineWidth=ts(2);
+  for(let b=0;b<6;b++){const a=b*Math.PI/3;cx.beginPath();cx.moveTo(0,0);
+    cx.quadraticCurveTo(Math.cos(a+.4)*ts(r*.4),Math.sin(a+.4)*ts(r*.4),Math.cos(a)*ts(r*.7),Math.sin(a)*ts(r*.7));cx.stroke()}
+  cx.restore();
+  cx.fillStyle=isDark?'#5a6878':'#8a9aaa';cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(4),0,Math.PI*2);cx.fill();
+  if(S.mcpTrip&&lbl==='MCP'){
+    cx.strokeStyle='rgba(200,50,50,.6)';cx.lineWidth=ts(2);
+    cx.beginPath();cx.moveTo(tx(pcx-r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx+r*.7),ty(pcy+r*.7));cx.stroke();
+    cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
+  }
+  const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
+  if(sub&&lbl==='MCP'){
+    const lx=pcx+r+12;
+    label(lbl,lx,pcy-4,9.5,lc,true,'left');label(sub,lx,pcy+10,7,sc2,false,'left');
+  }else{label(lbl,pcx,pcy+r+12,9.5,lc,true);if(sub)label(sub,pcx,pcy+r+24,7,sc2)}
+}
+
+function drawTurbine(tcx,tcy,r,lbl,blades){
+  const pf=Math.min(1,S.power/100);
+  cx.fillStyle=isDark?'#283830':'#deeae6';cx.strokeStyle=isDark?'#3a6a50':'#6a9a88';cx.lineWidth=ts(2.2);
+  cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
+  cx.strokeStyle=isDark?'#4a8a68':'#8ab8a8';cx.lineWidth=ts(.8);
+  cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(r*.85),0,Math.PI*2);cx.stroke();
+  const ang=S.time*(.4+pf*7);
+  cx.save();cx.translate(tx(tcx),ty(tcy));cx.rotate(ang);
+  for(let b=0;b<blades;b++){
+    const a=b*Math.PI*2/blades,int=.18+pf*.6;
+    cx.strokeStyle=`rgba(45,115,85,${int})`;cx.lineWidth=ts(1.8);
+    cx.beginPath();const inner=ts(5),outer=ts(r*.78);
+    cx.moveTo(inner*Math.cos(a),inner*Math.sin(a));
+    cx.quadraticCurveTo((inner+(outer-inner)*.5)*Math.cos(a+.15),(inner+(outer-inner)*.5)*Math.sin(a+.15),outer*Math.cos(a),outer*Math.sin(a));
+    cx.stroke();
+    cx.fillStyle=`rgba(45,115,85,${int*.6})`;cx.beginPath();cx.arc(outer*Math.cos(a),outer*Math.sin(a),ts(2.2),0,Math.PI*2);cx.fill();
+  }
+  cx.restore();
+  cx.fillStyle=isDark?'#3a6a50':'#6a9a88';cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(5),0,Math.PI*2);cx.fill();
+  label(lbl,tcx,tcy+r+22,10,isDark?'#6aaa8a':'#4a6a5a',true);
+}
+
+function drawMSR(){
+  const mx=625,my=112,mw=30,mh=50;
+  rr(mx-mw/2,my-mh/2,mw,mh,4);
+  cx.fillStyle=isDark?'#2a3028':'#e0e4d8';cx.fill();cx.strokeStyle=isDark?'#5a6a50':'#8a9a80';cx.lineWidth=ts(1.5);cx.stroke();
+  const pf=Math.min(1,S.power/100);
+  if(pf>.05)for(let d=0;d<6;d++){
+    const dx=mx-mw*.2+Math.sin(S.time*2+d*1.3)*mw*.2;
+    const dy=my+mh*.1+((S.time*30+d*15)%mh*.6);
+    cx.fillStyle=`rgba(80,130,200,${pf*.25})`;cx.beginPath();cx.arc(tx(dx),ty(dy),ts(1.2),0,Math.PI*2);cx.fill();
+  }
+  cx.strokeStyle=`rgba(80,130,200,${.1+pf*.15})`;cx.lineWidth=ts(.8);
+  for(let v=0;v<3;v++){const vy=my-mh*.25+v*mh*.25;
+    cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke()}
+  label('MOISTURE\nSEPARATOR',mx,my+mh/2+18,8.5,isDark?'#8a9a70':'#4a5a40',true);
+}
+
+function drawGenerator(){
+  const gx=850,gy=112,gw=55,gh=62;
+  rr(gx-gw/2,gy-gh/2,gw,gh,5);
+  cx.fillStyle=isDark?'#283a28':'#deeade';cx.fill();cx.strokeStyle=isDark?'#3a6a3a':'#5a8a5a';cx.lineWidth=ts(1.8);cx.stroke();
+  const pf=Math.min(1,S.power/100);
+  cx.save();cx.translate(tx(gx),ty(gy));
+  const ca=S.time*(.4+pf*5);
+  for(let c=0;c<3;c++){const a=ca+c*Math.PI*2/3,int=.12+pf*.45;
+    cx.strokeStyle=`rgba(40,100,40,${int})`;cx.lineWidth=ts(1.2);
+    cx.beginPath();cx.ellipse(0,0,ts(17),ts(24),a,0,Math.PI*2);cx.stroke()}
+  cx.restore();
+  if(pf>.08){
+    const sa=.25+pf*.5+Math.sin(S.time*7)*.12;
+    cx.fillStyle=`rgba(40,140,40,${sa})`;cx.font=cFont(ts(16),true);cx.textAlign='center';cx.fillText('⚡',tx(gx),ty(gy+5));
+  }
+  label('GENERATOR',gx,gy+gh/2+20,10,isDark?'#5aaa5a':'#3a6a3a',true);
+  label(S.elec.toFixed(0)+' MWe',gx,gy+gh/2+34,7.5,pf>.08?(isDark?'#5aaa5a':'#2a6a2a'):(isDark?'#5a5a52':'#9a9a90'));
+}
+
+function drawShaft(){
+  cx.strokeStyle=isDark?'#506850':'#a0a898';cx.lineWidth=ts(4.5);cx.lineCap='round';
+  cx.beginPath();cx.moveTo(tx(595),ty(112));cx.lineTo(tx(610),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(640),ty(112));cx.lineTo(tx(672),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(768),ty(112));cx.lineTo(tx(823),ty(112));cx.stroke();
+}
+
+function drawCondenser(){
+  const ccx=720,ccy=475,cw=85,ch=48;
+  rr(ccx-cw/2,ccy-ch/2,cw,ch,4);
+  cx.fillStyle=isDark?'#283238':'#d8e2ea';cx.fill();cx.strokeStyle=isDark?'#4a6070':'#7a90a8';cx.lineWidth=ts(1.8);cx.stroke();
+  const pf=Math.min(1,S.power/100);
+  for(let t=0;t<4;t++){const ty_=ccy-ch*.25+t*ch*.17;
+    cx.strokeStyle=`rgba(80,130,180,${.12+pf*.18})`;cx.lineWidth=ts(1.2);cx.beginPath();
+    for(let x=ccx-cw*.38;x<ccx+cw*.38;x+=4){const sx=tx(x),sy=ty(ty_+Math.sin((x+S.time*18)*.14)*2.5);if(x===ccx-cw*.38)cx.moveTo(sx,sy);else cx.lineTo(sx,sy)}
+    cx.stroke();
+  }
+  if(S.pipeRupture)for(let l=0;l<8;l++){
+    cx.fillStyle='rgba(50,120,200,.3)';cx.beginPath();
+    cx.arc(tx(ccx+cw*.3+Math.random()*10),ty(ccy-ch*.3+Math.random()*ch*.6),ts(1.5),0,Math.PI*2);cx.fill();
+  }
+  label('CONDENSER',ccx,ccy+ch/2+14,10,isDark?'#6a90b0':'#4a6080',true);
+}
+
+function drawCoolingTower(){
+  const ctcx=890,ctcy=475,ctw=45,cth=72;
+  const top=ctcy-cth/2,bot=ctcy+cth/2;
+  cx.fillStyle=isDark?'#3a3832':'#dddad2';cx.strokeStyle=isDark?'#5a5850':'#b0aea5';cx.lineWidth=ts(1.2);
+  cx.beginPath();cx.moveTo(tx(ctcx-ctw*.33),ty(bot));
+  cx.quadraticCurveTo(tx(ctcx-ctw*.18),ty(ctcy+cth*.08),tx(ctcx-ctw*.23),ty(top+cth*.18));
+  cx.lineTo(tx(ctcx-ctw*.28),ty(top));cx.lineTo(tx(ctcx+ctw*.28),ty(top));
+  cx.lineTo(tx(ctcx+ctw*.23),ty(top+cth*.18));
+  cx.quadraticCurveTo(tx(ctcx+ctw*.18),ty(ctcy+cth*.08),tx(ctcx+ctw*.33),ty(bot));
+  cx.closePath();cx.fill();cx.stroke();
+  const pf=Math.min(1,S.power/100);
+  if(pf>.05)for(let p=0;p<8;p++){
+    const px=ctcx+Math.sin(S.time*.6+p*1.1)*7,py=top-5-p*6-(S.time*10+p*8)%50;
+    const a=pf*.35*(1-p*.1);
+    if(a>0){const r=4+p*1.5+Math.sin(S.time*.8+p)*1.5;
+      cx.fillStyle=`rgba(180,190,200,${Math.min(.4,a)})`;cx.beginPath();cx.arc(tx(px),ty(py),ts(r),0,Math.PI*2);cx.fill()}
+  }
+  label('COOLING\nTOWER',ctcx,bot+10,9,isDark?'#a0a098':'#5a5a52',true);
+}
+
+function drawPipeLabels(){
+  pipeLabelStroke('Steam-Water Mix',248,68,6.5,isDark?'#d0a080':'#804030');
+  label('Dry Steam',490,72,6.5,isDark?'#c0a060':'#906830');
+  label('Return Water',318,418,6.5,isDark?'#60a8d0':'#306898');
+  label('Exhaust',752,305,6.5,isDark?'#a0a098':'#808078');
+  label('Condensate',638,448,6.5,isDark?'#60a8d0':'#306898');
+  label('Feedwater',518,198,6.5,isDark?'#60a8d0':'#306898');
+  label('Cooling',835,455,6.5,isDark?'#50a8d0':'#286898');
+}
+
+function drawLeaks(){
+  if(S.pressure<6)return;
+  const int=(S.pressure-6)/2;
+  [[332,83],[465,102],[720,160],[678,475]].forEach(j=>{
+    for(let l=0;l<3;l++){
+      cx.fillStyle=`rgba(200,210,220,${int*.3*Math.random()})`;cx.beginPath();
+      cx.arc(tx(j[0]+(Math.random()-.5)*8),ty(j[1]+(Math.random()-.5)*8),ts(1.5+Math.random()*2),0,Math.PI*2);cx.fill();
+    }
+  });
+}
+
+function drawGraph(){
+  const gx=445,gy=590,gw=370,gh=68;
+  rr(gx,gy,gw,gh,4);cx.fillStyle=isDark?'rgba(30,32,38,.7)':'rgba(255,255,255,.7)';cx.fill();
+  cx.strokeStyle=isDark?'#3a3a38':'#d0cec5';cx.lineWidth=ts(.8);cx.stroke();
+  cx.save();cx.beginPath();cx.rect(tx(gx+1),ty(gy+1),ts(gw-2),ts(gh-2));cx.clip();
+  cx.fillStyle='rgba(200,50,50,.06)';cx.fillRect(tx(gx+2),ty(gy+2),ts(gw-4),ts(gh*.15));
+  if(powerHist.len>1){
+    cx.strokeStyle=isDark?'#5aaa7a':'#4a8a6a';cx.lineWidth=ts(1.2);cx.beginPath();
+    for(let i=0;i<powerHist.len;i++){
+      const px=gx+3+i*(gw-6)/HIST_LEN,py=gy+gh-3-(powerHist.get(i)/130)*(gh-6);
+      if(i===0)cx.moveTo(tx(px),ty(py));else cx.lineTo(tx(px),ty(py));
+    }
+    cx.stroke();
+  }
+  cx.strokeStyle='rgba(200,50,50,.25)';cx.lineWidth=ts(.5);cx.setLineDash([ts(3),ts(3)]);
+  const dangerY=gy+gh-3-(100/130)*(gh-6);
+  cx.beginPath();cx.moveTo(tx(gx+3),ty(dangerY));cx.lineTo(tx(gx+gw-3),ty(dangerY));cx.stroke();
+  cx.setLineDash([]);cx.restore();
+  label('Thermal Power History (MWt)',gx+gw/2,gy-14,8,isDark?'#a0a098':'#5a5a52',true);
+  label(V.thermalMW.toString(),gx-22,dangerY-2,6.5,'rgba(180,40,40,.65)','','right');
+  label('0',gx-12,gy+gh-4,6.5,isDark?'#6a6a62':'#888','','right');
+}
+
+function drawZoomInfo(){
+  if(zoom.infoAlpha<.01||!zoom.zone)return;
+  const z=zoom.zone,a=zoom.infoAlpha,pad=16,gap=6;
+  const shield=z.title==='Concrete Shielding';
+  let pw=shield?Math.min(340,W*.36):Math.min(320,W*.3);
+  const statusReserve=244;
+  let px=16;
+  if(shield){const ideal=Math.min(W-pw-statusReserve,Math.max(160,W*.3));px=Math.max(12,Math.min(ideal,W-pw-12));if(W<640){pw=Math.min(pw,W-20);px=10}}
+  const py=54;
+  cx.font=cFont(15,true);const titleLines=wrapText(z.title,pw-pad*2);
+  cx.font=cFont(13,false);const infoLines=wrapText(z.info,pw-pad*2);
+  const lineH=18,titleH=titleLines.length*20,ph=pad+titleH+gap+infoLines.length*lineH+pad;
+  cx.fillStyle=`rgba(20,22,28,${.88*a})`;const r=10;
+  cx.beginPath();cx.moveTo(px+r,py);cx.lineTo(px+pw-r,py);cx.quadraticCurveTo(px+pw,py,px+pw,py+r);
+  cx.lineTo(px+pw,py+ph-r);cx.quadraticCurveTo(px+pw,py+ph,px+pw-r,py+ph);
+  cx.lineTo(px+r,py+ph);cx.quadraticCurveTo(px,py+ph,px,py+ph-r);cx.lineTo(px,py+r);
+  cx.quadraticCurveTo(px,py,px+r,py);cx.closePath();cx.fill();
+  cx.strokeStyle=`rgba(100,160,220,${.3*a})`;cx.lineWidth=1;cx.stroke();
+  let ty_=py+pad+16;cx.font=cFont(15,true);cx.fillStyle=`rgba(130,190,240,${a})`;cx.textAlign='left';
+  for(const l of titleLines){cx.fillText(l,px+pad,ty_);ty_+=20}
+  ty_+=gap;cx.font=cFont(13,false);cx.fillStyle=`rgba(220,220,215,${.9*a})`;
+  for(const l of infoLines){cx.fillText(l,px+pad,ty_);ty_+=lineH}
+  ty_+=4;cx.font=cFont(11,false);cx.fillStyle=`rgba(140,140,135,${.6*a})`;cx.fillText('Click anywhere to zoom out',px+pad,ty_);
+}
+function wrapText(text,maxW){
+  const words=text.split(' '),lines=[];let line='';
+  for(const w of words){const test=line?line+' '+w:w;
+    if(cx.measureText(test).width>maxW&&line){lines.push(line);line=w}else line=test}
+  if(line)lines.push(line);return lines;
+}
+
+function drawBG(){
+  cx.fillStyle=isDark?'#1a1b1e':'#f0efe8';cx.fillRect(0,0,W,H);
+  cx.strokeStyle=isDark?'#252628':'#eae8e0';cx.lineWidth=1;
+  const gs=38;
+  for(let x=ox%gs;x<W;x+=gs){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+  for(let y=oy%gs;y<H;y+=gs){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+}
+
+/* Pause overlay drawn on canvas */
+function drawPauseOverlay(){
+  if(!S.paused)return;
+  cx.fillStyle=isDark?'rgba(0,0,0,.35)':'rgba(255,255,255,.35)';
+  cx.fillRect(0,0,W,H);
+  cx.fillStyle=isDark?'rgba(200,200,195,.7)':'rgba(50,50,48,.6)';
+  cx.font=cFont(Math.max(24,ts(18)),true);cx.textAlign='center';
+  cx.fillText('⏸  PAUSED',W/2,H/2);
+  cx.font=cFont(Math.max(13,ts(9)),false);
+  cx.fillText('Press Space to resume',W/2,H/2+Math.max(28,ts(20)));
+}
+
+function applyZoom(){
+  if(Math.abs(zoom.level-1)<.01)return;
+  const zx=tx(zoom.cx),zy=ty(zoom.cy);
+  cx.translate(zx,zy);cx.scale(zoom.level,zoom.level);cx.translate(-zx,-zy);
+}
+
+/* ═══════════════════════════════════════════════════
+   §18  PHYSICS — SPLIT INTO SUB-FUNCTIONS
+   ═══════════════════════════════════════════════════ */
+const XENON_ACCEL=100;
+const LAMBDA_I=0.1047/3600*XENON_ACCEL;
+const LAMBDA_XE=0.0753/3600*XENON_ACCEL;
+const YIELD_I=0.059, YIELD_XE=0.003;
+const SIGMA_XE=0.00002*XENON_ACCEL;
+const XENON_WORTH=3.5;
+
+function rodWorth(rodPos){
+  /* Differential rod worth: rods are most effective at mid-insertion (belly curve) */
+  const x=1-rodPos;
+  return (1.15*x - 0.12) + 0.25*Math.sin(Math.PI*x);
+}
+
+function voidReactivity(vf){
+  /* Non-linear positive void coefficient — more dangerous at high void fractions */
+  return vf*V.voidCoeff*(1 + vf*0.8);
+}
+
+function dopplerFeedback(fuelT){
+  /* Fuel temperature coefficient with non-linear component at high temperatures */
+  const dT=fuelT-300;
+  const base=0.00015*dT;
+  const nonlin=0.0000001*dT*dT;
+  return -(base+nonlin);
+}
+
+function updateScram(dt){
+  if(!S.scram)return;
+  S.scramTimer+=dt;
+  if(S.scramTimer<2&&!S.scramTipDone){
+    S.rod=Math.min(1,S.rod+dt*0.015);
+  }else{
+    S.scramTipDone=true;
+    S.rod=Math.min(1,S.rod+dt*0.055);
+  }
+  sRod.value=S.rod*100;
+  if(S.rod>=.99){S.scram=false;S.scramTimer=0;S.scramTipDone=false}
+}
+
+function updateAutoMode(dt){
+  if(!S.autoMode||S.chernobyl)return;
+  S.autoTimer+=dt;
+  switch(S.autoPhase){
+    case 0:S.rod=Math.max(.25,S.rod-dt*.06);if(S.rod<=.25){S.autoPhase=1;showP('Criticality Reached')}break;
+    case 1:S.rod=Math.max(.1,S.rod-dt*.02);if(S.power>60){S.autoPhase=2;showP('Full Power Operation')}break;
+    case 2:S.rod=.1+Math.sin(S.time*.2)*.02;if(S.autoTimer>25){S.autoPhase=3;S.autoTimer=0;showP('Power Reduction')}break;
+    case 3:S.rod=Math.min(1,S.rod+dt*.05);if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown')}break;
+    case 4:if(S.autoTimer>5){S.autoPhase=0;S.autoTimer=0;showP('Reactor Startup...')}break;
+  }
+  sRod.value=S.rod*100;
+}
+
+function updateVoidFraction(){
+  S.voidFrac=(S.power/100)*0.4*(1+(1-S.pressure/7.5)*.3);
+  if(S.mcpTrip)S.voidFrac*=1.6;
+  S.voidFrac=Math.min(0.95,S.voidFrac);
+}
+
+function updateReactivity(){
+  const rodReact=rodWorth(S.rod);
+  const vReact=voidReactivity(S.voidFrac);
+  const doppler=dopplerFeedback(S.fuelTemp);
+  const xenonReact=-S.xenonNorm*XENON_WORTH*0.01;
+  let scramTipReact=0;
+  if(S.scram&&S.scramTimer<2&&!S.scramTipDone){
+    scramTipReact=0.10*Math.sin(S.scramTimer*Math.PI/2);
+  }
+  S.reactivity=rodReact+vReact+doppler+xenonReact+scramTipReact;
+}
+
+function updatePowerKinetics(dt){
+  if(S.explosion)return;
+  const maxRate=S.chernobyl?200:60;
+  const dP=Math.max(-maxRate,Math.min(maxRate,S.reactivity*Math.max(S.power,0.5)*0.8));
+  S.power=Math.max(0,Math.min(S.chernobyl?300:150,S.power+dP*dt));
+}
+
+function updateFuelTemperature(dt){
+  /* Thermal inertia model: fuel temp lags behind equilibrium */
+  const targetFuelT=300+S.power*5.5+S.power*S.power*0.002;
+  const tau=0.15;
+  S.fuelTemp+=(targetFuelT-S.fuelTemp)*dt*tau;
+}
+
+function updateXenon(dt){
+  const pNorm=S.power/100;
+  const dI=YIELD_I*pNorm-LAMBDA_I*S.iodine;
+  S.iodine=Math.max(0,S.iodine+dI*dt);
+  const dXe=YIELD_XE*pNorm+LAMBDA_I*S.iodine-LAMBDA_XE*S.xenon-SIGMA_XE*pNorm*S.xenon;
+  S.xenon=Math.max(0,S.xenon+dXe*dt);
+  S.xenonNorm=Math.min(100,S.xenon*25);
+}
+
+function updateDecayHeat(dt){
+  if(S.rod>.95&&S.power<5){
+    if(!S.wasScram){S.wasScram=true;S.timeSinceScram=0.1;S.decayHeat=Math.max(S.decayHeat,S.power/100*V.thermalMW*0.066)}
+    S.timeSinceScram+=dt;
+    S.decayHeat=V.thermalMW*0.066*Math.pow(Math.max(0.1,S.timeSinceScram),-0.2);
+  }else{S.wasScram=false;S.decayHeat=0}
+}
+
+function updateThermalHydraulics(dt){
+  const targetTemp=280+S.power*4.2;
+  S.temp+=(targetTemp-S.temp)*dt*0.25;
+  const targetPres=S.power*0.069;
+  S.pressure+=(targetPres-S.pressure)*dt*0.3;
+  if(S.pipeRupture)S.pressure*=(1-dt*0.3);
+}
+
+function updatePlantSystems(){
+  S.rpm=S.power>3?Math.min(3000,S.power*30):0;
+  S.elec=S.power>3?(S.power/100)*V.thermalMW*0.31:0;
+  S.shake=S.power>105?Math.min(5,(S.power-105)*0.06):0;
+}
+
+function trackPeaks(){
+  if(S.power>S.peakPower)S.peakPower=S.power;
+  if(S.temp>S.peakTemp)S.peakTemp=S.temp;
+  if(S.pressure>S.peakPressure)S.peakPressure=S.pressure;
+  if(S.voidFrac>S.peakVoid)S.peakVoid=S.voidFrac;
+}
+
+function updateSafetyMode(dt){
+  if(S.mode!=='safety')return;
+  S.safetyEventTimer+=dt;
+  if(!S.safetyEventActive&&S.safetyEventTimer>15+Math.random()*20&&S.power>10){
+    const events=['mcpTrip','pipeRupture'];
+    const ev=events[Math.floor(Math.random()*events.length)];
+    S.safetyEventActive=ev;S.safetyEventDeadline=S.time+15;
+    if(ev==='mcpTrip'){S.mcpTrip=true;el('btnMCP').classList.add('on');el('btnMCP').setAttribute('aria-pressed','true');showP('⚠ SAFETY DRILL: MCP Trip! Respond!',true);logEvent('Safety drill: MCP Trip')}
+    else{S.pipeRupture=true;el('btnPipe').classList.add('on');el('btnPipe').setAttribute('aria-pressed','true');showP('⚠ SAFETY DRILL: Pipe Rupture! Respond!',true);logEvent('Safety drill: Pipe Rupture')}
+    S.safetyEventTimer=0;
+  }
+  if(S.safetyEventActive&&S.time>S.safetyEventDeadline){
+    S.safetyViolations++;showP('✗ Safety response too slow!',true);logEvent('Safety violation: slow response');
+    S.safetyEventActive=null;
+  }
+  if(S.safetyEventActive==='mcpTrip'&&!S.mcpTrip){showP('✓ MCP Trip handled');logEvent('MCP Trip resolved');S.safetyEventActive=null}
+  if(S.safetyEventActive==='pipeRupture'&&!S.pipeRupture){showP('✓ Pipe Rupture handled');logEvent('Pipe Rupture resolved');S.safetyEventActive=null}
+}
+
+function updateNormalMode(){
+  if(S.mode!=='normal')return;
+  if(S.power>110&&!S._normalWarnHigh){S._normalWarnHigh=true;showP('⚠ Power exceeds safe limit!',true);S.safetyViolations++;logEvent('Exceeded safe power limit')}
+  if(S.power<110)S._normalWarnHigh=false;
+  if(S.voidFrac>.35&&!S._normalWarnVoid){S._normalWarnVoid=true;showP('⚠ High void fraction!',true);logEvent('High void fraction warning')}
+  if(S.voidFrac<.30)S._normalWarnVoid=false;
+}
+
+function updatePhysics(dt){
+  updateScram(dt);
+  updateAutoMode(dt);
+  if(S.chernobyl)updateChernobyl(dt);
+  updateVoidFraction();
+  updateFuelTemperature(dt);
+  updateReactivity();
+  updatePowerKinetics(dt);
+  updateXenon(dt);
+  updateDecayHeat(dt);
+  updateThermalHydraulics(dt);
+  updatePlantSystems();
+  trackPeaks();
+  checkAchievements(dt);
+  updateSafetyMode(dt);
+  updateNormalMode();
+  powerHist.push(S.power);
+  updateAudio();
+  updateUI();
+}
+
+/* ═══════════════════════════════════════════════════
+   §19  CHERNOBYL SCENARIO
+   ═══════════════════════════════════════════════════ */
+const chScript=[
+  {t:0,msg:'April 26, 1986, 01:00\nPower reduction test begins...',rod:.7},
+  {t:6,msg:'Power dropped to 30 MWt\nXenon-135 buildup detected',rod:.55,xenon:60},
+  {t:12,msg:'⚠ Operators withdraw control rods\nORM < 15 rods — Safety violation!',rod:.06},
+  {t:18,msg:'Power recovering: 200 MWt\nTurbine coast-down test initiated',rod:.1,mcpTrip:true},
+  {t:23,msg:'01:23:40 — AZ-5 SCRAM pressed!',scram:true},
+  {t:25,msg:'⚠ GRAPHITE TIP EFFECT\nPositive reactivity insertion!',surge:true},
+  {t:27,msg:'💥 POWER EXCURSION\n30,000 MWt — 100x nominal!',explode:true},
+  {t:31,msg:'3.6 Roentgen.\nNot great, not terrible.',easter:true},
+];
+
+function updateChernobyl(dt){
+  S.chTimer+=dt;
+  const phase=chScript.findIndex(p=>p.t>S.chTimer)-1;
+  if(phase<0&&S.chTimer<chScript[0].t)return;
+  const idx=phase<0?chScript.length-1:phase;
+  if(idx!==S.chPhase){
+    S.chPhase=idx;const p=chScript[idx];
+    if(p.msg){showP(p.msg,p.surge||p.explode||p.easter);logEvent(p.msg.split('\n')[0])}
+    if(p.rod!==undefined){S.rod=p.rod;sRod.value=S.rod*100}
+    if(p.xenon!==undefined){S.xenon=p.xenon/25;S.iodine=p.xenon/15}
+    if(p.mcpTrip)S.mcpTrip=true;
+    if(p.scram){S.scram=true;S.scramTimer=0;playAlarm()}
+    if(p.surge){S.rod=0.03;S.power=Math.max(S.power,80)}
+    if(p.explode){
+      S.power=300;S.explosion=true;
+      if(!prefersReduceMotion){S.shake=5;el('flash').classList.add('on');playBoom();setTimeout(()=>el('flash').classList.remove('on'),800)}
+    }
+    if(p.easter){
+      S.shake=0;tryUnlock('notGreat');
+      chResetTid=setTimeout(()=>{
+        S.chernobyl=false;S.explosion=false;S.mcpTrip=false;S.pipeRupture=false;
+        S.power=0;S.rod=1;S.scram=false;S.scramTimer=0;S.scramTipDone=false;
+        sRod.value=100;
+        el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+        el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
+        resetZoom();showDebrief();
+      },5000);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   §20  UI UPDATE
+   ═══════════════════════════════════════════════════ */
+function updateUI(){
+  const p=S.power,thermalMW=p/100*V.thermalMW;
+  const pCol=p>90?'#b03030':p>60?'#c08030':'#3a8a6a';
+  el('vP').textContent=thermalMW.toFixed(0)+' MWt';el('vP').style.color=pCol;
+  el('bP').style.width=Math.min(100,p)+'%';el('bP').style.background=pCol;
+  el('vE').textContent=S.elec.toFixed(0)+' MWe';
+  el('bE').style.width=Math.min(100,S.elec/V.elecMW*100)+'%';el('bE').style.background='#3a8a6a';
+  const tCol=S.temp>500?'#b03030':S.temp>400?'#c08030':'#5a8ab0';
+  el('vT').textContent=S.temp.toFixed(0)+' °C';el('vT').style.color=tCol;
+  el('bT').style.width=Math.min(100,S.temp/700*100)+'%';el('bT').style.background=tCol;
+  const ftCol=S.fuelTemp>800?'#b03030':S.fuelTemp>600?'#c08030':'#5a8ab0';
+  el('vFt').textContent=S.fuelTemp.toFixed(0)+' °C';el('vFt').style.color=ftCol;
+  el('bFt').style.width=Math.min(100,(S.fuelTemp-300)/700*100)+'%';el('bFt').style.background=ftCol;
+  el('vPr').textContent=S.pressure.toFixed(2)+' MPa';
+  el('bPr').style.width=Math.min(100,S.pressure/7*100)+'%';
+  el('vR').textContent=(S.rod*100).toFixed(0)+'%';
+  el('bR').style.width=(S.rod*100)+'%';
+  const vCol=S.voidFrac>.3?'#c06030':'#5a8ab0';
+  el('vV').textContent=(S.voidFrac*100).toFixed(1)+'%';el('vV').style.color=vCol;
+  el('bV').style.width=Math.min(100,S.voidFrac*250)+'%';el('bV').style.background=vCol;
+  const rPcm=(S.reactivity*1000).toFixed(0);
+  el('vRe').textContent=rPcm+' pcm';el('vRe').style.color=S.reactivity>0?'#c03030':'#3a8a6a';
+  el('vX').textContent=S.xenonNorm.toFixed(1)+'%';
+  el('bX').style.width=Math.min(100,S.xenonNorm)+'%';
+  el('vRpm').textContent=S.rpm.toFixed(0)+' rpm';
+  el('bRpm').style.width=Math.min(100,S.rpm/3000*100)+'%';
+  const dot=el('statusDot');
+  if(S.explosion||S.power>100)dot.className='sdot crit';
+  else if(S.power>65||S.temp>440||S.scram)dot.className='sdot warn';
+  else if(S.power>3)dot.className='sdot';
+  else dot.className='sdot off';
+  sRod.setAttribute('aria-valuenow',String(Math.round(S.rod*100)));
+}
+
+/* ═══════════════════════════════════════════════════
+   §21  DEBRIEF SYSTEM
+   ═══════════════════════════════════════════════════ */
+function showDebrief(){
+  const grid=el('debriefGrid');
+  const cards=[
+    {val:(S.peakPower/100*V.thermalMW).toFixed(0)+' MWt',lbl:'Peak Thermal Power'},
+    {val:S.peakTemp.toFixed(0)+' °C',lbl:'Peak Core Temp'},
+    {val:S.peakPressure.toFixed(2)+' MPa',lbl:'Peak Pressure'},
+    {val:(S.peakVoid*100).toFixed(1)+'%',lbl:'Peak Void Fraction'},
+    {val:S.safetyViolations.toString(),lbl:'Safety Violations'},
+    {val:unlockedAchievements.size+'/'+ACHIEV_DEFS.length,lbl:'Achievements'},
+  ];
+  grid.innerHTML=cards.map(c=>`<div class="d-card"><div class="d-val">${c.val}</div><div class="d-lbl">${c.lbl}</div></div>`).join('');
+  const evList=el('debriefEvents');
+  const recent=eventLog.slice(-15);
+  evList.innerHTML=recent.map(e=>`<li><span class="d-time">${fmtTime(e.t)}</span>${e.msg}</li>`).join('');
+  let rating='⭐⭐⭐ Excellent Operator';
+  if(S.safetyViolations>0)rating='⭐⭐ Needs Improvement';
+  if(S.safetyViolations>3||S.explosion)rating='⭐ Critical Failure';
+  if(S.peakPower<=0)rating='— No Operation —';
+  el('debriefRating').textContent=rating;
+  el('debriefSub').textContent=V.name+' · Session Analysis';
+  el('debriefOverlay').classList.add('open');
+}
+function fmtTime(t){const m=Math.floor(t/60),s=Math.floor(t%60);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+el('btnDebriefClose').addEventListener('click',()=>el('debriefOverlay').classList.remove('open'));
+el('debriefOverlay').addEventListener('click',e=>{if(e.target===el('debriefOverlay'))el('debriefOverlay').classList.remove('open')});
+
+/* ═══════════════════════════════════════════════════
+   §22  CONTROLS & EVENTS
+   ═══════════════════════════════════════════════════ */
+sRod.addEventListener('input',e=>{
+  if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;
+  sRod.setAttribute('aria-valuenow',String(Math.round(S.rod*100)));
+});
+
+el('btnScram').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.scram=true;S.scramTimer=0;S.scramTipDone=false;
+  S.autoMode=false;el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
+  showP('SCRAM — Emergency Shutdown',true);playAlarm();logEvent('SCRAM initiated');
+});
+
+el('btnAuto').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.autoMode=!S.autoMode;
+  if(S.autoMode){S.autoPhase=0;S.autoTimer=0;S.scram=false;S.mcpTrip=false;S.pipeRupture=false;
+    el('btnAuto').textContent='Stop';el('btnAuto').classList.add('on');el('btnAuto').setAttribute('aria-pressed','true');
+    showP('Reactor Startup...');logEvent('Auto mode started');
+  }else{el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');logEvent('Auto mode stopped')}
+});
+
+let chResetTid=0;
+el('btnChernobyl').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.chernobyl=true;S.chPhase=-1;S.chTimer=0;S.autoMode=false;S.scram=false;S.scramTipDone=false;S.scramTimer=0;
+  S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
+  S.power=80;S.rod=.3;S.xenon=0;S.iodine=0;
+  if(chResetTid){clearTimeout(chResetTid);chResetTid=0}
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
+  el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+  el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
+  showP('☢ CHERNOBYL SCENARIO ☢\nApril 26, 1986',true);logEvent('Chernobyl scenario started');
+});
+
+el('btnMCP').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.mcpTrip=!S.mcpTrip;el('btnMCP').classList.toggle('on');el('btnMCP').setAttribute('aria-pressed',S.mcpTrip?'true':'false');
+  showP(S.mcpTrip?'⚠ MCP TRIP — Pump Failure!':'MCP Restored',S.mcpTrip);logEvent(S.mcpTrip?'MCP Trip':'MCP Restored');
+});
+
+el('btnPipe').addEventListener('click',()=>{
+  if(S.chernobyl)return;
+  S.pipeRupture=!S.pipeRupture;el('btnPipe').classList.toggle('on');el('btnPipe').setAttribute('aria-pressed',S.pipeRupture?'true':'false');
+  showP(S.pipeRupture?'⚠ PIPE RUPTURE — Pressure Loss!':'Pipe Sealed',S.pipeRupture);logEvent(S.pipeRupture?'Pipe Rupture':'Pipe Sealed');
+});
+
+el('btnReset').addEventListener('click',doReset);
+function doReset(){
+  const wasSoundOn=S.soundOn;
+  S=createState();S.soundOn=wasSoundOn;
+  if(chResetTid){clearTimeout(chResetTid);chResetTid=0}
+  powerHist.clear();eventLog.length=0;
+  unlockedAchievements.clear();stableTimer=0;
+  resetZoom();sRod.value=100;
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
+  el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
+  el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
+  el('flash').classList.remove('on');
+  el('btnPause').textContent='▶ Play';el('btnPause').setAttribute('aria-pressed','false');
+  updateTimeScaleUI();
+  showP('Reactor Reset — All Systems Nominal');logEvent('Reset');
+}
+
+el('btnSound').addEventListener('click',()=>{
+  initAudio();S.soundOn=!S.soundOn;
+  el('btnSound').textContent='Sound: '+(S.soundOn?'ON':'OFF');
+  el('btnSound').classList.toggle('on',S.soundOn);
+  el('btnSound').setAttribute('aria-pressed',S.soundOn?'true':'false');
+  if(S.soundOn&&ac.state==='suspended')ac.resume();
+});
+
+el('btnDebrief').addEventListener('click',showDebrief);
+
+el('btnHelpOpen').addEventListener('click',()=>openHelpDrawer());
+el('btnHelpClose').addEventListener('click',()=>closeHelpDrawer());
+el('helpBackdrop').addEventListener('click',()=>closeHelpDrawer());
+
+function showP(text,danger){
+  const ph=el('phase');ph.textContent=text;
+  ph.className='ph v'+(danger?' d':'');
+  clearTimeout(showP.tid);showP.tid=setTimeout(()=>ph.classList.remove('v'),3000);
+}
+
+/* ═══════════════════════════════════════════════════
+   §23  PAUSE & TIME SCALE
+   ═══════════════════════════════════════════════════ */
+el('btnPause').addEventListener('click',togglePause);
+function togglePause(){
+  S.paused=!S.paused;
+  el('btnPause').textContent=S.paused?'▶ Play':'⏸ Pause';
+  el('btnPause').setAttribute('aria-pressed',S.paused?'true':'false');
+}
+
+const tsBtns=document.querySelectorAll('[data-ts]');
+tsBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.timeScale=parseFloat(btn.dataset.ts);
+    updateTimeScaleUI();
+  });
+});
+function updateTimeScaleUI(){
+  tsBtns.forEach(b=>{b.classList.toggle('ts-active',parseFloat(b.dataset.ts)===S.timeScale)});
+}
+
+/* ═══════════════════════════════════════════════════
+   §24  DARK MODE
+   ═══════════════════════════════════════════════════ */
+let isDark=false;
+function toggleDarkMode(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  el('btnTheme').textContent=isDark?'Light':'Dark';
+  document.querySelector('meta[name="theme-color"]').content=isDark?'#1a1b1e':'#f0efe8';
+}
+el('btnTheme').addEventListener('click',toggleDarkMode);
+if(window.matchMedia('(prefers-color-scheme: dark)').matches){toggleDarkMode()}
+
+/* ═══════════════════════════════════════════════════
+   §25  VARIANT SELECTOR
+   ═══════════════════════════════════════════════════ */
+el('selVariant').addEventListener('change',e=>{
+  V=VARIANTS[e.target.value];
+  el('barDesc').textContent=V.desc;
+  el('page-title').textContent=V.name+' Reactor Simulation';
+  doReset();logEvent('Switched to '+V.name);
+});
+
+/* ═══════════════════════════════════════════════════
+   §26  MODE SELECTOR
+   ═══════════════════════════════════════════════════ */
+el('selMode').addEventListener('change',e=>{
+  S.mode=e.target.value;
+  S.safetyEventTimer=0;S.safetyEventActive=null;S._normalWarnHigh=false;S._normalWarnVoid=false;
+  const names={free:'Free Play',normal:'Normal Operations',safety:'Safety Training',accident:'Accident Analysis'};
+  showP('Mode: '+names[S.mode]);logEvent('Mode: '+names[S.mode]);
+  if(S.mode==='accident')showDebrief();
+});
+
+/* ═══════════════════════════════════════════════════
+   §27  URL STATE SHARE
+   ═══════════════════════════════════════════════════ */
+el('btnShare').addEventListener('click',()=>{
+  const state={r:+S.rod.toFixed(3),p:+S.power.toFixed(1),t:+S.temp.toFixed(0),pr:+S.pressure.toFixed(2),
+    v:el('selVariant').value,m:S.mode,xe:+S.xenonNorm.toFixed(1),mcp:S.mcpTrip?1:0,pipe:S.pipeRupture?1:0};
+  const hash=btoa(JSON.stringify(state));
+  const url=location.origin+location.pathname+'#s='+hash;
+  navigator.clipboard.writeText(url).then(()=>showP('URL copied to clipboard!')).catch(()=>{
+    prompt('Copy this URL:',url);
+  });
+});
+function loadFromURL(){
+  try{
+    const h=location.hash;if(!h.startsWith('#s='))return;
+    const data=JSON.parse(atob(h.slice(3)));
+    if(data.v&&VARIANTS[data.v]){el('selVariant').value=data.v;V=VARIANTS[data.v];el('barDesc').textContent=V.desc;el('page-title').textContent=V.name+' Reactor Simulation'}
+    if(data.r!==undefined){S.rod=data.r;sRod.value=S.rod*100}
+    if(data.p!==undefined)S.power=data.p;
+    if(data.t!==undefined)S.temp=data.t;
+    if(data.pr!==undefined)S.pressure=data.pr;
+    if(data.xe!==undefined){S.xenonNorm=data.xe;S.xenon=data.xe/25}
+    if(data.mcp)S.mcpTrip=true;
+    if(data.pipe)S.pipeRupture=true;
+    if(data.m){S.mode=data.m;el('selMode').value=data.m}
+  }catch(e){}
+}
+loadFromURL();
+
+/* ═══════════════════════════════════════════════════
+   §28  KEYBOARD SHORTCUTS
+   ═══════════════════════════════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT'||e.target.isContentEditable)return;
+
+  if(e.key==='Escape'){
+    if(el('debriefOverlay').classList.contains('open')){el('debriefOverlay').classList.remove('open');e.preventDefault();return}
+    if(isHelpOpen()){closeHelpDrawer();e.preventDefault();return}
+    if(zoom.active){resetZoom();e.preventDefault();return}
+  }
+
+  if(e.key===' '||e.code==='Space'){togglePause();e.preventDefault();return}
+  if(e.key==='1'){S.timeScale=1;updateTimeScaleUI();return}
+  if(e.key==='2'){S.timeScale=2;updateTimeScaleUI();return}
+  if(e.key==='3'){S.timeScale=5;updateTimeScaleUI();return}
+
+  const k=e.key.toLowerCase();
+  if(k==='s'&&!e.ctrlKey&&!e.metaKey){el('btnScram').click();return}
+  if(k==='r'&&!e.ctrlKey&&!e.metaKey){el('btnReset').click();return}
+  if(k==='a'){el('btnAuto').click();return}
+  if(k==='d'&&!e.ctrlKey&&!e.metaKey){toggleDarkMode();return}
+
+  if(e.key==='?'||(e.key==='/'&&e.shiftKey)){openHelpDrawer();e.preventDefault()}
+});
+
+/* ═══════════════════════════════════════════════════
+   §29  MAIN LOOP
+   ═══════════════════════════════════════════════════ */
+let last=0;
+function frame(t){
+  const rawDt=Math.min(.05,(t-last)/1000);
+  last=t;
+  const dt=S.paused?0:rawDt*S.timeScale;
+  S.time+=dt;
+
+  if(!S.paused)updatePhysics(dt);
+  updateZoom();
+
+  cx.save();
+  applyZoom();
+  if(!prefersReduceMotion&&S.shake>0){
+    cx.translate((Math.random()-.5)*S.shake*sc,(Math.random()-.5)*S.shake*sc);
+    S.shake*=.92;
+  }else if(prefersReduceMotion&&S.shake>0)S.shake=0;
+
+  drawBG();
+  drawPipes();
+  drawFlow();
+  drawArrows();
+  drawPipeLabels();
+  drawShielding();
+  drawCore();
+  drawDrumSep();
+  drawPump(240,616,24,'MCP','(8 pumps, 2 loops)');
+  drawShaft();
+  drawTurbine(555,112,40,'HP TURBINE',12);
+  drawMSR();
+  drawTurbine(720,112,48,'LP TURBINE',16);
+  drawGenerator();
+  drawCondenser();
+  drawPump(540,475,18,'FW PUMP',null);
+  drawCoolingTower();
+  drawLeaks();
+  drawGraph();
+
+  cx.restore();
+
+  drawZoomInfo();
+  drawPauseOverlay();
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ═══════════════════════════════════════════════════
+   §30  PWA — SERVICE WORKER REGISTRATION
+   ═══════════════════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
