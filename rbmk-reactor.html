@@ -13,7 +13,7 @@ canvas{display:block}
 .bar h1{font-size:.88rem;font-weight:600;color:#3a3a40;letter-spacing:.3px}
 .bar span{font-size:.72rem;color:#8a8a80}
 .p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.p h3{font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;color:#9a9a90;margin-bottom:6px;font-weight:600}
+.p h3{font-size:.68rem;text-transform:uppercase;letter-spacing:1.2px;color:#7a7a72;margin-bottom:6px;font-weight:600}
 
 .legend{top:54px;left:12px;width:168px}
 .li{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.7rem;color:#5a5a55}
@@ -21,16 +21,16 @@ canvas{display:block}
 
 .info{top:54px;right:12px;width:200px;max-height:calc(100vh - 120px);overflow-y:auto}
 .st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.sl{font-size:.68rem;color:#7a7a72}
-.sv{font-size:.76rem;font-weight:600;font-variant-numeric:tabular-nums}
+.sl{font-size:.72rem;color:#5a5a55}
+.sv{font-size:.8rem;font-weight:600;font-variant-numeric:tabular-nums}
 .sb{width:100%;height:2.5px;background:#e8e6de;border-radius:2px;margin-top:1px;margin-bottom:6px;overflow:hidden}
 .sf{height:100%;border-radius:2px;transition:width .3s,background .3s}
 
 .ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05);flex-wrap:wrap;justify-content:center;max-width:95vw}
-.ctrl label{font-size:.68rem;color:#7a7a72;white-space:nowrap}
+.ctrl label{font-size:.74rem;color:#5a5a55;white-space:nowrap}
 .ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:120px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.b{background:#f0efe8;border:1px solid #d0cec5;color:#4a4a45;padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:500}
+.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:4px 10px;border-radius:6px;font-size:.74rem;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:500}
 .b:hover{background:#e8e6de}
 .b.on{background:#e8f0e8;border-color:#6aaa6a;color:#2a6a2a}
 .b.sc{background:#fde8e8;border-color:#e0a0a0;color:#a03030}
@@ -301,7 +301,7 @@ function drawFlow() {
 }
 
 function drawArrows() {
-  const c = 'rgba(130,130,120,.35)';
+  const c = 'rgba(110,110,100,.5)';
   arrow(160,130,160,60,c); arrow(180,52,310,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
   arrow(240,648,240,670,c); arrow(200,670,110,670,c); arrow(85,645,85,600,c);
@@ -333,9 +333,9 @@ function drawShielding() {
   cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
   cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
 
-  label('Upper Bio Shield',160,157,6.5,'#707070');
-  label('Lower Bio Shield',160,528,6.5,'#707070');
-  label('CONCRETE\nSHIELDING',160,sy+sh+14,8.5,'#8a8a82');
+  label('Upper Bio Shield',160,157,7.5,'#606060');
+  label('Lower Bio Shield',160,528,7.5,'#606060');
+  label('CONCRETE\nSHIELDING',160,sy+sh+14,9,'#6a6a62');
 }
 
 // ═══════════════ REACTOR CORE ═══════════════
@@ -455,8 +455,8 @@ function drawCore() {
   }
 
   label('REACTOR CORE',ccx,ccy+hh+16,9.5,'#6a6a65',true);
-  label('Graphite-Moderated\n1661 Pressure Channels',ccx,ccy+hh+28,7.5,'#9a9a90');
-  label('FLOW CONTROL\nVALVES',160,548,6,'#7a7a75');
+  label('Graphite-Moderated\n1661 Pressure Channels',ccx,ccy+hh+28,8,'#808078');
+  label('FLOW CONTROL\nVALVES',160,548,7,'#6a6a65');
 }
 
 // ═══════════════ DRUM SEPARATOR ═══════════════
@@ -486,7 +486,7 @@ function drawDrumSep() {
   }
   cx.restore();
   label('DRUM SEPARATOR',dcx,dcy+dh/2+14,9,'#6a6a65',true);
-  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+25,7,'#9a9a90');
+  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+25,7.5,'#808078');
 }
 
 // ═══════════════ PUMP (shared) ═══════════════
@@ -511,7 +511,7 @@ function drawPump(pcx,pcy,r,lbl,sub) {
     cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
   }
   label(lbl,pcx,pcy+r+12,8.5,'#6a6a65',true);
-  if(sub)label(sub,pcx,pcy+r+22,6.5,'#9a9a90');
+  if(sub)label(sub,pcx,pcy+r+23,7.5,'#808078');
 }
 
 // ═══════════════ TURBINE (shared) ═══════════════
@@ -562,7 +562,7 @@ function drawMSR() {
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));
     cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke();
   }
-  label('MOISTURE\nSEPARATOR',mx,my+mh/2+10,6.5,'#6a7a60',true);
+  label('MOISTURE\nSEPARATOR',mx,my+mh/2+10,7,'#5a6a50',true);
 }
 
 // ═══════════════ GENERATOR ═══════════════
@@ -648,18 +648,18 @@ function drawCoolingTower() {
     if(a>0){cx.fillStyle=`rgba(155,165,175,${a})`;
     cx.beginPath();cx.arc(tx(px),ty(py),ts(3.5+p*1.2),0,Math.PI*2);cx.fill();}
   }
-  label('COOLING\nTOWER',ctcx,bot+10,7.5,'#8a8a85');
+  label('COOLING\nTOWER',ctcx,bot+10,8,'#6a6a62');
 }
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam + Water\nMixture (to separator)',240,42,7,'#8a8a82');
-  label('Dry Steam\n(to turbine)',484,88,7,'#8a8a82');
-  label('Water Return\n(to pump)',308,385,7,'#8a8a82');
-  label('Spent Steam\n(low pressure)',738,305,7,'#8a8a82');
-  label('Condensed Water',598,490,7,'#8a8a82');
-  label('Feedwater\n(back to separator)',555,175,7,'#8a8a82');
-  label('Cooling Water\n(to tower)',820,498,6.5,'#8a8a82');
+  label('Steam + Water\nMixture (to separator)',240,42,8,'#707068');
+  label('Dry Steam\n(to turbine)',484,88,8,'#707068');
+  label('Water Return\n(to pump)',308,385,8,'#707068');
+  label('Spent Steam\n(low pressure)',738,305,8,'#707068');
+  label('Condensed Water',598,490,8,'#707068');
+  label('Feedwater\n(back to separator)',555,175,8,'#707068');
+  label('Cooling Water\n(to tower)',820,498,7.5,'#707068');
 }
 
 // ═══════════════ LEAK PARTICLES ═══════════════
@@ -703,9 +703,9 @@ function drawGraph() {
   cx.beginPath();cx.moveTo(tx(gx+3),ty(dangerY));cx.lineTo(tx(gx+gw-3),ty(dangerY));cx.stroke();
   cx.setLineDash([]);
 
-  label('Thermal Power History (MWt)',gx+gw/2,gy-4,6.5,'#8a8a82');
-  label('3200',gx-16,dangerY-1,5.5,'rgba(200,50,50,.45)');
-  label('0',gx-8,gy+gh-5,5.5,'#aaa');
+  label('Thermal Power History (MWt)',gx+gw/2,gy-4,7.5,'#6a6a62');
+  label('3200',gx-16,dangerY-1,7,'rgba(180,40,40,.6)');
+  label('0',gx-8,gy+gh-5,7,'#888');
 }
 
 // ═══════════════ BACKGROUND ═══════════════
@@ -811,8 +811,7 @@ function updatePhysics(dt) {
   S.rpm = S.power > 3 ? Math.min(3000, S.power * 30) : 0;
   S.elec = S.power > 3 ? (S.power/100)*3200*0.31 : 0;
 
-  // Screen shake
-  S.shake = S.power > 105 ? (S.power - 105) * 0.4 : 0;
+  S.shake = S.power > 105 ? Math.min(5, (S.power - 105) * 0.06) : 0;
 
   powerHist.push(S.power);
   if(powerHist.length > HIST_LEN) powerHist.shift();
@@ -850,7 +849,7 @@ function updateChernobyl(dt) {
     if(p.surge) { S.rod = 0.03; S.power = Math.max(S.power, 80); }
     if(p.explode) {
       S.power = 300; S.explosion = true;
-      S.shake = 15;
+      S.shake = 5;
       document.getElementById('flash').classList.add('on');
       playBoom();
       setTimeout(() => document.getElementById('flash').classList.remove('on'), 800);
@@ -953,7 +952,7 @@ function frame(t){
   cx.save();
   if(S.shake>0){
     cx.translate((Math.random()-.5)*S.shake*sc,(Math.random()-.5)*S.shake*sc);
-    S.shake*=.96;
+    S.shake*=.92;
   }
 
   drawBG();
