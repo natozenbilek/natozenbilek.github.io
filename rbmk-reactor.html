@@ -26,7 +26,7 @@ canvas{display:block}
 .sb{width:100%;height:2.5px;background:#e8e6de;border-radius:2px;margin-top:1px;margin-bottom:6px;overflow:hidden}
 .sf{height:100%;border-radius:2px;transition:width .3s,background .3s}
 
-.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);white-space:nowrap}
+.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);white-space:nowrap;max-width:96vw;overflow-x:auto}
 .ctrl label{font-size:.86rem;color:#4a4a45;white-space:nowrap}
 .ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:90px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
@@ -435,7 +435,7 @@ function drawArrows() {
   const c = 'rgba(110,110,100,.5)';
   arrow(160,130,160,60,c); arrow(180,52,310,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
-  arrow(240,648,240,670,c); arrow(200,670,110,670,c); arrow(85,645,85,600,c);
+  arrow(240,640,240,665,c); arrow(220,670,110,670,c); arrow(85,650,85,600,c);
   arrow(470,102,495,102,c); arrow(585,112,603,112,c); arrow(647,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c); arrow(540,440,540,220,c); arrow(520,200,450,200,c);
@@ -874,7 +874,7 @@ function updatePhysics(dt) {
   if(S.scram){
     S.scramTimer+=dt;
     if(S.scramTimer<2&&!S.scramTipDone){
-      S.rod=Math.max(S.rod-dt*0.03,S.rod);
+      S.rod=Math.min(1, S.rod+dt*0.015);
     } else {
       S.scramTipDone=true;
       S.rod=Math.min(1,S.rod+dt*0.055);
@@ -997,7 +997,14 @@ function updateChernobyl(dt) {
     }
     if(p.easter) {
       S.shake = 0;
-      setTimeout(() => { S.chernobyl = false; S.explosion = false; S.mcpTrip = false; S.power = 0; S.rod = 1; S.scram = false; S.scramTimer = 0; }, 5000);
+      chResetTid = setTimeout(() => {
+        S.chernobyl=false;S.explosion=false;S.mcpTrip=false;S.pipeRupture=false;
+        S.power=0;S.rod=1;S.scram=false;S.scramTimer=0;S.scramTipDone=false;
+        el('sRod').value=100;
+        el('btnMCP').classList.remove('on');
+        el('btnPipe').classList.remove('on');
+        chResetTid=0;
+      }, 5000);
     }
   }
 }
@@ -1035,6 +1042,7 @@ const sRod=el('sRod');
 sRod.addEventListener('input',e=>{if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;});
 
 el('btnScram').addEventListener('click',()=>{
+  if(S.chernobyl)return;
   S.scram=true;S.scramTimer=0;S.scramTipDone=false;
   S.autoMode=false;el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
   showP('SCRAM — Emergency Shutdown',true); playAlarm();
@@ -1048,10 +1056,16 @@ el('btnAuto').addEventListener('click',()=>{
   }else{el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');}
 });
 
+let chResetTid = 0;
 el('btnChernobyl').addEventListener('click',()=>{
-  S.chernobyl=true;S.chPhase=-1;S.chTimer=0;S.autoMode=false;S.scram=false;S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
+  if(S.chernobyl)return;
+  S.chernobyl=true;S.chPhase=-1;S.chTimer=0;S.autoMode=false;S.scram=false;S.scramTipDone=false;S.scramTimer=0;
+  S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
   S.power=80;S.rod=.3;S.xenon=0;S.iodine=0;
+  if(chResetTid){clearTimeout(chResetTid);chResetTid=0;}
   el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
+  el('btnMCP').classList.remove('on');
+  el('btnPipe').classList.remove('on');
   showP('☢ CHERNOBYL SCENARIO ☢\nApril 26, 1986',true);
 });
 
@@ -1080,7 +1094,9 @@ el('btnReset').addEventListener('click',()=>{
   S.mcpTrip=false;S.pipeRupture=false;
   S.chernobyl=false;S.chPhase=0;S.chTimer=0;
   S.explosion=false;
+  if(chResetTid){clearTimeout(chResetTid);chResetTid=0;}
   powerHist.length=0;
+  zoom.tLevel=1;zoom.tCx=540;zoom.tCy=350;zoom.active=false;
   el('sRod').value=100;
   el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
   el('btnMCP').classList.remove('on');
