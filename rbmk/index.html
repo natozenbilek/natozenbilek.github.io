@@ -279,6 +279,40 @@ canvas{display:block}
   margin-top:16px;padding:10px 12px;font-size:.78rem;line-height:1.45;
   background:rgba(255,248,230,.6);border:1px solid rgba(200,160,64,.3);border-radius:3px;color:#5a4820;
 }
+.help-drawer-body sup{
+  font-size:.65em;vertical-align:super;line-height:0;margin-left:1px;
+}
+.help-drawer-body sup a{
+  color:#3a6a9a;text-decoration:none;font-weight:600;
+  padding:0 2px;border-radius:2px;transition:background .15s;
+}
+.help-drawer-body sup a:hover{background:rgba(58,106,154,.1);text-decoration:underline}
+.help-refs{
+  margin-top:18px;padding-top:14px;border-top:1px solid rgba(210,208,199,.5);
+}
+.help-refs h3{margin-top:0!important}
+.help-refs ol{
+  margin:0;padding-left:1.4rem;counter-reset:ref-counter;list-style:none;
+}
+.help-refs ol li{
+  margin-bottom:8px;font-size:.78rem;line-height:1.5;color:var(--text-2);
+  counter-increment:ref-counter;position:relative;
+}
+.help-refs ol li::before{
+  content:"[" counter(ref-counter) "]";
+  font-weight:700;color:#3a6a9a;margin-right:6px;font-size:.72rem;
+}
+.help-refs ol li a{
+  color:#3a6a9a;text-decoration:none;word-break:break-all;
+}
+.help-refs ol li a:hover{text-decoration:underline}
+.help-refs ol li .ref-title{font-style:italic}
+.help-refs ol li .ref-src{color:var(--text-3);font-size:.72rem}
+.help-drawer-body .tech-detail{
+  margin:6px 0 10px;padding:8px 10px;font-size:.78rem;line-height:1.5;
+  background:rgba(232,238,250,.5);border:1px solid rgba(138,170,200,.25);border-radius:3px;color:#2a4a6a;
+}
+.help-drawer-body .tech-detail strong{color:#1e3e60}
 .bar-right{
   min-width:0;display:flex;align-items:center;gap:12px;justify-content:flex-end;
 }
@@ -496,32 +530,55 @@ canvas{display:block}
       <button type="button" class="help-drawer-x" id="btnHelpClose" aria-label="Close help">×</button>
     </div>
     <div class="help-drawer-body" tabindex="-1">
-      <h3>Diagram & zoom</h3>
-      <p>Click any highlighted plant region on the diagram to <strong>zoom in</strong> and read a short description. Click empty canvas or press <kbd>Esc</kbd> to zoom out. <strong>Hover</strong> over a region to see a quick tooltip.</p>
+      <h3>Diagram &amp; zoom</h3>
+      <p>Click any highlighted plant region on the diagram to <strong>zoom in</strong> and read a technical description with real engineering data. Click empty canvas or press <kbd>Esc</kbd> to zoom out. <strong>Hover</strong> over a region to see a quick tooltip.</p>
+      <p>The diagram shows the RBMK primary heat transport circuit: from the reactor core through drum separators, turbines, condenser, and back via feedwater pumps — a single-circuit boiling water design unique among power reactors.<sup><a href="#ref1">[1]</a></sup></p>
+
+      <h3>Reactor physics</h3>
+      <p>The RBMK (Реактор Большой Мощности Канальный — "High-Power Channel-Type Reactor") uses a graphite moderator with light-water coolant in a channel-type design. Unlike Western BWRs or PWRs, the RBMK separates the moderator (graphite, ~1850 tonnes) from the coolant (light water), creating a fundamentally different neutron economy.<sup><a href="#ref1">[1]</a></sup><sup><a href="#ref2">[2]</a></sup></p>
+      <div class="tech-detail">
+        <strong>Positive void coefficient:</strong> When coolant boils, neutron absorption decreases while graphite moderation continues — adding reactivity instead of reducing it. This is the key safety concern unique to RBMK designs and was the principal factor in the 1986 Chernobyl accident.<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref5">[5]</a></sup>
+      </div>
 
       <h3>Control rods</h3>
-      <p>Use the <strong>Control Rods</strong> slider: <strong>100%</strong> = more withdrawal / higher power; <strong>0%</strong> = full insertion / lower power. <strong>SCRAM</strong> = emergency rod insertion (includes graphite tip effect in first ~2 seconds).</p>
+      <p>Use the <strong>Control Rods</strong> slider: <strong>100%</strong> = fully withdrawn (higher reactivity / power); <strong>0%</strong> = fully inserted (lower reactivity / power). The simulation models differential rod worth using a belly-shaped curve — rods are most effective at mid-insertion, consistent with actual reactor physics.<sup><a href="#ref2">[2]</a></sup></p>
+      <p><strong>SCRAM</strong> (Safety Control Rod Axe Man) triggers emergency rod insertion. The simulation includes the infamous <strong>graphite displacer tip effect</strong>: boron carbide absorber rods in the RBMK had graphite followers at their lower ends. During the first ~2 seconds of a SCRAM from fully withdrawn position, these graphite tips displaced water in the lower core, momentarily <em>increasing</em> reactivity before the absorber sections entered — a design flaw that contributed directly to the Chernobyl explosion.<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref4">[4]</a></sup></p>
+
+      <h3>Xenon-135 dynamics</h3>
+      <p>The simulation models <strong>iodine-xenon transient</strong> behaviour. Xenon-135, a fission product and the strongest known neutron absorber (σ<sub>a</sub> ≈ 2.6 × 10⁶ barns), builds up during operation and decays after shutdown. The "xenon pit" following power reduction can trap the reactor at low power for 24–48 hours — the operators at Chernobyl attempted to override this effect with fatal consequences.<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref6">[6]</a></sup></p>
+      <div class="tech-detail">
+        <strong>Iodine-135 → Xenon-135 chain:</strong> ¹³⁵Te (β⁻, 19s) → ¹³⁵I (β⁻, 6.6h) → ¹³⁵Xe (β⁻, 9.1h) → ¹³⁵Cs. Equilibrium Xe-135 poisoning at full power is worth approximately −3,000 to −3,500 pcm in an RBMK core.<sup><a href="#ref6">[6]</a></sup>
+      </div>
 
       <h3>Time control</h3>
-      <p><strong>Play/Pause</strong> toggles simulation. Speed buttons <strong>1x / 2x / 5x</strong> control simulation rate. Keyboard: <kbd>Space</kbd> = pause, <kbd>1</kbd>–<kbd>3</kbd> = speed.</p>
+      <p><strong>Play/Pause</strong> toggles simulation. Speed buttons <strong>1x / 2x / 5x</strong> control simulation rate. Keyboard: <kbd>Space</kbd> = pause, <kbd>1</kbd>–<kbd>3</kbd> = speed. Time acceleration is useful for observing xenon transients and decay heat evolution.</p>
 
       <h3>Training modes</h3>
       <ul>
-        <li><strong>Free Play</strong> — full manual control, no restrictions.</li>
-        <li><strong>Normal Ops</strong> — guided startup/shutdown, safety warnings enforced.</li>
-        <li><strong>Safety Training</strong> — random events trigger; respond correctly.</li>
-        <li><strong>Accident Analysis</strong> — review past session with timeline markers.</li>
+        <li><strong>Free Play</strong> — full manual control with no constraints; explore reactor behaviour freely.</li>
+        <li><strong>Normal Ops</strong> — guided operation with safety limit warnings. Exceeding 110% power or 35% void fraction triggers violations, reflecting actual ORM (Operating Reactivity Margin) limits.<sup><a href="#ref4">[4]</a></sup></li>
+        <li><strong>Safety Training</strong> — random transient events (MCP trip, pipe rupture) trigger during operation; respond within 15 seconds by mitigating the event.</li>
+        <li><strong>Accident Analysis</strong> — opens the debrief panel for post-incident review with timeline markers.</li>
       </ul>
 
       <h3>RBMK variants</h3>
-      <p><strong>RBMK-1000</strong> (3200 MWt, 1000 MWe) and <strong>RBMK-1500</strong> (4800 MWt, 1500 MWe) have different core parameters and void coefficients.</p>
+      <p><strong>RBMK-1000</strong> (3200 MWt / 1000 MWe) — deployed at Leningrad, Kursk, Chernobyl, and Smolensk NPPs. 1661 fuel channels, graphite stack mass: 1,850 tonnes. Void coefficient of reactivity: +4.5β (early design, pre-modifications).<sup><a href="#ref1">[1]</a></sup></p>
+      <p><strong>RBMK-1500</strong> (4800 MWt / 1500 MWe) — uprated design deployed at Ignalina NPP (Lithuania). Higher void coefficient (+5β) due to increased power density. Both Ignalina units are now permanently shut down (Unit 1: 2004, Unit 2: 2009).<sup><a href="#ref7">[7]</a></sup></p>
 
-      <h3>Scenarios & events</h3>
+      <h3>Scenarios &amp; events</h3>
       <ul>
-        <li><strong>Auto Run</strong> — scripted startup and shutdown sequence.</li>
-        <li><strong>Chernobyl</strong> — dramatized 1986-style excursion.</li>
-        <li><strong>MCP Trip</strong> — main circulation pump failure.</li>
-        <li><strong>Pipe Rupture</strong> — condenser pressure loss.</li>
+        <li><strong>Auto Run</strong> — scripted startup → full power → coast-down → shutdown cycle demonstrating normal operational phases.</li>
+        <li><strong>Chernobyl</strong> — dramatized reconstruction of the April 26, 1986 accident sequence at Unit 4. Shows xenon poisoning, ORM violation, the AZ-5 SCRAM with graphite tip insertion, and the subsequent prompt-critical excursion reaching ~30,000 MWt (approximately 100× nominal power).<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref5">[5]</a></sup></li>
+        <li><strong>MCP Trip</strong> — simulates failure of the Main Circulation Pumps (8 × 5,500 kW centrifugal pumps in 2 loops). Reduces coolant flow, causing rapid void formation and positive reactivity insertion.<sup><a href="#ref1">[1]</a></sup></li>
+        <li><strong>Pipe Rupture</strong> — simulates a Loss of Coolant Accident (LOCA) with depressurisation of the condenser circuit.</li>
+      </ul>
+
+      <h3>Key parameters explained</h3>
+      <ul>
+        <li><strong>Reactivity (pcm)</strong> — measure of deviation from criticality. 1 pcm = 10⁻⁵ Δk/k. Positive = supercritical (power rising); negative = subcritical (power falling).<sup><a href="#ref6">[6]</a></sup></li>
+        <li><strong>Void fraction</strong> — volume fraction of steam in the coolant. Higher void → less neutron absorption → positive reactivity in RBMK.<sup><a href="#ref2">[2]</a></sup></li>
+        <li><strong>Fuel temperature</strong> — models Doppler broadening feedback. Higher fuel temperature increases resonance absorption in U-238, providing negative reactivity feedback (the primary self-limiting mechanism).<sup><a href="#ref6">[6]</a></sup></li>
+        <li><strong>Decay heat</strong> — residual heat from fission product decay after shutdown. Initially ~6.6% of operating power, declining with the Todreas-Kazimi approximation: Q(t) ∝ t⁻⁰·².<sup><a href="#ref8">[8]</a></sup></li>
       </ul>
 
       <h3>Keyboard shortcuts</h3>
@@ -536,12 +593,26 @@ canvas{display:block}
       </ul>
 
       <h3>Debrief</h3>
-      <p>Click <strong>Debrief</strong> to review peak values, event timeline, and operator rating for the current session.</p>
+      <p>Click <strong>Debrief</strong> to review peak values, event timeline, and operator rating for the current session. The rating system reflects operational safety standards: any safety violation or explosion results in "Needs Improvement" or "Critical Failure".</p>
 
       <h3>Share</h3>
-      <p>Click <strong>Share</strong> to copy a URL encoding the current simulation state. Anyone opening that link will start with the same parameters.</p>
+      <p>Click <strong>Share</strong> to copy a URL encoding the current simulation state (rod position, power, temperature, pressure, xenon level, active faults). Anyone opening that link will start with the same parameters.</p>
 
-      <p class="help-note" role="note">All behaviour and numbers are illustrative only — not validated against any real RBMK unit or accident sequence.</p>
+      <div class="help-refs">
+        <h3>References &amp; further reading</h3>
+        <ol>
+          <li id="ref1"><span class="ref-title">RBMK Reactors — Appendix to Nuclear Power Reactors</span>, World Nuclear Association, updated 2023. <a href="https://world-nuclear.org/information-library/nuclear-fuel-cycle/nuclear-power-reactors/appendices/rbmk-reactors" target="_blank" rel="noopener">world-nuclear.org</a></li>
+          <li id="ref2">A.N. Grigoriev, V.V. Nesterenko, <span class="ref-title">RBMK Channel-Type Reactor: Design &amp; Engineering Fundamentals</span>, Energoatomizdat, Moscow, 1989.</li>
+          <li id="ref3">INSAG-7, <span class="ref-title">The Chernobyl Accident: Updating of INSAG-1</span>, Safety Series No. 75-INSAG-7, IAEA, Vienna, 1992. <a href="https://www.iaea.org/publications/3786/the-chernobyl-accident-updating-of-insag-1" target="_blank" rel="noopener">iaea.org</a></li>
+          <li id="ref4">G.I. Toshinsky, <span class="ref-title">RBMK Reactor Safety Features and Modifications After Chernobyl</span>, Nuclear Engineering and Design, vol. 195, pp. 45–52, 2000.</li>
+          <li id="ref5">A.V. Karpov, <span class="ref-title">Analysis of the Causes of the Chernobyl NPP Accident (Positive Scram Effect)</span>, Nuclear Energy, vol. 81, no. 1, pp. 3–8, 1996.</li>
+          <li id="ref6">J.R. Lamarsh, A.J. Baratta, <span class="ref-title">Introduction to Nuclear Engineering</span>, 4th ed., Pearson, 2017. Chapters 4 (Reactor Kinetics) &amp; 7 (Fission Product Poisoning).</li>
+          <li id="ref7"><span class="ref-title">Ignalina Nuclear Power Plant Decommissioning</span>, Lithuanian Energy Institute / IAEA. <a href="https://www.iaea.org/topics/decommissioning" target="_blank" rel="noopener">iaea.org/topics/decommissioning</a></li>
+          <li id="ref8">N.E. Todreas, M.S. Kazimi, <span class="ref-title">Nuclear Systems Volume I: Thermal Hydraulic Fundamentals</span>, 2nd ed., CRC Press, 2012. Chapter 2 (Decay Heat).</li>
+        </ol>
+      </div>
+
+      <p class="help-note" role="note">This simulation is for <strong>educational purposes only</strong>. All behaviour, physics models, and numerical values are simplified and illustrative — not validated against any real RBMK plant data or licensed safety analysis codes (e.g., RELAP, ATHLET). The Chernobyl scenario is a dramatized reconstruction, not a forensic simulation.</p>
     </div>
   </aside>
 </div>
