@@ -320,12 +320,12 @@ function updateAudio() {
 
 // ═══════════════ PIPES ═══════════════
 const pipes = {
-  coreToSep:  { pts:[[160,163],[160,52],[332,52],[332,83]], fluid:'mix' },
-  sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,595]], fluid:'water' },
+  coreToSep:  { pts:[[160,163],[160,52],[335,52],[335,83]], fluid:'mix' },
+  sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,592]], fluid:'water' },
   mcpToCore:  { pts:[[240,640],[240,670],[85,670],[85,580]], fluid:'water' },
-  sepToHP:    { pts:[[465,102],[500,102]], fluid:'steam' },
-  hpToMSR:    { pts:[[580,112],[608,112]], fluid:'steam' },
-  msrToLP:    { pts:[[642,112],[672,112]], fluid:'steam' },
+  sepToHP:    { pts:[[465,112],[500,112]], fluid:'steam' },
+  hpToMSR:    { pts:[[580,112],[610,112]], fluid:'steam' },
+  msrToLP:    { pts:[[640,112],[672,112]], fluid:'steam' },
   lpToCond:   { pts:[[720,160],[720,451]], fluid:'exhaust' },
   condToFW:   { pts:[[678,475],[558,475]], fluid:'water' },
   fwToSep:    { pts:[[540,457],[540,200],[435,200],[435,141]], fluid:'water' },
@@ -433,10 +433,10 @@ function drawFlow() {
 
 function drawArrows() {
   const c = 'rgba(110,110,100,.5)';
-  arrow(160,130,160,60,c); arrow(180,52,310,52,c);
+  arrow(160,130,160,60,c); arrow(180,52,315,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
   arrow(240,640,240,665,c); arrow(220,670,110,670,c); arrow(85,650,85,600,c);
-  arrow(470,102,495,102,c); arrow(585,112,603,112,c); arrow(647,112,667,112,c);
+  arrow(470,112,495,112,c); arrow(585,112,605,112,c); arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c); arrow(540,440,540,220,c); arrow(520,200,450,200,c);
   arrow(770,480,855,480,c);
@@ -724,8 +724,8 @@ function drawGenerator() {
 // ═══════════════ SHAFT ═══════════════
 function drawShaft() {
   cx.strokeStyle='#a0a898';cx.lineWidth=ts(4.5);cx.lineCap='round';
-  cx.beginPath();cx.moveTo(tx(580),ty(112));cx.lineTo(tx(608),ty(112));cx.stroke();
-  cx.beginPath();cx.moveTo(tx(642),ty(112));cx.lineTo(tx(672),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(580),ty(112));cx.lineTo(tx(610),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(640),ty(112));cx.lineTo(tx(672),ty(112));cx.stroke();
   cx.beginPath();cx.moveTo(tx(768),ty(112));cx.lineTo(tx(823),ty(112));cx.stroke();
 }
 
@@ -787,13 +787,13 @@ function drawCoolingTower() {
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam + Water\nMixture → Separator',240,42,7,'#808078');
-  label('Dry Steam\n→ Turbine',484,88,7,'#808078');
-  label('Water Return\n→ Pump',308,385,7,'#808078');
+  label('Steam + Water\nMixture → Separator',250,40,7,'#808078');
+  label('Dry Steam\n→ Turbine',484,96,7,'#808078');
+  label('Water Return\n→ Pump',308,420,7,'#808078');
   label('Spent Steam\n(low pressure)',738,305,7,'#808078');
-  label('Condensed Water',598,490,7,'#808078');
-  label('Feedwater\n→ Separator',555,175,7,'#808078');
-  label('Cooling Water\n→ Tower',820,498,7,'#808078');
+  label('Condensed Water',618,462,7,'#808078');
+  label('Feedwater\n→ Separator',490,185,7,'#808078');
+  label('Cooling Water\n→ Tower',818,468,7,'#808078');
 }
 
 // ═══════════════ LEAK PARTICLES ═══════════════
