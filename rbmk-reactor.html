@@ -30,7 +30,9 @@ canvas{display:block}
 .ctrl label{font-size:.74rem;color:#5a5a55;white-space:nowrap}
 .ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:90px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
 .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:4px 10px;border-radius:6px;font-size:.74rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;min-width:72px;text-align:center}
+.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:4px 8px;border-radius:6px;font-size:.72rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;text-align:center}
+.b.rs{background:#e8eef8;border-color:#8aaac8;color:#2a4a6a}
+.b.rs:hover{background:#d8e4f2}
 .b:hover{background:#e8e6de}
 .b.on{background:#e8f0e8;border-color:#6aaa6a;color:#2a6a2a}
 .b.sc{background:#fde8e8;border-color:#e0a0a0;color:#a03030}
@@ -102,7 +104,9 @@ canvas{display:block}
   <button class="b" id="btnMCP">MCP Trip</button>
   <button class="b" id="btnPipe">Pipe Rupture</button>
   <div class="sep"></div>
-  <button class="b" id="btnSound" style="min-width:82px">Sound: OFF</button>
+  <button class="b" id="btnSound">Sound: OFF</button>
+  <div class="sep"></div>
+  <button class="b rs" id="btnReset">Reset</button>
 </div>
 
 <div class="ph" id="phase"></div>
@@ -933,6 +937,26 @@ el('btnPipe').addEventListener('click',()=>{
   S.pipeRupture=!S.pipeRupture;
   el('btnPipe').classList.toggle('on');
   showP(S.pipeRupture?'⚠ PIPE RUPTURE — Pressure Loss!':'Pipe Sealed',S.pipeRupture);
+});
+
+el('btnReset').addEventListener('click',()=>{
+  S.rod=1;S.power=0;S.temp=280;S.pressure=0;S.elec=0;S.rpm=0;
+  S.voidFrac=0;S.reactivity=0;S.fuelTemp=300;
+  S.iodine=0;S.xenon=0;S.xenonNorm=0;
+  S.decayHeat=0;S.timeSinceScram=0;S.wasScram=false;
+  S.shake=0;
+  S.autoMode=false;S.autoPhase=0;S.autoTimer=0;
+  S.scram=false;S.scramTimer=0;S.scramTipDone=false;
+  S.mcpTrip=false;S.pipeRupture=false;
+  S.chernobyl=false;S.chPhase=0;S.chTimer=0;
+  S.explosion=false;
+  powerHist.length=0;
+  el('sRod').value=100;
+  el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
+  el('btnMCP').classList.remove('on');
+  el('btnPipe').classList.remove('on');
+  el('flash').classList.remove('on');
+  showP('Reactor Reset — All Systems Nominal');
 });
 
 el('btnSound').addEventListener('click',()=>{
