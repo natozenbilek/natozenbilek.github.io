@@ -5,45 +5,177 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RBMK-1000 Reactor — Interactive Simulation</title>
 <style>
+:root{
+  --bg:#f0efe8;
+  --surface:rgba(252,251,247,.97);
+  --border:rgba(210,208,199,.75);
+  --text-1:#2c2c2a;
+  --text-2:#5a5a52;
+  --text-3:#9a9a90;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.06),0 2px 10px rgba(0,0,0,.05);
+  --shadow-md:0 4px 24px rgba(0,0,0,.1),0 1px 4px rgba(0,0,0,.06);
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#f0efe8;color:#2c2c2a;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+body{background:var(--bg);color:var(--text-1);font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
 canvas{display:block}
 
-.bar{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(240,239,232,.93);backdrop-filter:blur(8px);border-bottom:1px solid #d8d6ce;z-index:20}
-.bar h1{font-size:1rem;font-weight:600;color:#3a3a40;letter-spacing:.3px}
-.bar span{font-size:.82rem;color:#7a7a70}
-.p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.p h3{font-size:.82rem;text-transform:uppercase;letter-spacing:1.2px;color:#6a6a62;margin-bottom:6px;font-weight:600}
+/* ── Top bar ── */
+.bar{
+  position:fixed;top:0;left:0;right:0;height:48px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;
+  background:rgba(250,249,244,.97);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  z-index:20;
+  box-shadow:var(--shadow-sm);
+}
+.bar h1{font-size:.95rem;font-weight:700;color:#1e1e24;letter-spacing:.2px}
+.bar span{font-size:.76rem;color:var(--text-3);letter-spacing:.15px}
 
+/* ── Base panel ── */
+.p{
+  position:fixed;
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px 16px;
+  z-index:20;
+  box-shadow:var(--shadow-md);
+}
+.p h3{
+  font-size:.65rem;
+  text-transform:uppercase;
+  letter-spacing:1.8px;
+  color:var(--text-3);
+  margin-bottom:12px;
+  font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
 
-.info{top:54px;right:12px;width:220px;max-height:calc(100vh - 120px);overflow-y:auto}
+/* ── Status dot ── */
+.sdot{
+  width:7px;height:7px;border-radius:50%;
+  background:#3a8a6a;
+  box-shadow:0 0 0 2px rgba(58,138,106,.15),0 0 8px rgba(58,138,106,.55);
+  flex-shrink:0;
+  transition:background .4s,box-shadow .4s;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.sdot.warn{background:#c08030;box-shadow:0 0 0 2px rgba(192,128,48,.15),0 0 8px rgba(192,128,48,.6);animation:blink 1.2s ease infinite}
+.sdot.crit{background:#c03030;box-shadow:0 0 0 2px rgba(192,48,48,.15),0 0 10px rgba(192,48,48,.7);animation:blink .6s ease infinite}
+.sdot.off{background:#b0aea5;box-shadow:none;animation:none}
+
+/* ── Info panel ── */
+.info{top:58px;right:12px;width:224px;max-height:calc(100vh - 124px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(180,178,170,.4) transparent}
+.info::-webkit-scrollbar{width:3px}
+.info::-webkit-scrollbar-thumb{background:rgba(180,178,170,.4);border-radius:3px}
+
+/* ── Metric row ── */
 .st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.sl{font-size:.84rem;color:#4a4a45}
-.sv{font-size:.92rem;font-weight:600;font-variant-numeric:tabular-nums}
-.sb{width:100%;height:2.5px;background:#e8e6de;border-radius:2px;margin-top:1px;margin-bottom:6px;overflow:hidden}
-.sf{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.sl{font-size:.77rem;color:var(--text-2);letter-spacing:.05px}
+.sv{font-size:.87rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
 
-.ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:11px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);white-space:nowrap;max-width:96vw;overflow-x:auto}
-.ctrl label{font-size:.86rem;color:#4a4a45;white-space:nowrap}
-.ctrl input[type=range]{-webkit-appearance:none;appearance:none;width:90px;height:3px;background:#d8d6ce;border-radius:3px;outline:none}
-.ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#5a7a9a;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.b{background:#f0efe8;border:1px solid #d0cec5;color:#3a3a38;padding:5px 10px;border-radius:6px;font-size:.84rem;cursor:pointer;transition:background .2s,border-color .2s,color .2s;font-family:inherit;font-weight:500;text-align:center;min-width:76px}
-.b.rs{background:#e8eef8;border-color:#8aaac8;color:#2a4a6a}
-.b.rs:hover{background:#d8e4f2}
-.b:hover{background:#e8e6de}
-.b.on{background:#e8f0e8;border-color:#6aaa6a;color:#2a6a2a}
-.b.sc{background:#fde8e8;border-color:#e0a0a0;color:#a03030}
-.b.sc:hover{background:#f8d0d0}
-.b.ch{background:#fff3e0;border-color:#e0c080;color:#806020}
-.b.ch:hover{background:#ffe8c0}
-.sep{width:1px;height:20px;background:#d8d6ce}
+/* ── Progress bar ── */
+.sb{width:100%;height:4px;background:rgba(218,216,207,.55);border-radius:4px;margin-top:2px;margin-bottom:9px;overflow:hidden}
+.sf{height:100%;border-radius:4px;transition:width .35s cubic-bezier(.4,0,.2,1),background .35s}
 
-.ph{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);font-size:1.4rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .5s;z-index:30;pointer-events:none;text-align:center;line-height:1.4;text-shadow:0 1px 3px rgba(255,255,255,.9);max-width:80vw}
-.ph.v{opacity:1}.ph.d{color:#b02020}
+/* ── Metric group divider ── */
+.mg{border-top:1px solid rgba(210,208,199,.45);margin:4px 0 10px}
+
+/* ── Status bar ── */
+#statusBar{position:fixed;top:48px;left:0;right:0;height:3px;z-index:25;background:#2a8a2a;transition:background .6s}
+#statusBar.warn{background:#aa8820}
+#statusBar.crit{background:#cc4020}
+@keyframes sb-blink{0%,49%{background:#cc1010}50%,100%{background:#3a0000}}
+#statusBar.emerg{animation:sb-blink .35s linear infinite}
+
+/* ── Control bar (dark) ── */
+.ctrl{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:stretch;
+  z-index:20;
+  background:rgba(16,16,14,.97);
+  backdrop-filter:blur(16px);
+  border:1px solid #3c3c3a;
+  border-radius:16px;
+  padding:10px 16px;
+  box-shadow:0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.025);
+  white-space:nowrap;max-width:96vw;overflow-x:auto;
+}
+.cg{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.cg-lbl{font-size:.57rem;text-transform:uppercase;letter-spacing:1.7px;color:#4a4a48;font-weight:700;line-height:1;text-align:center;padding-bottom:4px;border-bottom:1px solid #282826}
+.cg-row{display:flex;gap:5px;align-items:center}
+.csep{width:1px;background:#282826;align-self:stretch;margin:0 2px}
+.ctrl input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:82px;height:3px;
+  background:#363634;
+  border-radius:4px;outline:none;cursor:pointer;
+}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:#5a7a9a;
+  cursor:pointer;
+  border:2px solid #101010;
+  box-shadow:0 1px 5px rgba(0,0,0,.55),0 0 0 1px rgba(90,122,154,.22);
+  transition:transform .15s;
+}
+.ctrl input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.12)}
+
+/* ── Buttons (dark panel) ── */
+.b{
+  background:#242422;
+  border:1px solid #404040;
+  color:#acacA4;
+  padding:6px 11px;
+  border-radius:8px;
+  font-size:.81rem;
+  cursor:pointer;
+  transition:background .15s,border-color .15s,color .15s,box-shadow .15s;
+  font-family:inherit;font-weight:600;
+  text-align:center;min-width:76px;
+  letter-spacing:.05px;
+  line-height:1.2;
+}
+.b:hover{background:#323230;border-color:#545450;color:#ccccc4}
+.b:active{opacity:.85}
+.b.rs{background:#0c1a2c;border-color:#2a4a7a;color:#5282b2}
+.b.rs:hover{background:#12203a}
+.b.on{background:#0e1e0e;border-color:#328832;color:#50be50;box-shadow:0 0 8px rgba(50,136,50,.18)}
+.b.sc{background:#200a0a;border-color:#882424;color:#c84040;font-weight:700;letter-spacing:.5px}
+.b.sc:hover{background:#2c0e0e}
+.b.ch{background:#201608;border-color:#745215;color:#b48020}
+.b.ch:hover{background:#281e0c}
+.b.b-scram{padding:9px 18px;font-size:.93rem;font-weight:700;letter-spacing:1.5px;border-width:2px;border-color:#982222;min-width:88px;box-shadow:0 0 10px rgba(150,34,34,.12)}
+
+/* ── LED indicators ── */
+.led-wrap{display:flex;align-items:center;gap:5px}
+.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#161614;box-shadow:inset 0 1px 2px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);flex-shrink:0;transition:background .2s,box-shadow .2s}
+.led.g{background:#26aa26;box-shadow:0 0 6px #26aa26,0 0 14px rgba(38,170,38,.2)}
+.led.r{background:#cc2626;box-shadow:0 0 6px #cc2626,0 0 14px rgba(200,38,38,.2)}
+.led.o{background:#dd7414;box-shadow:0 0 6px #dd7414,0 0 14px rgba(220,116,20,.2)}
+@keyframes led-blink{50%{opacity:.06}}
+.led.blink{animation:led-blink .45s steps(1) infinite}
+
+/* ── Rod % display ── */
+.rod-pct{font-size:.78rem;font-weight:700;color:#5c8cae;min-width:56px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+
+/* ── Speed buttons ── */
+.spd-lbl{font-size:.7rem;color:#484846;white-space:nowrap}
+.b.spd{min-width:36px;padding:4px 7px;font-size:.76rem}
+.b.spd.active{background:#0a1c2e;border-color:#346890;color:#66a8cc}
+
+.sep{width:1px;background:rgba(210,208,199,.6);align-self:stretch;margin:0 1px;border-radius:1px}
+
+/* ── Phase hint ── */
+.ph{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);font-size:1.35rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .5s;z-index:30;pointer-events:none;text-align:center;line-height:1.45;text-shadow:0 1px 4px rgba(255,255,255,.92);max-width:80vw}
+.ph.v{opacity:1}.ph.d{color:#aa1818}
 
 .flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
 .flash.on{opacity:1}
-
 </style>
 </head>
 <body>
@@ -53,43 +185,98 @@ canvas{display:block}
   <h1>RBMK-1000 Reactor Simulation</h1>
   <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
 </div>
+<div id="statusBar"></div>
 
 
 <div class="p info">
-  <h3>Reactor Status</h3>
+  <h3><span class="sdot off" id="statusDot"></span>Reactor Status</h3>
+
   <div class="st"><span class="sl">Thermal Power</span><span class="sv" id="vP">0 MWt</span></div>
   <div class="sb"><div class="sf" id="bP" style="width:0%"></div></div>
   <div class="st"><span class="sl">Electrical Output</span><span class="sv" id="vE" style="color:#2a6a2a">0 MWe</span></div>
   <div class="sb"><div class="sf" id="bE" style="width:0%"></div></div>
+
+  <div class="mg"></div>
+
   <div class="st"><span class="sl">Core Temperature</span><span class="sv" id="vT">280 °C</span></div>
   <div class="sb"><div class="sf" id="bT" style="width:20%"></div></div>
   <div class="st"><span class="sl">Steam Pressure</span><span class="sv" id="vPr">0 MPa</span></div>
   <div class="sb"><div class="sf" id="bPr" style="width:0%"></div></div>
+
+  <div class="mg"></div>
+
   <div class="st"><span class="sl">Control Rods</span><span class="sv" id="vR">100%</span></div>
   <div class="sb"><div class="sf" id="bR" style="width:100%;background:#c08030"></div></div>
-  <div class="st"><span class="sl">Void Fraction (steam %)</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
+  <div class="st"><span class="sl">Void Fraction</span><span class="sv" id="vV" style="color:#5a8ab0">0%</span></div>
   <div class="sb"><div class="sf" id="bV" style="width:0%"></div></div>
-  <div class="st"><span class="sl">Reactivity (chain rxn)</span><span class="sv" id="vRe">0 pcm</span></div>
-  <div class="st"><span class="sl">Xenon-135 (poison)</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
+
+  <div class="mg"></div>
+
+  <div class="st"><span class="sl">Reactivity</span><span class="sv" id="vRe">0 pcm</span></div>
+  <div class="st"><span class="sl">Xenon-135</span><span class="sv" id="vX" style="color:#9a60b0">0%</span></div>
   <div class="sb"><div class="sf" id="bX" style="width:0%;background:#9a60b0"></div></div>
   <div class="st"><span class="sl">Turbine Speed</span><span class="sv" id="vRpm">0 rpm</span></div>
   <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
 </div>
 
 <div class="ctrl">
-  <label>Control Rods</label>
-  <input type="range" id="sRod" min="0" max="100" value="100">
-  <button class="b sc" id="btnScram">SCRAM</button>
-  <div class="sep"></div>
-  <button class="b" id="btnAuto">Auto Run</button>
-  <button class="b ch" id="btnChernobyl">Chernobyl</button>
-  <div class="sep"></div>
-  <button class="b" id="btnMCP">MCP Trip</button>
-  <button class="b" id="btnPipe">Pipe Rupture</button>
-  <div class="sep"></div>
-  <button class="b" id="btnSound" style="min-width:88px">Sound: OFF</button>
-  <div class="sep"></div>
-  <button class="b rs" id="btnReset">Reset</button>
+
+  <!-- OPERATIONS -->
+  <div class="cg">
+    <span class="cg-lbl">Operations</span>
+    <div class="cg-row">
+      <span style="font-size:.75rem;color:#5a5a58">Rods</span>
+      <input type="range" id="sRod" min="0" max="100" value="100">
+      <span id="rodVal" class="rod-pct">100% ins.</span>
+    </div>
+    <div class="cg-row">
+      <div class="led-wrap"><span class="led" id="ledAuto"></span><button class="b" id="btnAuto">Auto Run</button></div>
+      <div class="led-wrap"><span class="led" id="ledMCP"></span><button class="b" id="btnMCP">MCP Trip</button></div>
+      <div class="led-wrap"><span class="led" id="ledPipe"></span><button class="b" id="btnPipe">Pipe Rupture</button></div>
+    </div>
+  </div>
+
+  <div class="csep"></div>
+
+  <!-- SCENARIOS -->
+  <div class="cg">
+    <span class="cg-lbl">Scenarios</span>
+    <div class="cg-row">
+      <div class="led-wrap"><span class="led" id="ledCh"></span><button class="b ch" id="btnChernobyl">Chernobyl</button></div>
+    </div>
+  </div>
+
+  <div class="csep"></div>
+
+  <!-- EMERGENCY -->
+  <div class="cg">
+    <span class="cg-lbl">Emergency</span>
+    <div class="cg-row">
+      <div class="led-wrap">
+        <span class="led" id="ledScram"></span>
+        <button class="b sc b-scram" id="btnScram">SCRAM</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="csep"></div>
+
+  <!-- SETTINGS -->
+  <div class="cg">
+    <span class="cg-lbl">Settings</span>
+    <div class="cg-row">
+      <span class="spd-lbl">Speed:</span>
+      <button class="b spd" data-s="0.5">0.5×</button>
+      <button class="b spd active" data-s="1">1×</button>
+      <button class="b spd" data-s="2">2×</button>
+      <button class="b spd" data-s="4">4×</button>
+    </div>
+    <div class="cg-row">
+      <button class="b" id="btnSound" style="min-width:90px">Sound: OFF</button>
+      <button class="b rs" id="btnReset">Reset</button>
+    </div>
+  </div>
+
 </div>
 
 <div class="ph" id="phase"></div>
@@ -103,11 +290,11 @@ let W, H, sc, ox, oy;
 function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight;
-  const top = 50, bot = 58;
+  const top = 54, bot = 62;
   const lPad = 20, rPad = 240;
   const avail = W - lPad - rPad;
   sc = Math.min(avail / 1080, (H - top - bot) / 700);
-  ox = lPad + (avail - 1080 * sc) / 2;
+  ox = (W - 1080 * sc) / 2;
   oy = top + ((H - top - bot) - 700 * sc) / 2;
 }
 resize();
@@ -143,7 +330,7 @@ const zones = [
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core. Uses gravity and cyclone separators to produce dry saturated steam at 284°C. Separated water returns to MCP suction header.'},
   {x:216,y:592,w:48,h:48, title:'Main Circulation Pump (MCP)',
    info:'Eight MCPs arranged in 4 per loop (2 loops total). Each pump: 5500 kW, flow rate ~8000 m³/h, total flow ~37,000 m³/h at 7 MPa. Loss of MCPs reduces coolant flow, causing rapid void increase, which in RBMK leads to positive reactivity insertion — a critical safety concern.'},
-  {x:500,y:72,w:80,h:80, title:'HP Turbine',
+  {x:515,y:72,w:80,h:80, title:'HP Turbine',
    info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Outlet: ~1.2 MPa. Rotation: 3000 rpm (50 Hz synchronous). The HP turbine handles the initial high-pressure expansion stage producing ~40% of total electrical output.'},
   {x:610,y:87,w:30,h:50, title:'Moisture Separator / Reheater',
    info:'Located between HP and LP turbine stages. Wet steam (moisture ~12%) from HP exhaust passes through chevron-type vane separators that remove water droplets by inertia, reducing moisture to <0.5%. Prevents blade erosion in the LP turbine and improves cycle efficiency by ~3%.'},
@@ -339,8 +526,8 @@ const pipes = {
   coreToSep:  { pts:[[160,163],[160,112],[335,112]], fluid:'mix' },
   sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,592]], fluid:'water' },
   mcpToCore:  { pts:[[240,640],[240,670],[85,670],[85,580]], fluid:'water' },
-  sepToHP:    { pts:[[465,112],[500,112]], fluid:'steam' },
-  hpToMSR:    { pts:[[580,112],[610,112]], fluid:'steam' },
+  sepToHP:    { pts:[[465,112],[515,112]], fluid:'steam' },
+  hpToMSR:    { pts:[[595,112],[610,112]], fluid:'steam' },
   msrToLP:    { pts:[[640,112],[672,112]], fluid:'steam' },
   lpToCond:   { pts:[[720,160],[720,451]], fluid:'exhaust' },
   condToFW:   { pts:[[678,475],[558,475]], fluid:'water' },
@@ -452,7 +639,7 @@ function drawArrows() {
   arrow(160,150,160,120,c); arrow(180,112,315,112,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
   arrow(240,640,240,665,c); arrow(220,670,110,670,c); arrow(85,650,85,600,c);
-  arrow(470,112,495,112,c); arrow(585,112,605,112,c); arrow(645,112,667,112,c);
+  arrow(470,112,510,112,c); arrow(598,112,606,112,c); arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c); arrow(540,440,540,220,c); arrow(520,200,450,200,c);
   arrow(770,480,855,480,c);
@@ -605,8 +792,8 @@ function drawCore() {
     }
   }
 
-  label('REACTOR CORE',ccx,ccy+hh+14,10,'#4a4a45',true);
-  label('Graphite · 1661 Ch.',ccx,ccy+hh+26,7,'#808078');
+  label('REACTOR CORE',ccx,591,10,'#4a4a45',true);
+  label('Graphite · 1661 Ch.',ccx,604,7,'#808078');
   label('VALVES',160,550,6.5,'#6a6a62',true);
 }
 
@@ -744,7 +931,7 @@ function drawGenerator() {
 // ═══════════════ SHAFT ═══════════════
 function drawShaft() {
   cx.strokeStyle='#a0a898';cx.lineWidth=ts(4.5);cx.lineCap='round';
-  cx.beginPath();cx.moveTo(tx(580),ty(112));cx.lineTo(tx(610),ty(112));cx.stroke();
+  cx.beginPath();cx.moveTo(tx(595),ty(112));cx.lineTo(tx(610),ty(112));cx.stroke();
   cx.beginPath();cx.moveTo(tx(640),ty(112));cx.lineTo(tx(672),ty(112));cx.stroke();
   cx.beginPath();cx.moveTo(tx(768),ty(112));cx.lineTo(tx(823),ty(112));cx.stroke();
 }
@@ -808,7 +995,7 @@ function drawCoolingTower() {
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
   label('Steam-Water Mix',248,100,6.5,'#905040');
-  label('Dry Steam',484,100,6.5,'#906830');
+  label('Dry Steam',490,100,6.5,'#906830');
   label('Return Water',305,432,6.5,'#306898');
   label('Exhaust',732,300,6.5,'#808078');
   label('Condensate',618,465,6.5,'#306898');
@@ -1053,13 +1240,53 @@ function updateUI() {
   el('bX').style.width=Math.min(100,S.xenonNorm)+'%';
   el('vRpm').textContent=S.rpm.toFixed(0)+' rpm';
   el('bRpm').style.width=Math.min(100,S.rpm/3000*100)+'%';
+
+  const dot=el('statusDot');
+  if(S.explosion||S.power>100){
+    dot.className='sdot crit';
+  }else if(S.power>65||S.temp>440||S.scram){
+    dot.className='sdot warn';
+  }else if(S.power>3){
+    dot.className='sdot';
+  }else{
+    dot.className='sdot off';
+  }
+
+  // ── Rod % display ──
+  el('rodVal').textContent=Math.round(S.rod*100)+'% ins.';
+
+  // ── LED indicators ──
+  setLed('ledScram', S.scram ? 'r blink' : (S.power>100 ? 'r' : ''));
+  setLed('ledAuto',  S.autoMode ? 'g' : '');
+  setLed('ledMCP',   S.mcpTrip  ? 'r' : '');
+  setLed('ledPipe',  S.pipeRupture ? 'o' : '');
+  setLed('ledCh',    S.chernobyl ? (S.explosion ? 'r blink' : 'o') : '');
+
+  // ── Top status bar ──
+  const sb=el('statusBar');
+  if(S.explosion||S.power>105) sb.className='emerg';
+  else if(S.power>80)          sb.className='crit';
+  else if(S.power>40)          sb.className='warn';
+  else                         sb.className='';
 }
 
 function el(id){return document.getElementById(id);}
+function setLed(id,cls){const l=el(id);if(l)l.className='led'+(cls?' '+cls:'');}
 
 // ═══════════════ CONTROLS ═══════════════
 const sRod=el('sRod');
-sRod.addEventListener('input',e=>{if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;});
+sRod.addEventListener('input',e=>{
+  if(!S.autoMode&&!S.chernobyl)S.rod=e.target.value/100;
+  el('rodVal').textContent=Math.round(e.target.value)+'% ins.';
+});
+
+document.querySelectorAll('.b.spd').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    simSpeed=parseFloat(btn.dataset.s);
+    document.querySelectorAll('.b.spd').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
 
 el('btnScram').addEventListener('click',()=>{
   if(S.chernobyl)return;
@@ -1142,8 +1369,9 @@ function showP(text,danger){
 
 // ═══════════════ MAIN LOOP ═══════════════
 let last=0;
+let simSpeed=1;
 function frame(t){
-  const dt=Math.min(.05,(t-last)/1000);last=t;S.time+=dt;
+  const dt=Math.min(.05,(t-last)/1000)*simSpeed;last=t;S.time+=dt;
   updatePhysics(dt);
   updateZoom();
 
@@ -1164,7 +1392,7 @@ function frame(t){
   drawDrumSep();
   drawPump(240,616,24,'MCP','(8 pumps, 2 loops)');
   drawShaft();
-  drawTurbine(540,112,40,'HP TURBINE',12);
+  drawTurbine(555,112,40,'HP TURBINE',12);
   drawMSR();
   drawTurbine(720,112,48,'LP TURBINE',16);
   drawGenerator();
