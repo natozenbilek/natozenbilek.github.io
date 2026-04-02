@@ -754,7 +754,8 @@ function drawShielding() {
 function drawCore() {
   const ccx=160,ccy=340,hw=92,hh=168;
   const L=ccx-hw,T=ccy-hh,W2=hw*2,H2=hh*2;
-  const pf=S.power/100;
+  // Visual effects shouldn't explode in density at high power (e.g. Chernobyl scenario).
+  const pf=Math.min(1,S.power/100);
 
   rr(L,T,W2,H2,3); cx.fillStyle='#e5e4dd'; cx.fill();
   cx.strokeStyle='#b0aea5'; cx.lineWidth=ts(1); cx.stroke();
@@ -885,7 +886,7 @@ function drawDrumSep() {
   cx.strokeStyle='#95a0a8';cx.stroke();
   cx.fillStyle='#d5d9dd'; cx.beginPath();cx.ellipse(bR,ty(dcy),cap,ts(dh/2),0,0,Math.PI*2);cx.fill();cx.stroke();
 
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   const wLev=.42+pf*.12;
   const wTop=ty(dcy+dh/2*(1-wLev*2));
   cx.save();cx.beginPath();cx.rect(bL-cap,bT,bR-bL+cap*2,bB-bT);cx.clip();
@@ -903,7 +904,7 @@ function drawDrumSep() {
 
 // ═══════════════ PUMP (shared) ═══════════════
 function drawPump(pcx,pcy,r,lbl,sub) {
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   cx.fillStyle='#ced6de';cx.strokeStyle='#8a9aa8';cx.lineWidth=ts(1.8);
   cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
   const spd=S.time*(1+pf*4)*(S.mcpTrip&&lbl==='MCP'?.1:1);
@@ -928,7 +929,7 @@ function drawPump(pcx,pcy,r,lbl,sub) {
 
 // ═══════════════ TURBINE (shared) ═══════════════
 function drawTurbine(tcx,tcy,r,lbl,blades) {
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   cx.fillStyle='#deeae6';cx.strokeStyle='#6a9a88';cx.lineWidth=ts(2.2);
   cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
   cx.strokeStyle='#8ab8a8';cx.lineWidth=ts(.8);
@@ -960,7 +961,7 @@ function drawMSR() {
   rr(mx-mw/2,my-mh/2,mw,mh,4);
   cx.fillStyle='#e0e4d8';cx.fill();cx.strokeStyle='#8a9a80';cx.lineWidth=ts(1.5);cx.stroke();
 
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   if(pf>.05) for(let d=0;d<6;d++){
     const dx=mx-mw*.2+Math.sin(S.time*2+d*1.3)*mw*.2;
     const dy=my+mh*.1+((S.time*30+d*15)%mh*.6);
@@ -982,7 +983,7 @@ function drawGenerator() {
   const gx=850,gy=112,gw=55,gh=62;
   rr(gx-gw/2,gy-gh/2,gw,gh,5);
   cx.fillStyle='#deeade';cx.fill();cx.strokeStyle='#5a8a5a';cx.lineWidth=ts(1.8);cx.stroke();
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
 
   cx.save();cx.translate(tx(gx),ty(gy));
   const ca=S.time*(.4+pf*5);
@@ -1015,7 +1016,7 @@ function drawCondenser() {
   const ccx=720,ccy=475,cw=85,ch=48;
   rr(ccx-cw/2,ccy-ch/2,cw,ch,4);
   cx.fillStyle='#d8e2ea';cx.fill();cx.strokeStyle='#7a90a8';cx.lineWidth=ts(1.8);cx.stroke();
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   for(let t=0;t<4;t++){
     const ty_=ccy-ch*.25+t*ch*.17;
     cx.strokeStyle=`rgba(80,130,180,${.12+pf*.18})`;cx.lineWidth=ts(1.2);
@@ -1052,7 +1053,7 @@ function drawCoolingTower() {
   cx.quadraticCurveTo(tx(ctcx+ctw*.18),ty(ctcy+cth*.08),tx(ctcx+ctw*.33),ty(bot));
   cx.closePath();cx.fill();cx.stroke();
 
-  const pf=S.power/100;
+  const pf=Math.min(1,S.power/100);
   if(pf>.05) for(let p=0;p<8;p++){
     const px=ctcx+Math.sin(S.time*.6+p*1.1)*7;
     const py=top-5-p*6-(S.time*10+p*8)%50;
