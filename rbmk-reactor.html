@@ -362,6 +362,11 @@ cv.addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && zoom.active) {
+    resetZoom();
+    e.preventDefault();
+    return;
+  }
   const helpKey = e.key === '?' || (e.key === '/' && e.shiftKey);
   if (!helpKey) return;
   const t = e.target;
