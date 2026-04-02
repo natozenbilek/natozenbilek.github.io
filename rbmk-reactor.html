@@ -15,9 +15,6 @@ canvas{display:block}
 .p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .p h3{font-size:.82rem;text-transform:uppercase;letter-spacing:1.2px;color:#6a6a62;margin-bottom:6px;font-weight:600}
 
-.legend{top:54px;left:12px;width:175px}
-.li{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.82rem;color:#4a4a45}
-.ld{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,.08)}
 
 .info{top:54px;right:12px;width:220px;max-height:calc(100vh - 120px);overflow-y:auto}
 .st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
@@ -47,9 +44,6 @@ canvas{display:block}
 .flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
 .flash.on{opacity:1}
 
-.tip{position:fixed;background:rgba(30,32,36,.92);color:#e8e8e4;padding:10px 14px;border-radius:8px;font-size:.82rem;line-height:1.5;max-width:280px;z-index:50;pointer-events:none;opacity:0;transition:opacity .2s;backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.25)}
-.tip b{color:#8ac;display:block;margin-bottom:3px;font-size:.88rem}
-.tip.v{opacity:1}
 </style>
 </head>
 <body>
@@ -60,20 +54,6 @@ canvas{display:block}
   <span>Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</span>
 </div>
 
-<div class="p legend">
-  <h3>Core Components</h3>
-  <div class="li"><div class="ld" style="background:#b0aaa0"></div>Concrete Shielding</div>
-  <div class="li"><div class="ld" style="background:#8a8e96"></div>Graphite Moderator</div>
-  <div class="li"><div class="ld" style="background:#d0903a"></div>Fuel Assemblies (UO₂)</div>
-  <div class="li"><div class="ld" style="background:#4a4a58"></div>Control Rods (B₄C)</div>
-  <div class="li"><div class="ld" style="background:#6a80a0"></div>Pressure Channels</div>
-  <h3 style="margin-top:8px">Fluid Flow</h3>
-  <div class="li"><div class="ld" style="background:#c08070"></div>Steam-Water Mix</div>
-  <div class="li"><div class="ld" style="background:#c09050"></div>Dry Steam</div>
-  <div class="li"><div class="ld" style="background:#5090c0"></div>Water / Feedwater</div>
-  <div class="li"><div class="ld" style="background:#a0a098"></div>Exhaust Steam</div>
-  <div class="li"><div class="ld" style="background:#4088b8"></div>Cooling Water</div>
-</div>
 
 <div class="p info">
   <h3>Reactor Status</h3>
@@ -114,7 +94,6 @@ canvas{display:block}
 
 <div class="ph" id="phase"></div>
 <div class="flash" id="flash"></div>
-<div class="tip" id="tip"></div>
 
 <script>
 const cv = document.getElementById('c');
@@ -125,10 +104,9 @@ function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight;
   const top = 50, bot = 58;
-  const lPad = 210, rPad = 240;
+  const lPad = 20, rPad = 240;
   const avail = W - lPad - rPad;
   sc = Math.min(avail / 1080, (H - top - bot) / 700);
-  if (sc * 1080 > W * 0.85) sc = W * 0.85 / 1080;
   ox = lPad + (avail - 1080 * sc) / 2;
   oy = top + ((H - top - bot) - 700 * sc) / 2;
 }
@@ -181,38 +159,13 @@ const zones = [
    info:'Natural-draft hyperbolic cooling tower (height: ~150m). Dissipates ~2200 MWt waste heat to atmosphere. Hot water (~40°C) is sprayed and cooled to ~25°C by rising air. Evaporation rate: ~1.5% of flow (~1800 m³/h). Visible steam plume increases with reactor power output.'},
 ];
 
-const tipEl = document.getElementById('tip');
-let tipActive = '';
-
 cv.addEventListener('mousemove', e => {
   const mx = wx(e.clientX), my = wy(e.clientY);
-  let found = null;
+  let found = false;
   for (const z of zones) {
-    if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) { found = z; break; }
+    if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) { found = true; break; }
   }
-  if (found) {
-    if (tipActive !== found.title) {
-      tipEl.innerHTML = '<b>' + found.title + '</b>' + found.info;
-      tipActive = found.title;
-    }
-    tipEl.classList.add('v');
-    let left = e.clientX + 16, top = e.clientY - 10;
-    if (left + 290 > innerWidth) left = e.clientX - 296;
-    if (top + tipEl.offsetHeight > innerHeight - 60) top = innerHeight - 60 - tipEl.offsetHeight;
-    if (top < 50) top = 50;
-    tipEl.style.left = left + 'px';
-    tipEl.style.top = top + 'px';
-    cv.style.cursor = zoom.active ? 'zoom-out' : 'zoom-in';
-  } else {
-    tipEl.classList.remove('v');
-    tipActive = '';
-    cv.style.cursor = zoom.active ? 'zoom-out' : 'default';
-  }
-});
-
-cv.addEventListener('mouseleave', () => {
-  tipEl.classList.remove('v');
-  tipActive = '';
+  cv.style.cursor = zoom.active ? 'zoom-out' : (found ? 'zoom-in' : 'default');
 });
 
 // ═══════════════ ZOOM SYSTEM ═══════════════
@@ -383,7 +336,7 @@ function updateAudio() {
 
 // ═══════════════ PIPES ═══════════════
 const pipes = {
-  coreToSep:  { pts:[[160,163],[160,52],[335,52],[335,83]], fluid:'mix' },
+  coreToSep:  { pts:[[160,163],[160,52],[400,52],[400,83]], fluid:'mix' },
   sepToMCP:   { pts:[[365,141],[365,440],[240,440],[240,592]], fluid:'water' },
   mcpToCore:  { pts:[[240,640],[240,670],[85,670],[85,580]], fluid:'water' },
   sepToHP:    { pts:[[465,112],[500,112]], fluid:'steam' },
@@ -496,7 +449,7 @@ function drawFlow() {
 
 function drawArrows() {
   const c = 'rgba(80,90,100,.7)';
-  arrow(160,130,160,60,c); arrow(180,52,315,52,c);
+  arrow(160,130,160,60,c); arrow(180,52,380,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
   arrow(240,640,240,665,c); arrow(220,670,110,670,c); arrow(85,650,85,600,c);
   arrow(470,112,495,112,c); arrow(585,112,605,112,c); arrow(645,112,667,112,c);
@@ -854,7 +807,7 @@ function drawCoolingTower() {
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam-Water Mix',250,44,6.5,'#905040');
+  label('Steam-Water Mix',280,44,6.5,'#905040');
   label('Dry Steam',484,100,6.5,'#906830');
   label('Return Water',305,432,6.5,'#306898');
   label('Exhaust',732,300,6.5,'#808078');
