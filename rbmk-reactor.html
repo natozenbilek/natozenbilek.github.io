@@ -15,7 +15,7 @@ canvas{display:block}
 .p{position:fixed;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border:1px solid #d8d6ce;border-radius:10px;padding:12px 14px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .p h3{font-size:.82rem;text-transform:uppercase;letter-spacing:1.2px;color:#6a6a62;margin-bottom:6px;font-weight:600}
 
-.legend{top:54px;left:12px;width:190px}
+.legend{top:54px;left:12px;width:175px}
 .li{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.82rem;color:#4a4a45}
 .ld{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,.08)}
 
@@ -61,19 +61,18 @@ canvas{display:block}
 </div>
 
 <div class="p legend">
-  <h3>Components</h3>
+  <h3>Core Components</h3>
   <div class="li"><div class="ld" style="background:#b0aaa0"></div>Concrete Shielding</div>
   <div class="li"><div class="ld" style="background:#8a8e96"></div>Graphite Moderator</div>
   <div class="li"><div class="ld" style="background:#d0903a"></div>Fuel Assemblies (UO₂)</div>
   <div class="li"><div class="ld" style="background:#4a4a58"></div>Control Rods (B₄C)</div>
   <div class="li"><div class="ld" style="background:#6a80a0"></div>Pressure Channels</div>
-  <div class="li"><div class="ld" style="background:#3a8ad0"></div>Coolant Water</div>
-  <div class="li"><div class="ld" style="background:#c8d4e0"></div>Steam</div>
-  <div class="li"><div class="ld" style="background:#7a9aaa"></div>Drum Separator</div>
-  <div class="li"><div class="ld" style="background:#5a80a0"></div>Circulation Pumps</div>
-  <div class="li"><div class="ld" style="background:#3a8a6a"></div>Turbines &amp; Generator</div>
-  <div class="li"><div class="ld" style="background:#7a8a70"></div>Moisture Separator</div>
-  <div class="li"><div class="ld" style="background:#4a70a0"></div>Condenser</div>
+  <h3 style="margin-top:8px">Fluid Flow</h3>
+  <div class="li"><div class="ld" style="background:#c08070"></div>Steam-Water Mix</div>
+  <div class="li"><div class="ld" style="background:#c09050"></div>Dry Steam</div>
+  <div class="li"><div class="ld" style="background:#5090c0"></div>Water / Feedwater</div>
+  <div class="li"><div class="ld" style="background:#a0a098"></div>Exhaust Steam</div>
+  <div class="li"><div class="ld" style="background:#4088b8"></div>Cooling Water</div>
 </div>
 
 <div class="p info">
@@ -451,11 +450,11 @@ function label(text,x,y,size,col,bold) {
 
 // ═══════════════ DRAW PIPES ═══════════════
 const pipeColors = {
-  mix:     {outer:'#c4a8a0', inner:'#e0c8c0'},
-  steam:   {outer:'#c0a898', inner:'#dcc8b8'},
-  water:   {outer:'#a0b8c8', inner:'#c0d4e0'},
-  exhaust: {outer:'#b8b8b0', inner:'#d4d4cc'},
-  cool:    {outer:'#90b0c8', inner:'#b4d0e4'},
+  mix:     {outer:'#c08070', inner:'#daa898'},
+  steam:   {outer:'#c09050', inner:'#e0b878'},
+  water:   {outer:'#5090c0', inner:'#80b8e0'},
+  exhaust: {outer:'#a0a098', inner:'#c8c8c0'},
+  cool:    {outer:'#4088b8', inner:'#70b0d8'},
 };
 
 function drawPipes() {
@@ -496,7 +495,7 @@ function drawFlow() {
 }
 
 function drawArrows() {
-  const c = 'rgba(110,110,100,.5)';
+  const c = 'rgba(80,90,100,.7)';
   arrow(160,130,160,60,c); arrow(180,52,315,52,c);
   arrow(365,180,365,400,c); arrow(340,440,260,440,c);
   arrow(240,640,240,665,c); arrow(220,670,110,670,c); arrow(85,650,85,600,c);
@@ -528,9 +527,13 @@ function drawShielding() {
   cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
   cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
 
-  label('Upper Bio Shield',160,157,7,'#707068');
-  label('Lower Bio Shield',160,528,7,'#707068');
-  label('CONCRETE\nSHIELDING',160,sy+sh+14,10,'#5a5a52',true);
+  cx.save();
+  cx.translate(tx(sx+wt/2),ty(sy+sh/2));cx.rotate(-Math.PI/2);
+  cx.fillStyle='#707068';cx.font='bold '+Math.max(9.5,ts(8))+'px "Segoe UI",sans-serif';
+  cx.textAlign='center';cx.fillText('CONCRETE SHIELDING',0,0);
+  cx.restore();
+  label('UBS',160,160,6.5,'#808078');
+  label('LBS',160,524,6.5,'#808078');
 }
 
 // ═══════════════ REACTOR CORE ═══════════════
@@ -649,9 +652,9 @@ function drawCore() {
     }
   }
 
-  label('REACTOR CORE',ccx,ccy+hh+16,10,'#4a4a45',true);
-  label('Graphite-Moderated · 1661 Channels',ccx,ccy+hh+28,8,'#707068');
-  label('FLOW CONTROL\nVALVES',160,550,8,'#5a5a55',true);
+  label('REACTOR CORE',ccx,ccy+hh+14,10,'#4a4a45',true);
+  label('Graphite · 1661 Ch.',ccx,ccy+hh+26,7,'#808078');
+  label('VALVES',160,550,6.5,'#6a6a62',true);
 }
 
 // ═══════════════ DRUM SEPARATOR ═══════════════
@@ -851,13 +854,13 @@ function drawCoolingTower() {
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam + Water\nMixture → Separator',250,40,7,'#808078');
-  label('Dry Steam\n→ Turbine',484,96,7,'#808078');
-  label('Water Return\n→ Pump',308,420,7,'#808078');
-  label('Spent Steam\n(low pressure)',738,305,7,'#808078');
-  label('Condensed Water',618,462,7,'#808078');
-  label('Feedwater\n→ Separator',490,185,7,'#808078');
-  label('Cooling Water\n→ Tower',818,468,7,'#808078');
+  label('Steam-Water Mix',250,44,6.5,'#905040');
+  label('Dry Steam',484,100,6.5,'#906830');
+  label('Return Water',305,432,6.5,'#306898');
+  label('Exhaust',732,300,6.5,'#808078');
+  label('Condensate',618,465,6.5,'#306898');
+  label('Feedwater',490,210,6.5,'#306898');
+  label('Cooling',818,470,6.5,'#286898');
 }
 
 // ═══════════════ LEAK PARTICLES ═══════════════
