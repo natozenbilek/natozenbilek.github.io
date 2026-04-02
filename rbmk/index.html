@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#f0efe8">
 <style>
-:root,[data-theme="light"]{
+:root{
   --bg:#f0efe8;
   --surface:rgba(252,251,247,.97);
   --surface-solid:#fcfbf7;
@@ -20,19 +20,6 @@
   --canvas-bg:#f0efe8;
   --grid-line:#eae8e0;
   --font-ui:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans",Arial,sans-serif;
-}
-[data-theme="dark"]{
-  --bg:#1c1d21;
-  --surface:rgba(40,41,46,.98);
-  --surface-solid:#28292e;
-  --border:rgba(72,74,80,.55);
-  --text-1:#d0d0c8;
-  --text-2:#949490;
-  --text-3:#68685e;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
-  --shadow-md:0 2px 10px rgba(0,0,0,.35);
-  --canvas-bg:#1c1d21;
-  --grid-line:#26272c;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -60,7 +47,7 @@ canvas{display:block}
   font-size:.86rem;font-weight:700;color:var(--text-1);letter-spacing:.2px;
   line-height:1.2;white-space:nowrap;margin:0;
 }
-.help-open-btn,.theme-btn{
+.help-open-btn{
   flex-shrink:0;
   font:inherit;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;
   color:#1e3e60;background:rgba(232,238,250,.92);
@@ -68,11 +55,7 @@ canvas{display:block}
   transition:background .15s,border-color .15s;
   white-space:nowrap;
 }
-[data-theme="dark"] .help-open-btn,[data-theme="dark"] .theme-btn{
-  color:#8ac0f0;background:rgba(40,55,80,.8);border-color:#4a6a90;
-}
-.help-open-btn:hover,.theme-btn:hover{background:rgba(216,228,244,.98);border-color:#6a8ab8}
-[data-theme="dark"] .help-open-btn:hover,[data-theme="dark"] .theme-btn:hover{background:rgba(50,70,100,.9)}
+.help-open-btn:hover{background:rgba(216,228,244,.98);border-color:#6a8ab8}
 
 .p{
   position:fixed;
@@ -110,11 +93,9 @@ canvas{display:block}
 .sv{font-size:.9rem;font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.02em;flex-shrink:0;padding-left:6px;background:var(--surface)}
 
 .sb{width:100%;height:4px;background:rgba(218,216,207,.55);border-radius:4px;margin-top:6px;margin-bottom:9px;overflow:hidden;clear:both;position:relative;z-index:0}
-[data-theme="dark"] .sb{background:rgba(60,62,68,.55)}
 .sf{height:100%;border-radius:4px;transition:width .35s cubic-bezier(.4,0,.2,1),background .35s}
 
 .mg{border-top:1px solid rgba(210,208,199,.45);margin:4px 0 10px}
-[data-theme="dark"] .mg{border-color:rgba(60,62,68,.45)}
 
 .ctrl{
   position:fixed;bottom:0;left:0;right:0;
@@ -131,7 +112,6 @@ canvas{display:block}
 .ctrl::-webkit-scrollbar{height:4px}
 .ctrl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .ctrl::-webkit-scrollbar-track{background:transparent}
-[data-theme="dark"] .ctrl{box-shadow:0 -1px 3px rgba(0,0,0,.15)}
 .cg{display:flex;flex-direction:column;gap:4px;align-items:center}
 .cg-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-3);font-weight:700;line-height:1}
 .cg-row{display:flex;gap:5px;align-items:center}
@@ -141,7 +121,6 @@ canvas{display:block}
   background:rgba(210,208,199,.8);
   border-radius:4px;outline:none;cursor:pointer;
 }
-[data-theme="dark"] .ctrl input[type=range]{background:rgba(80,82,88,.8)}
 .ctrl input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;
   width:14px;height:14px;border-radius:50%;
@@ -159,35 +138,24 @@ canvas{display:block}
   font-family:inherit;font-weight:600;text-align:center;min-width:70px;
   letter-spacing:.02px;line-height:1.2;
 }
-[data-theme="dark"] .b{background:rgba(50,52,58,.9);border-color:rgba(72,74,80,.85)}
 .b:hover{background:rgba(228,226,218,.95);border-color:rgba(180,178,170,.9)}
-[data-theme="dark"] .b:hover{background:rgba(60,62,70,.95);border-color:rgba(85,87,94,.9)}
 .b:active{opacity:.9}
 
 .b.rs{background:rgba(228,236,248,.9);border-color:#8aaac8;color:#1e3e60}
-[data-theme="dark"] .b.rs{background:rgba(30,45,70,.7);border-color:#4a6a90;color:#8ac0f0}
 .b.rs:hover{background:rgba(216,228,244,.97)}
 .b.on{background:rgba(225,242,225,.95);border-color:#5aaa5a;color:#1a521a}
-[data-theme="dark"] .b.on{background:rgba(25,55,25,.65);border-color:#3a8a3a;color:#6ada6a}
 .b.sc{background:rgba(248,228,228,.9);border-color:#cc7878;color:#881818;font-weight:700;letter-spacing:.3px}
-[data-theme="dark"] .b.sc{background:rgba(70,25,25,.65);border-color:#a05050;color:#f08080}
 .b.sc:hover{background:rgba(244,210,210,.97)}
 .b.ch{background:rgba(252,242,218,.9);border-color:#c8a040;color:#6a4208}
-[data-theme="dark"] .b.ch{background:rgba(55,42,15,.65);border-color:#8a7030;color:#d0b060}
 .b.ch:hover{background:rgba(248,232,190,.97)}
 .b.pa{background:rgba(242,238,252,.9);border-color:#9a8ac8;color:#3a2870}
-[data-theme="dark"] .b.pa{background:rgba(38,28,65,.65);border-color:#6a5a90;color:#b0a0e0}
 
 .b.ts-active{background:rgba(215,228,242,.95);border-color:#6a8ab0}
-[data-theme="dark"] .b.ts-active{background:rgba(35,48,70,.85);border-color:#5a7a9a}
 
 .sep{width:1px;background:rgba(200,198,190,.5);align-self:stretch;margin:0 2px}
-[data-theme="dark"] .sep{background:rgba(68,70,76,.5)}
 
 .ph{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;font-weight:700;color:#3a5a7a;opacity:0;transition:opacity .4s;z-index:30;pointer-events:none;text-align:center;line-height:1.45;max-width:80vw;background:var(--surface-solid);padding:10px 18px;border:1px solid var(--border);border-radius:3px}
-[data-theme="dark"] .ph{color:#8ab8e8}
 .ph.v{opacity:1}.ph.d{color:#aa1818}
-[data-theme="dark"] .ph.d{color:#f06060}
 
 .flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
 .flash.on{opacity:1}
@@ -236,7 +204,6 @@ canvas{display:block}
   background:rgba(240,239,232,.6);border:1px solid var(--border);border-radius:3px;
   padding:10px 12px;
 }
-[data-theme="dark"] .debrief .d-card{background:rgba(40,42,50,.6)}
 .debrief .d-card .d-val{font-size:1.1rem;font-weight:700;color:var(--text-1)}
 .debrief .d-card .d-lbl{font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
 .debrief .d-events{margin:0 0 16px;padding:0;list-style:none}
@@ -244,7 +211,6 @@ canvas{display:block}
   font-size:.8rem;color:var(--text-2);padding:4px 0;
   border-bottom:1px solid rgba(210,208,199,.3);
 }
-[data-theme="dark"] .debrief .d-events li{border-color:rgba(60,62,68,.3)}
 .debrief .d-events li:last-child{border:none}
 .debrief .d-events .d-time{color:var(--text-3);font-variant-numeric:tabular-nums;margin-right:8px;font-size:.72rem}
 .debrief .d-rating{text-align:center;margin:10px 0;font-size:1.3rem;font-weight:700}
@@ -254,7 +220,6 @@ canvas{display:block}
   border-radius:3px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;
   transition:background .15s;
 }
-[data-theme="dark"] .debrief .d-close{background:rgba(30,50,80,.6);border-color:#4a6a90;color:#8ac0f0}
 .debrief .d-close:hover{background:rgba(216,228,244,.97)}
 
 /* ── Help drawer ── */
@@ -286,7 +251,6 @@ canvas{display:block}
   color:var(--text-2);background:rgba(240,239,232,.9);border:1px solid var(--border);
   transition:background .15s,color .15s;
 }
-[data-theme="dark"] .help-drawer-x{background:rgba(50,52,60,.9)}
 .help-drawer-x:hover{background:rgba(228,226,218,.95);color:var(--text-1)}
 .help-drawer-body{
   flex:1;overflow-y:auto;padding:16px 18px 28px;
@@ -308,14 +272,14 @@ canvas{display:block}
   display:inline-block;padding:.15em .4em;font-size:.82em;font-family:inherit;
   background:rgba(218,216,207,.65);border:1px solid rgba(180,178,170,.9);border-radius:2px;
 }
-[data-theme="dark"] .help-drawer-body kbd{background:rgba(60,62,70,.65);border-color:rgba(80,82,90,.9);box-shadow:none}
 .help-drawer-body .help-note{
   margin-top:16px;padding:10px 12px;font-size:.78rem;line-height:1.45;
   background:rgba(255,248,230,.6);border:1px solid rgba(200,160,64,.3);border-radius:3px;color:#5a4820;
 }
-[data-theme="dark"] .help-drawer-body .help-note{background:rgba(60,50,20,.4);border-color:rgba(120,100,40,.4);color:#c0a860}
 .bar-right{
-  min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px;
+  min-width:0;display:flex;align-items:center;gap:12px;justify-content:flex-end;
+}
+.bar-desc{
   text-align:right;line-height:1.25;
 }
 .bar-line1,.bar-line2{
@@ -326,7 +290,7 @@ canvas{display:block}
 .bar-line2{font-size:.62rem;opacity:.88}
 
 .b:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
-.help-open-btn:focus-visible,.help-drawer-x:focus-visible,.theme-btn:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
+.help-open-btn:focus-visible,.help-drawer-x:focus-visible{outline:2px solid #5a7a9a;outline-offset:2px}
 #c:focus-visible{outline:3px solid #5a7a9a;outline-offset:-3px}
 
 .ctrl input[type=range]::-moz-range-track{background:rgba(210,208,199,.8);border-radius:4px;height:3px}
@@ -342,7 +306,6 @@ canvas{display:block}
   background:rgba(240,239,232,.9);border:1px solid var(--border);
   color:var(--text-1);cursor:pointer;
 }
-[data-theme="dark"] .mode-sel{background:rgba(50,52,58,.9);color:var(--text-1)}
 
 /* ── Variant selector ── */
 .variant-sel{
@@ -351,7 +314,6 @@ canvas{display:block}
   background:rgba(240,239,232,.9);border:1px solid var(--border);
   color:var(--text-1);cursor:pointer;
 }
-[data-theme="dark"] .variant-sel{background:rgba(50,52,58,.9);color:var(--text-1)}
 
 @media (prefers-reduced-motion:reduce){
   .sdot.warn,.sdot.crit{animation:none!important}
@@ -365,7 +327,8 @@ canvas{display:block}
   .bar{grid-template-columns:1fr;padding:6px 12px;gap:6px}
   .bar-left{width:100%;gap:8px}
   .bar h1{white-space:normal;font-size:.82rem}
-  .bar-right{text-align:left;align-items:flex-start}
+  .bar-right{flex-wrap:wrap;gap:6px}
+  .bar-desc{text-align:left}
   .bar-line1,.bar-line2{font-size:.6rem;line-height:1.3;text-align:left}
   .info{
     top:auto;right:10px;left:10px;bottom:86px;width:auto;max-height:min(40vh,300px);
@@ -400,12 +363,13 @@ canvas{display:block}
 <div class="bar">
   <div class="bar-left">
     <h1 id="page-title">RBMK-1000 Reactor Simulation</h1>
-    <button type="button" class="help-open-btn" id="btnHelpOpen" aria-expanded="false" aria-controls="helpDrawer" lang="en">How to use</button>
-    <button type="button" class="theme-btn" id="btnTheme" aria-label="Toggle dark mode">Dark</button>
   </div>
   <div class="bar-right">
-    <p class="bar-line1" id="barDesc">Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</p>
-    <p class="bar-line2" role="note">Educational only — illustrative; not validated vs. real plant data.</p>
+    <div class="bar-desc">
+      <p class="bar-line1" id="barDesc">Channel-Type · Graphite-Moderated · Boiling Water · 3200 MWt / 1000 MWe</p>
+      <p class="bar-line2" role="note">Educational only — illustrative; not validated vs. real plant data.</p>
+    </div>
+    <button type="button" class="help-open-btn" id="btnHelpOpen" aria-expanded="false" aria-controls="helpDrawer" lang="en">How to use</button>
   </div>
 </div>
 
@@ -566,7 +530,6 @@ canvas{display:block}
         <li><kbd>S</kbd> — SCRAM</li>
         <li><kbd>R</kbd> — Reset</li>
         <li><kbd>A</kbd> — Auto Run toggle</li>
-        <li><kbd>D</kbd> — Dark mode toggle</li>
         <li><kbd>Esc</kbd> — close panels / zoom out</li>
         <li><kbd>?</kbd> — open this help</li>
       </ul>
@@ -610,7 +573,7 @@ function resize(){
   const lPad=narrow?12:20, rPad=narrow?12:240;
   const avail=W-lPad-rPad;
   sc=Math.min(avail/1080,(H-top-bot)/700);
-  ox=(W-1080*sc)/2; oy=top+((H-top-bot)-700*sc)/2;
+  ox=(W-1080*sc)/2; oy=top+((H-top-bot)-700*sc)/2 - sc*20;
 }
 resize();
 addEventListener('resize',resize);
@@ -1106,8 +1069,8 @@ function drawDrumSep(){
   }
   cx.restore();
   const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
-  label('DRUM SEPARATOR',dcx,dcy+dh/2+24,10,lc,true);
-  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+38,7,sc2);
+  label('DRUM SEPARATOR',dcx,dcy-dh/2-18,10,lc,true);
+  label('(4 units, Ø 2.3m)',dcx,dcy-dh/2-6,7,sc2);
 }
 
 function drawPump(pcx,pcy,r,lbl,sub){
@@ -1152,7 +1115,7 @@ function drawTurbine(tcx,tcy,r,lbl,blades){
   }
   cx.restore();
   cx.fillStyle=isDark?'#3a6a50':'#6a9a88';cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(5),0,Math.PI*2);cx.fill();
-  label(lbl,tcx,tcy+r+22,10,isDark?'#6aaa8a':'#4a6a5a',true);
+  label(lbl,tcx,tcy-r-14,10,isDark?'#6aaa8a':'#4a6a5a',true);
 }
 
 function drawMSR(){
@@ -1168,7 +1131,7 @@ function drawMSR(){
   cx.strokeStyle=`rgba(80,130,200,${.1+pf*.15})`;cx.lineWidth=ts(.8);
   for(let v=0;v<3;v++){const vy=my-mh*.25+v*mh*.25;
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke()}
-  label('MOISTURE\nSEPARATOR',mx,my+mh/2+18,8.5,isDark?'#8a9a70':'#4a5a40',true);
+  label('MOISTURE\nSEPARATOR',mx,my-mh/2-22,8.5,isDark?'#8a9a70':'#4a5a40',true);
 }
 
 function drawGenerator(){
@@ -1186,8 +1149,8 @@ function drawGenerator(){
     const sa=.2+pf*.4;
     cx.fillStyle=`rgba(40,140,40,${sa})`;cx.font=cFont(Math.max(8,ts(7)),true);cx.textAlign='center';cx.fillText('~',tx(gx),ty(gy+4));
   }
-  label('GENERATOR',gx,gy+gh/2+20,10,isDark?'#5aaa5a':'#3a6a3a',true);
-  label(S.elec.toFixed(0)+' MWe',gx,gy+gh/2+34,7.5,pf>.08?(isDark?'#5aaa5a':'#2a6a2a'):(isDark?'#5a5a52':'#9a9a90'));
+  label('GENERATOR',gx,gy-gh/2-16,10,isDark?'#5aaa5a':'#3a6a3a',true);
+  label(S.elec.toFixed(0)+' MWe',gx,gy-gh/2-4,7.5,pf>.08?(isDark?'#5aaa5a':'#2a6a2a'):(isDark?'#5a5a52':'#9a9a90'));
 }
 
 function drawShaft(){
@@ -1235,13 +1198,13 @@ function drawCoolingTower(){
 }
 
 function drawPipeLabels(){
-  pipeLabelStroke('Steam-Water Mix',248,68,6.5,isDark?'#d0a080':'#804030');
-  label('Dry Steam',490,72,6.5,isDark?'#c0a060':'#906830');
-  label('Return Water',318,418,6.5,isDark?'#60a8d0':'#306898');
-  label('Exhaust',752,305,6.5,isDark?'#a0a098':'#808078');
-  label('Condensate',638,448,6.5,isDark?'#60a8d0':'#306898');
-  label('Feedwater',518,198,6.5,isDark?'#60a8d0':'#306898');
-  label('Cooling',835,455,6.5,isDark?'#50a8d0':'#286898');
+  pipeLabelStroke('Steam-Water Mix',220,95,6.5,isDark?'#d0a080':'#804030');
+  label('Dry Steam',490,98,6.5,isDark?'#c0a060':'#906830');
+  label('Return Water',300,415,6.5,isDark?'#60a8d0':'#306898');
+  label('Exhaust',756,305,6.5,isDark?'#a0a098':'#808078');
+  label('Condensate',620,461,6.5,isDark?'#60a8d0':'#306898');
+  label('Feedwater',570,185,6.5,isDark?'#60a8d0':'#306898');
+  label('Cooling',835,468,6.5,isDark?'#50a8d0':'#286898');
 }
 
 function drawLeaks(){
@@ -1724,17 +1687,9 @@ function updateTimeScaleUI(){
 }
 
 /* ═══════════════════════════════════════════════════
-   §24  DARK MODE
+   §24  THEME (light only)
    ═══════════════════════════════════════════════════ */
-let isDark=false;
-function toggleDarkMode(){
-  isDark=!isDark;
-  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  el('btnTheme').textContent=isDark?'Light':'Dark';
-  document.querySelector('meta[name="theme-color"]').content=isDark?'#1a1b1e':'#f0efe8';
-}
-el('btnTheme').addEventListener('click',toggleDarkMode);
-if(window.matchMedia('(prefers-color-scheme: dark)').matches){toggleDarkMode()}
+const isDark=false;
 
 /* ═══════════════════════════════════════════════════
    §25  VARIANT SELECTOR
@@ -1807,7 +1762,6 @@ document.addEventListener('keydown',e=>{
   if(k==='s'&&!e.ctrlKey&&!e.metaKey){el('btnScram').click();return}
   if(k==='r'&&!e.ctrlKey&&!e.metaKey){el('btnReset').click();return}
   if(k==='a'){el('btnAuto').click();return}
-  if(k==='d'&&!e.ctrlKey&&!e.metaKey){toggleDarkMode();return}
 
   if(e.key==='?'||(e.key==='/'&&e.shiftKey)){openHelpDrawer();e.preventDefault()}
 });
