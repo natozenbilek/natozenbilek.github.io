@@ -46,6 +46,10 @@ canvas{display:block}
 
 .flash{position:fixed;inset:0;background:#fff;z-index:100;pointer-events:none;opacity:0;transition:opacity .3s}
 .flash.on{opacity:1}
+
+.tip{position:fixed;background:rgba(30,32,36,.92);color:#e8e8e4;padding:10px 14px;border-radius:8px;font-size:.82rem;line-height:1.5;max-width:280px;z-index:50;pointer-events:none;opacity:0;transition:opacity .2s;backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.tip b{color:#8ac;display:block;margin-bottom:3px;font-size:.88rem}
+.tip.v{opacity:1}
 </style>
 </head>
 <body>
@@ -111,6 +115,7 @@ canvas{display:block}
 
 <div class="ph" id="phase"></div>
 <div class="flash" id="flash"></div>
+<div class="tip" id="tip"></div>
 
 <script>
 const cv = document.getElementById('c');
@@ -131,6 +136,68 @@ addEventListener('resize', resize);
 function tx(x) { return ox + x * sc; }
 function ty(y) { return oy + y * sc; }
 function ts(v) { return v * sc; }
+function wx(px) { return (px - ox) / sc; }
+function wy(py) { return (py - oy) / sc; }
+
+// ═══════════════ TOOLTIP SYSTEM ═══════════════
+const zones = [
+  {x:68,y:172,w:184,h:336, title:'Reactor Core',
+   info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite serves as neutron moderator while light water acts as coolant and absorber.'},
+  {x:30,y:100,w:260,h:480, title:'Concrete Shielding',
+   info:'Biological shield consisting of upper (UBS) and lower (LBS) steel+serpentinite structures, surrounded by a sand-filled annular tank and 2m thick concrete walls. Designed to attenuate neutron and gamma radiation.'},
+  {x:335,y:83,w:130,h:58, title:'Drum Separator',
+   info:'Four horizontal drum separators (Ø 2.3m × 31m) receive the steam-water mixture from the core. They use gravity and cyclone separators to produce dry saturated steam at ~7 MPa for the turbines. Water returns to the MCP suction header.'},
+  {x:216,y:592,w:48,h:48, title:'Main Circulation Pump (MCP)',
+   info:'Eight MCPs (4 per loop) circulate ~37,000 m³/h of coolant through the core at ~7 MPa. The pumps are powered by 6 kV electric motors. Loss of MCPs (trip) reduces flow, increasing void fraction and triggering positive reactivity feedback.'},
+  {x:500,y:72,w:80,h:80, title:'HP Turbine',
+   info:'High-pressure turbine receives saturated steam at ~6.5 MPa directly from the drum separators. Steam expands through multiple blade stages, converting thermal energy to mechanical rotation at 3000 rpm (50 Hz).'},
+  {x:610,y:87,w:30,h:50, title:'Moisture Separator',
+   info:'Removes moisture droplets between HP and LP turbine stages. Wet steam from HP exhaust passes through chevron vanes that separate water droplets by inertia, improving LP turbine efficiency and reducing blade erosion.'},
+  {x:672,y:64,w:96,h:96, title:'LP Turbine',
+   info:'Low-pressure turbine receives dried steam from the moisture separator. Further expansion down to ~4 kPa condenser pressure. The LP turbine produces about 60% of total electrical output due to the larger enthalpy drop.'},
+  {x:823,y:81,w:55,h:62, title:'Generator',
+   info:'Hydrogen-cooled synchronous generator producing ~1000 MWe at 24 kV. Connected to the grid through a step-up transformer. Coupled to both turbines via a common shaft rotating at 3000 rpm.'},
+  {x:678,y:451,w:85,h:48, title:'Condenser',
+   info:'Shell-and-tube heat exchanger that condenses exhaust steam from the LP turbine back to liquid water at ~30°C. Uses cooling water from the external circuit (river or cooling tower) flowing through thousands of titanium tubes.'},
+  {x:522,y:457,w:36,h:36, title:'Feedwater Pump',
+   info:'Pumps condensed water back to the drum separator at ~7 MPa. The feedwater passes through low-pressure heaters, a deaerator, and high-pressure heaters to improve cycle efficiency (Rankine cycle regeneration).'},
+  {x:868,y:439,w:45,h:72, title:'Cooling Tower',
+   info:'Natural-draft hyperbolic cooling tower dissipates waste heat (~2200 MWt) to the atmosphere through evaporative cooling. Hot water from the condenser is sprayed inside and cooled by rising air, losing ~1.5% as evaporation.'},
+];
+
+const tipEl = document.getElementById('tip');
+let tipActive = '';
+
+cv.addEventListener('mousemove', e => {
+  const mx = wx(e.clientX), my = wy(e.clientY);
+  let found = null;
+  for (const z of zones) {
+    if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) { found = z; break; }
+  }
+  if (found) {
+    if (tipActive !== found.title) {
+      tipEl.innerHTML = '<b>' + found.title + '</b>' + found.info;
+      tipActive = found.title;
+    }
+    tipEl.classList.add('v');
+    let left = e.clientX + 16, top = e.clientY - 10;
+    if (left + 290 > innerWidth) left = e.clientX - 296;
+    if (top + tipEl.offsetHeight > innerHeight - 60) top = innerHeight - 60 - tipEl.offsetHeight;
+    if (top < 50) top = 50;
+    tipEl.style.left = left + 'px';
+    tipEl.style.top = top + 'px';
+    cv.style.cursor = 'help';
+  } else {
+    tipEl.classList.remove('v');
+    tipActive = '';
+    cv.style.cursor = 'default';
+  }
+});
+
+cv.addEventListener('mouseleave', () => {
+  tipEl.classList.remove('v');
+  tipActive = '';
+});
 
 // ═══════════════ STATE ═══════════════
 const S = {
@@ -261,22 +328,31 @@ function arrow(x1,y1,x2,y2,col) {
 
 function label(text,x,y,size,col,bold) {
   size = size || 9;
-  const px = Math.max(11, ts(size));
-  cx.fillStyle=col||'#6a6a65';
+  const px = Math.max(9.5, ts(size));
+  cx.fillStyle=col||'#5a5a55';
   cx.font=(bold?'bold ':'')+px+'px "Segoe UI",sans-serif';
   cx.textAlign='center';
   const lines=text.split('\n');
-  lines.forEach((l,i)=>cx.fillText(l,tx(x),ty(y)+i*(px+3)));
+  lines.forEach((l,i)=>cx.fillText(l,tx(x),ty(y)+i*(px+2)));
 }
 
 // ═══════════════ DRAW PIPES ═══════════════
+const pipeColors = {
+  mix:     {outer:'#c4a8a0', inner:'#e0c8c0'},
+  steam:   {outer:'#c0a898', inner:'#dcc8b8'},
+  water:   {outer:'#a0b8c8', inner:'#c0d4e0'},
+  exhaust: {outer:'#b8b8b0', inner:'#d4d4cc'},
+  cool:    {outer:'#90b0c8', inner:'#b4d0e4'},
+};
+
 function drawPipes() {
   Object.values(pipes).forEach(p => {
-    cx.strokeStyle='#c8c6be'; cx.lineWidth=ts(9); cx.lineCap='round'; cx.lineJoin='round';
+    const pc = pipeColors[p.fluid] || pipeColors.water;
+    cx.strokeStyle=pc.outer; cx.lineWidth=ts(9); cx.lineCap='round'; cx.lineJoin='round';
     cx.beginPath(); cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
     for(let i=1;i<p.pts.length;i++) cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));
     cx.stroke();
-    cx.strokeStyle='#dddbd2'; cx.lineWidth=ts(5);
+    cx.strokeStyle=pc.inner; cx.lineWidth=ts(5);
     cx.beginPath(); cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
     for(let i=1;i<p.pts.length;i++) cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));
     cx.stroke();
@@ -339,9 +415,9 @@ function drawShielding() {
   cx.fillRect(tx(sx+wt),ty(163),ts(sw-wt*2),ts(8));
   cx.fillRect(tx(sx+wt),ty(517),ts(sw-wt*2),ts(8));
 
-  label('Upper Bio Shield',160,157,10,'#505050');
-  label('Lower Bio Shield',160,528,10,'#505050');
-  label('CONCRETE\nSHIELDING',160,sy+sh+14,11.5,'#5a5a52');
+  label('Upper Bio Shield',160,157,7,'#707068');
+  label('Lower Bio Shield',160,528,7,'#707068');
+  label('CONCRETE\nSHIELDING',160,sy+sh+14,10,'#5a5a52',true);
 }
 
 // ═══════════════ REACTOR CORE ═══════════════
@@ -460,9 +536,9 @@ function drawCore() {
     }
   }
 
-  label('REACTOR CORE',ccx,ccy+hh+16,12,'#5a5a55',true);
-  label('Graphite-Moderated\n1661 Pressure Channels',ccx,ccy+hh+30,10.5,'#707068');
-  label('FLOW CONTROL\nVALVES',160,548,10,'#5a5a55');
+  label('REACTOR CORE',ccx,ccy+hh+16,10,'#4a4a45',true);
+  label('Graphite-Moderated · 1661 Pressure Channels',ccx,ccy+hh+28,7,'#808078');
+  label('FLOW CONTROL\nVALVES',160,548,7,'#6a6a62');
 }
 
 // ═══════════════ DRUM SEPARATOR ═══════════════
@@ -491,8 +567,8 @@ function drawDrumSep() {
     cx.beginPath();cx.arc(tx(bx),ty(by),ts(1.2+Math.sin(S.time+b)*.6),0,Math.PI*2);cx.fill();
   }
   cx.restore();
-  label('DRUM SEPARATOR',dcx,dcy+dh/2+14,11.5,'#5a5a55',true);
-  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+27,10,'#707068');
+  label('DRUM SEPARATOR',dcx,dcy+dh/2+14,10,'#4a4a45',true);
+  label('(4 units, Ø 2.3m)',dcx,dcy+dh/2+26,7,'#808078');
 }
 
 // ═══════════════ PUMP (shared) ═══════════════
@@ -516,8 +592,8 @@ function drawPump(pcx,pcy,r,lbl,sub) {
     cx.beginPath();cx.moveTo(tx(pcx-r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx+r*.7),ty(pcy+r*.7));cx.stroke();
     cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
   }
-  label(lbl,pcx,pcy+r+12,11,'#5a5a55',true);
-  if(sub)label(sub,pcx,pcy+r+25,10,'#707068');
+  label(lbl,pcx,pcy+r+12,9.5,'#4a4a45',true);
+  if(sub)label(sub,pcx,pcy+r+24,7,'#808078');
 }
 
 // ═══════════════ TURBINE (shared) ═══════════════
@@ -545,7 +621,7 @@ function drawTurbine(tcx,tcy,r,lbl,blades) {
   }
   cx.restore();
   cx.fillStyle='#6a9a88';cx.beginPath();cx.arc(tx(tcx),ty(tcy),ts(5),0,Math.PI*2);cx.fill();
-  label(lbl,tcx,tcy+r+14,11.5,'#4a6a5a',true);
+  label(lbl,tcx,tcy+r+14,10,'#4a6a5a',true);
 }
 
 // ═══════════════ MOISTURE SEPARATOR ═══════════════
@@ -568,7 +644,7 @@ function drawMSR() {
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));
     cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke();
   }
-  label('MOISTURE\nSEPARATOR',mx,my+mh/2+12,10,'#4a5a40',true);
+  label('MOISTURE\nSEPARATOR',mx,my+mh/2+10,8.5,'#4a5a40',true);
 }
 
 // ═══════════════ GENERATOR ═══════════════
@@ -592,8 +668,8 @@ function drawGenerator() {
     cx.fillStyle=`rgba(40,140,40,${sa})`;cx.font=`bold ${ts(16)}px "Segoe UI",sans-serif`;
     cx.textAlign='center';cx.fillText('⚡',tx(gx),ty(gy+5));
   }
-  label('GENERATOR',gx,gy+gh/2+14,11.5,'#3a6a3a',true);
-  label(S.elec.toFixed(0)+' MWe',gx,gy+gh/2+27,10.5,pf>.08?'#2a6a2a':'#8a8a80');
+  label('GENERATOR',gx,gy+gh/2+14,10,'#3a6a3a',true);
+  label(S.elec.toFixed(0)+' MWe',gx,gy+gh/2+26,7.5,pf>.08?'#2a6a2a':'#9a9a90');
 }
 
 // ═══════════════ SHAFT ═══════════════
@@ -630,7 +706,7 @@ function drawCondenser() {
     }
   }
 
-  label('CONDENSER',ccx,ccy+ch/2+14,11.5,'#4a6080',true);
+  label('CONDENSER',ccx,ccy+ch/2+14,10,'#4a6080',true);
 }
 
 // ═══════════════ COOLING TOWER ═══════════════
@@ -654,18 +730,18 @@ function drawCoolingTower() {
     if(a>0){cx.fillStyle=`rgba(155,165,175,${a})`;
     cx.beginPath();cx.arc(tx(px),ty(py),ts(3.5+p*1.2),0,Math.PI*2);cx.fill();}
   }
-  label('COOLING\nTOWER',ctcx,bot+12,10.5,'#5a5a52');
+  label('COOLING\nTOWER',ctcx,bot+10,9,'#5a5a52',true);
 }
 
 // ═══════════════ PIPE LABELS ═══════════════
 function drawPipeLabels() {
-  label('Steam + Water\nMixture (to separator)',240,42,10.5,'#606058');
-  label('Dry Steam\n(to turbine)',484,88,10.5,'#606058');
-  label('Water Return\n(to pump)',308,385,10.5,'#606058');
-  label('Spent Steam\n(low pressure)',738,305,10.5,'#606058');
-  label('Condensed Water',598,490,10.5,'#606058');
-  label('Feedwater\n(back to separator)',555,175,10.5,'#606058');
-  label('Cooling Water\n(to tower)',820,498,10.5,'#606058');
+  label('Steam + Water\nMixture → Separator',240,42,7,'#808078');
+  label('Dry Steam\n→ Turbine',484,88,7,'#808078');
+  label('Water Return\n→ Pump',308,385,7,'#808078');
+  label('Spent Steam\n(low pressure)',738,305,7,'#808078');
+  label('Condensed Water',598,490,7,'#808078');
+  label('Feedwater\n→ Separator',555,175,7,'#808078');
+  label('Cooling Water\n→ Tower',820,498,7,'#808078');
 }
 
 // ═══════════════ LEAK PARTICLES ═══════════════
@@ -716,9 +792,9 @@ function drawGraph() {
 
   cx.restore();
 
-  label('Thermal Power History (MWt)',gx+gw/2,gy-6,10,'#5a5a52');
-  label('3200',gx-18,dangerY-1,9,'rgba(180,40,40,.7)');
-  label('0',gx-10,gy+gh-5,9,'#777');
+  label('Thermal Power History (MWt)',gx+gw/2,gy-5,8,'#5a5a52',true);
+  label('3200',gx-15,dangerY-1,6.5,'rgba(180,40,40,.65)');
+  label('0',gx-8,gy+gh-5,6.5,'#888');
 }
 
 // ═══════════════ BACKGROUND ═══════════════
