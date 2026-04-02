@@ -139,7 +139,7 @@ addEventListener('resize', resize);
 function tx(x) { return ox + x * sc; }
 function ty(y) { return oy + y * sc; }
 function ts(v) { return v * sc; }
-const zoom = { cx: 540, cy: 350, level: 1, tCx: 540, tCy: 350, tLevel: 1, active: false };
+const zoom = { cx: 540, cy: 350, level: 1, tCx: 540, tCy: 350, tLevel: 1, active: false, zone: null, infoAlpha: 0 };
 
 function wx(px) {
   if (zoom.level > 1.02) {
@@ -159,27 +159,27 @@ function wy(py) {
 // ═══════════════ TOOLTIP SYSTEM ═══════════════
 const zones = [
   {x:68,y:172,w:184,h:336, title:'Reactor Core',
-   info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite serves as neutron moderator while light water acts as coolant and absorber.'},
+   info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite (mass: 1850 t) serves as neutron moderator while light water acts as both coolant and neutron absorber — the key reason for the positive void coefficient unique to RBMK designs.'},
   {x:30,y:100,w:260,h:480, title:'Concrete Shielding',
-   info:'Biological shield consisting of upper (UBS) and lower (LBS) steel+serpentinite structures, surrounded by a sand-filled annular tank and 2m thick concrete walls. Designed to attenuate neutron and gamma radiation.'},
+   info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
   {x:335,y:83,w:130,h:58, title:'Drum Separator',
-   info:'Four horizontal drum separators (Ø 2.3m × 31m) receive the steam-water mixture from the core. They use gravity and cyclone separators to produce dry saturated steam at ~7 MPa for the turbines. Water returns to the MCP suction header.'},
+   info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core. Uses gravity and cyclone separators to produce dry saturated steam at 284°C. Separated water returns to MCP suction header.'},
   {x:216,y:592,w:48,h:48, title:'Main Circulation Pump (MCP)',
-   info:'Eight MCPs (4 per loop) circulate ~37,000 m³/h of coolant through the core at ~7 MPa. The pumps are powered by 6 kV electric motors. Loss of MCPs (trip) reduces flow, increasing void fraction and triggering positive reactivity feedback.'},
+   info:'Eight MCPs arranged in 4 per loop (2 loops total). Each pump: 5500 kW, flow rate ~8000 m³/h, total flow ~37,000 m³/h at 7 MPa. Loss of MCPs reduces coolant flow, causing rapid void increase, which in RBMK leads to positive reactivity insertion — a critical safety concern.'},
   {x:500,y:72,w:80,h:80, title:'HP Turbine',
-   info:'High-pressure turbine receives saturated steam at ~6.5 MPa directly from the drum separators. Steam expands through multiple blade stages, converting thermal energy to mechanical rotation at 3000 rpm (50 Hz).'},
-  {x:610,y:87,w:30,h:50, title:'Moisture Separator',
-   info:'Removes moisture droplets between HP and LP turbine stages. Wet steam from HP exhaust passes through chevron vanes that separate water droplets by inertia, improving LP turbine efficiency and reducing blade erosion.'},
+   info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Outlet: ~1.2 MPa. Rotation: 3000 rpm (50 Hz synchronous). The HP turbine handles the initial high-pressure expansion stage producing ~40% of total electrical output.'},
+  {x:610,y:87,w:30,h:50, title:'Moisture Separator / Reheater',
+   info:'Located between HP and LP turbine stages. Wet steam (moisture ~12%) from HP exhaust passes through chevron-type vane separators that remove water droplets by inertia, reducing moisture to <0.5%. Prevents blade erosion in the LP turbine and improves cycle efficiency by ~3%.'},
   {x:672,y:64,w:96,h:96, title:'LP Turbine',
-   info:'Low-pressure turbine receives dried steam from the moisture separator. Further expansion down to ~4 kPa condenser pressure. The LP turbine produces about 60% of total electrical output due to the larger enthalpy drop.'},
+   info:'Low-pressure turbine with larger blade diameter due to high specific volume of low-pressure steam. Inlet: ~1.2 MPa dry steam. Exhaust: ~4 kPa to condenser. Produces ~60% of total electrical output due to the larger enthalpy drop across the LP expansion.'},
   {x:823,y:81,w:55,h:62, title:'Generator',
-   info:'Hydrogen-cooled synchronous generator producing ~1000 MWe at 24 kV. Connected to the grid through a step-up transformer. Coupled to both turbines via a common shaft rotating at 3000 rpm.'},
+   info:'TVV-500 hydrogen-cooled synchronous generator. Output: 500 MWe per unit (2 units = 1000 MWe total). Voltage: 24 kV, stepped up to 330/750 kV for grid transmission. Efficiency: ~98.6%. Hydrogen cooling reduces windage losses and improves heat transfer.'},
   {x:678,y:451,w:85,h:48, title:'Condenser',
-   info:'Shell-and-tube heat exchanger that condenses exhaust steam from the LP turbine back to liquid water at ~30°C. Uses cooling water from the external circuit (river or cooling tower) flowing through thousands of titanium tubes.'},
+   info:'Shell-and-tube heat exchanger with ~30,000 titanium alloy tubes. Condenses LP turbine exhaust steam at ~4 kPa (~30°C). Cooling water flow: ~120,000 m³/h from the external circuit. Maintains vacuum to maximize turbine output and Rankine cycle efficiency.'},
   {x:522,y:457,w:36,h:36, title:'Feedwater Pump',
-   info:'Pumps condensed water back to the drum separator at ~7 MPa. The feedwater passes through low-pressure heaters, a deaerator, and high-pressure heaters to improve cycle efficiency (Rankine cycle regeneration).'},
+   info:'Multi-stage centrifugal pump returning condensed water to the drum separators at 7 MPa. Feedwater passes through LP heaters (70→130°C), a deaerator (130→165°C), and HP heaters (165→190°C) for regenerative Rankine cycle heating, improving thermal efficiency from ~30% to ~33%.'},
   {x:868,y:439,w:45,h:72, title:'Cooling Tower',
-   info:'Natural-draft hyperbolic cooling tower dissipates waste heat (~2200 MWt) to the atmosphere through evaporative cooling. Hot water from the condenser is sprayed inside and cooled by rising air, losing ~1.5% as evaporation.'},
+   info:'Natural-draft hyperbolic cooling tower (height: ~150m). Dissipates ~2200 MWt waste heat to atmosphere. Hot water (~40°C) is sprayed and cooled to ~25°C by rising air. Evaporation rate: ~1.5% of flow (~1800 m³/h). Visible steam plume increases with reactor power output.'},
 ];
 
 const tipEl = document.getElementById('tip');
@@ -221,6 +221,7 @@ cv.addEventListener('click', e => {
   const mx = wx(e.clientX), my = wy(e.clientY);
   if (zoom.active) {
     zoom.tLevel = 1; zoom.tCx = 540; zoom.tCy = 350; zoom.active = false;
+    zoom.zone = null; zoom.infoAlpha = 0;
     return;
   }
   for (const z of zones) {
@@ -229,6 +230,7 @@ cv.addEventListener('click', e => {
       zoom.tCy = z.y + z.h / 2;
       zoom.tLevel = Math.min(3, 350 / Math.max(z.w, z.h));
       zoom.active = true;
+      zoom.zone = z; zoom.infoAlpha = 0;
       break;
     }
   }
@@ -238,6 +240,68 @@ function updateZoom() {
   zoom.cx += (zoom.tCx - zoom.cx) * 0.08;
   zoom.cy += (zoom.tCy - zoom.cy) * 0.08;
   zoom.level += (zoom.tLevel - zoom.level) * 0.08;
+  if (zoom.active && zoom.zone) zoom.infoAlpha = Math.min(1, zoom.infoAlpha + 0.04);
+  else zoom.infoAlpha = Math.max(0, zoom.infoAlpha - 0.08);
+}
+
+function wrapText(text, maxW) {
+  const words = text.split(' ');
+  const lines = []; let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (cx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawZoomInfo() {
+  if (zoom.infoAlpha < 0.01 || !zoom.zone) return;
+  const z = zoom.zone;
+  const a = zoom.infoAlpha;
+  const pad = 16, gap = 6;
+  const pw = Math.min(320, W * 0.3);
+  const px = 16, py = 54;
+
+  cx.font = 'bold 15px "Segoe UI",sans-serif';
+  const titleLines = wrapText(z.title, pw - pad * 2);
+  cx.font = '13px "Segoe UI",sans-serif';
+  const infoLines = wrapText(z.info, pw - pad * 2);
+  const lineH = 18, titleH = titleLines.length * 20;
+  const ph = pad + titleH + gap + infoLines.length * lineH + pad;
+
+  cx.fillStyle = `rgba(20,22,28,${0.88 * a})`;
+  const r = 10;
+  cx.beginPath();
+  cx.moveTo(px + r, py); cx.lineTo(px + pw - r, py);
+  cx.quadraticCurveTo(px + pw, py, px + pw, py + r);
+  cx.lineTo(px + pw, py + ph - r);
+  cx.quadraticCurveTo(px + pw, py + ph, px + pw - r, py + ph);
+  cx.lineTo(px + r, py + ph);
+  cx.quadraticCurveTo(px, py + ph, px, py + ph - r);
+  cx.lineTo(px, py + r);
+  cx.quadraticCurveTo(px, py, px + r, py);
+  cx.closePath(); cx.fill();
+
+  cx.strokeStyle = `rgba(100,160,220,${0.3 * a})`;
+  cx.lineWidth = 1; cx.stroke();
+
+  let ty_ = py + pad + 16;
+  cx.font = 'bold 15px "Segoe UI",sans-serif';
+  cx.fillStyle = `rgba(130,190,240,${a})`;
+  cx.textAlign = 'left';
+  for (const l of titleLines) { cx.fillText(l, px + pad, ty_); ty_ += 20; }
+
+  ty_ += gap;
+  cx.font = '13px "Segoe UI",sans-serif';
+  cx.fillStyle = `rgba(220,220,215,${0.9 * a})`;
+  for (const l of infoLines) { cx.fillText(l, px + pad, ty_); ty_ += lineH; }
+
+  ty_ += 4;
+  cx.font = '11px "Segoe UI",sans-serif';
+  cx.fillStyle = `rgba(140,140,135,${0.6 * a})`;
+  cx.fillText('Click anywhere to zoom out', px + pad, ty_);
 }
 
 function applyZoom() {
@@ -1096,7 +1160,7 @@ el('btnReset').addEventListener('click',()=>{
   S.explosion=false;
   if(chResetTid){clearTimeout(chResetTid);chResetTid=0;}
   powerHist.length=0;
-  zoom.tLevel=1;zoom.tCx=540;zoom.tCy=350;zoom.active=false;
+  zoom.tLevel=1;zoom.tCx=540;zoom.tCy=350;zoom.active=false;zoom.zone=null;zoom.infoAlpha=0;
   el('sRod').value=100;
   el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');
   el('btnMCP').classList.remove('on');
@@ -1156,10 +1220,7 @@ function frame(t){
 
   cx.restore();
 
-  if(zoom.active){
-    cx.fillStyle='rgba(0,0,0,.5)';cx.font='bold 13px "Segoe UI",sans-serif';
-    cx.textAlign='center';cx.fillText('Click anywhere to zoom out',W/2,H-70);
-  }
+  drawZoomInfo();
 
   requestAnimationFrame(frame);
 }
