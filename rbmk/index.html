@@ -840,8 +840,8 @@ const zones=[
    info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
   {x:335,y:83,w:130,h:58,title:'4 – Drum Separator',
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
-  {x:216,y:476,w:48,h:48,title:'2 – MCP (Loop 2)',
-   info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. In this schematic Loop 2 is on the vertical feed riser ahead of Loop 1 (common line from the drum downcomer elbow). Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+  {x:139,y:646,w:48,h:48,title:'2 – MCP (Loop 2)',
+   info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. In this schematic Loop 2 sits on the horizontal return leg toward the core — the second pipe segment downstream of Loop 1 on the MCP-to-core line. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
   {x:216,y:592,w:48,h:48,title:'1 – MCP (Loop 1)',
    info:'Four MCPs in Loop 1. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
   {x:515,y:72,w:80,h:80,title:'5 – HP Turbine',
@@ -1016,7 +1016,7 @@ function drawArrows(){
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
   arrow(365,180,365,400,c);arrow(340,440,255,440,c);
   arrow(240,460,240,560,c);arrow(240,640,240,665,c);arrow(240,592,240,620,c);
-  arrow(220,670,110,670,c);arrow(85,650,85,600,c);
+  arrow(220,670,185,670,c);arrow(145,670,100,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c);arrow(540,440,540,220,c);arrow(520,200,450,200,c);
@@ -1911,7 +1911,7 @@ function frame(t){
   drawShielding();
   drawCore();
   drawDrumSep();
-  drawPump(240,500,24,'2. MCP','(Loop 2, 4 pumps)');
+  drawPump(163,670,24,'2. MCP','(Loop 2, 4 pumps)',true);
   drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
   drawShaft();
   drawTurbine(555,112,40,'5. HP TURBINE',12);
