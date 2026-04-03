@@ -818,8 +818,8 @@ function updateAudio(){
    §11  ZONES (tooltip + zoom targets)
    ═══════════════════════════════════════════════════ */
 const zones=[
-  {x:100,y:220,w:120,h:250,title:'Fuel Assemblies (UO₂)',
-   info:'UO₂ fuel enriched to 2.0% U-235. Each of 1661 channels contains two fuel assemblies stacked vertically. 18 fuel rods per assembly in two concentric rings around a central carrier rod. Sintered UO₂ pellets (Ø 11.5 mm) clad in Zr-1%Nb alloy tubing. Active fuel height: 7 m. Total uranium loading: ~192 tonnes.'},
+  {x:78,y:178,w:162,h:312,title:'UO₂ Fuel (Pressure-Tube Channels)',
+   info:'UO₂ enriched ~2% U-235; 1661 channels, two stacked assemblies per channel (water gap between). 18 rods per assembly, Zr-1%Nb cladding, Ø~11.5 mm pellets. Active height ~7 m; ~192 t uranium total. Orange blocks: stylized fuel. Graphite between tubes moderates neutrons. Zoom the wider core box for full reactor context.'},
   {x:68,y:172,w:184,h:336,title:'3 – Reactor Core',
    info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite (mass: 1850 t) serves as neutron moderator while light water acts as both coolant and neutron absorber — the key reason for the positive void coefficient unique to RBMK designs.'},
   {x:30,y:100,w:260,h:480,title:'Concrete Shielding',
@@ -899,6 +899,8 @@ function updateZoom(){
    ═══════════════════════════════════════════════════ */
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
+  /* Thin downcomer from drum → joins main MCP header (drawn after drum so it exits below vessel) */
+  sepReturnRiser:{pts:[[400,141],[400,432],[365,432],[365,440]],fluid:'water',thin:true},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
   mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
@@ -967,7 +969,8 @@ const pipeColors={
   cool:{outer:'#4088b8',inner:'#70b0d8'},
 };
 function drawPipes(){
-  Object.values(pipes).forEach(p=>{
+  const list=Object.values(pipes);
+  list.filter(p=>!p.thin).forEach(p=>{
     const pc=pipeColors[p.fluid]||pipeColors.water;
     cx.strokeStyle=pc.outer;cx.lineWidth=ts(9);cx.lineCap='round';cx.lineJoin='round';
     cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
@@ -976,6 +979,15 @@ function drawPipes(){
     cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
     for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
   });
+}
+function drawThinReturnRiser(){
+  const p=pipes.sepReturnRiser,pc=pipeColors.water;
+  cx.strokeStyle=pc.outer;cx.lineWidth=ts(3.2);cx.lineCap='round';cx.lineJoin='round';
+  cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+  for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
+  cx.strokeStyle=pc.inner;cx.lineWidth=ts(1.5);
+  cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
+  for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
 }
 function drawFlow(){
   const pf=S.power/100;
@@ -1000,7 +1012,8 @@ function drawFlow(){
 function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
-  arrow(365,180,365,400,c);arrow(340,440,260,440,c);
+  arrow(365,180,365,400,c);arrow(400,165,400,380,c);arrow(395,432,372,432,c);
+  arrow(340,440,260,440,c);
   arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
@@ -1117,6 +1130,15 @@ function drawCore(){
   }
   const labelCol=isDark?'#c0c0b8':'#4a4a45';
   const subCol=isDark?'#908880':'#808078';
+  const fxL=80,fxR=238;
+  cx.save();
+  cx.strokeStyle=isDark?'rgba(220,150,90,.52)':'rgba(120,70,30,.4)';
+  cx.lineWidth=ts(1.05);
+  cx.setLineDash([ts(3.5),ts(2.5)]);
+  cx.strokeRect(tx(fxL),ty(chT-5),ts(fxR-fxL),ts(chH+10));
+  cx.setLineDash([]);
+  cx.restore();
+  label('Fuel in pressure tubes (schematic)',(fxL+fxR)/2,chT-12,6.2,subCol);
   label('3. REACTOR CORE',ccx,598,10,labelCol,true);
   label('Graphite · '+V.channels+' Ch.',ccx,612,7,subCol);
   pipeLabelStroke('UO₂ FUEL',ccx,ccy-10,8.5,isDark?'#d0a060':'#8a4a20');
@@ -1281,8 +1303,8 @@ function drawPipeLabels(){
   pipeLabelStroke('Steam-Water Mix',220,95,6.5,isDark?'#d0a080':'#804030');
   label('Dry Steam',490,98,6.5,isDark?'#c0a060':'#906830');
   const rw=isDark?'#60a8d0':'#2a5a88';
-  pipeLabelStroke('Return',292,426,6.5,rw);
-  pipeLabelStroke('Water',292,436,6.5,rw);
+  pipeLabelStroke('Return',418,268,6.2,rw);
+  pipeLabelStroke('Water',418,278,6.2,rw);
   label('Exhaust',768,298,6.5,isDark?'#a0a098':'#808078');
   label('Condensate',638,468,6.2,isDark?'#60a8d0':'#306898');
   label('Feedwater',582,178,6.2,isDark?'#60a8d0':'#306898');
@@ -1875,10 +1897,10 @@ function frame(t){
   drawPipes();
   drawFlow();
   drawArrows();
-  drawPipeLabels();
   drawShielding();
   drawCore();
   drawDrumSep();
+  drawThinReturnRiser();
   drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
   drawPump(490,616,24,'2. MCP','(Loop 2, 4 pumps)',true);
   drawShaft();
@@ -1891,6 +1913,7 @@ function frame(t){
   drawCoolingTower();
   drawLeaks();
   drawGraph();
+  drawPipeLabels();
 
   cx.restore();
 
