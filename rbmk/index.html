@@ -131,6 +131,9 @@ canvas{display:block}
 }
 .ctrl .b-icon .b-ico{display:block;width:18px;height:18px;margin:auto}
 .ctrl .b-icon svg{display:block;width:18px;height:18px}
+.b-ico-txt{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:42px;padding:4px 9px}
+.b-ico-txt .sc-ico{flex-shrink:0;width:15px;height:15px;display:block}
+#btnPause .b-ico{display:flex;align-items:center;justify-content:center;min-width:18px;min-height:18px}
 .ctrl input[type=range]{
   -webkit-appearance:none;appearance:none;
   width:100px;height:4px;
@@ -390,6 +393,7 @@ canvas{display:block}
   .ctrl .cg-row>.mode-sel,.ctrl .cg-row>.variant-sel{min-height:40px}
   .ctrl .b-icon{min-width:44px;width:44px;min-height:44px;padding:6px}
   .ctrl .b-icon .b-ico,.ctrl .b-icon svg{width:22px;height:22px}
+  .b-ico-txt .sc-ico{width:17px;height:17px}
   .ctrl input[type=range]{width:min(140px,50vw);height:5px}
   .ctrl input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
   .ctrl input[type=range]::-moz-range-thumb{width:20px;height:20px}
@@ -457,13 +461,21 @@ canvas{display:block}
       <input type="range" id="sRod" min="0" max="100" value="100"
         aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"
         aria-label="Control rods: 0% fully inserted, 100% fully withdrawn">
-      <button type="button" class="b sc" id="btnScram" aria-label="SCRAM — emergency shutdown">SCRAM</button>
+      <button type="button" class="b sc b-ico-txt" id="btnScram" aria-label="SCRAM — emergency shutdown">
+        <svg class="sc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5L4.5 6.5v11l7.5 4 7.5-4v-11L12 2.5z"/><rect x="8" y="8" width="2.8" height="8" rx=".6" fill="currentColor" stroke="none"/><rect x="13.2" y="8" width="2.8" height="8" rx=".6" fill="currentColor" stroke="none"/></svg>
+        <span>SCRAM</span>
+      </button>
     </div>
   </div>
   <div class="cg">
     <span class="cg-lbl">Time</span>
     <div class="cg-row">
-      <button type="button" class="b pa" id="btnPause" aria-pressed="false">Pause</button>
+      <button type="button" class="b pa b-icon" id="btnPause" title="Pause / resume" aria-label="Pause simulation" aria-pressed="false">
+        <span class="b-ico" aria-hidden="true">
+          <svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+          <svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M8 5v14l11-7L8 5z"/></svg>
+        </span>
+      </button>
       <select class="mode-sel" id="selSpeed" aria-label="Simulation speed">
         <option value="1">1×</option>
         <option value="2">2×</option>
@@ -512,7 +524,9 @@ canvas{display:block}
         </svg></span>
       </button>
       <button type="button" class="b" id="btnDebrief" aria-label="Show debrief">Debrief</button>
-      <button type="button" class="b" id="btnShare" aria-label="Share state via URL">Share</button>
+      <button type="button" class="b b-icon" id="btnShare" title="Copy share link" aria-label="Share state via URL">
+        <span class="b-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></span>
+      </button>
       <button type="button" class="b rs" id="btnReset" aria-label="Reset simulation">Reset</button>
     </div>
   </div>
@@ -900,7 +914,9 @@ function updateZoom(){
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
+  mcpHeaderL2:{pts:[[240,440],[155,440],[155,592]],fluid:'water'},
   mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
+  mcp2ToCore:{pts:[[155,640],[155,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
   hpToMSR:{pts:[[595,112],[610,112]],fluid:'steam'},
   msrToLP:{pts:[[640,112],[672,112]],fluid:'steam'},
@@ -1000,8 +1016,9 @@ function drawFlow(){
 function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
-  arrow(365,180,365,400,c);arrow(340,440,260,440,c);
-  arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
+  arrow(365,180,365,400,c);arrow(340,440,268,440,c);arrow(228,440,162,440,c);
+  arrow(240,640,240,665,c);arrow(155,605,155,632,c);
+  arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c);arrow(540,440,540,220,c);arrow(520,200,450,200,c);
@@ -1296,9 +1313,8 @@ function drawPipeLabels(){
   const fw=isDark?'#60a8d0':'#2a5a88';
   pipeLabelStroke('Feedwater',540,326,6.2,fw);
   label('Cooling',848,472,6.2,isDark?'#50a8d0':'#286898');
-  const ms=isDark?'#9ab88a':'#4a6a4a';
-  pipeLabelStroke('6. MOISTURE',625,44,7.5,ms);
-  pipeLabelStroke('SEPARATOR',625,55,7.5,ms);
+  /* MSR: same style as turbines (label 10 bold); mx,my,mh match drawMSR */
+  label('6. MOISTURE\nSEPARATOR',625,151,10,isDark?'#8a9a70':'#4a5a40',true);
 }
 
 function drawLeaks(){
@@ -1734,7 +1750,7 @@ function doReset(){
   el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
   el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
   el('flash').classList.remove('on');
-  el('btnPause').textContent='Pause';el('btnPause').setAttribute('aria-pressed','false');
+  syncPauseButton();
   updateTimeScaleUI();
   showP('Reactor Reset — All Systems Nominal');logEvent('Reset');
 }
@@ -1768,11 +1784,17 @@ function showP(text,danger){
 /* ═══════════════════════════════════════════════════
    §23  PAUSE & TIME SCALE
    ═══════════════════════════════════════════════════ */
+function syncPauseButton(){
+  const btn=el('btnPause');if(!btn)return;
+  btn.setAttribute('aria-pressed',S.paused?'true':'false');
+  btn.setAttribute('aria-label',S.paused?'Resume simulation':'Pause simulation');
+  const p=btn.querySelector('.ic-pause'),pl=btn.querySelector('.ic-play');
+  if(p)p.style.display=S.paused?'none':'block';
+  if(pl)pl.style.display=S.paused?'block':'none';
+}
 el('btnPause').addEventListener('click',togglePause);
 function togglePause(){
-  S.paused=!S.paused;
-  el('btnPause').textContent=S.paused?'Play':'Pause';
-  el('btnPause').setAttribute('aria-pressed',S.paused?'true':'false');
+  S.paused=!S.paused;syncPauseButton();
 }
 
 el('selSpeed').addEventListener('change',e=>{
@@ -1837,6 +1859,7 @@ function loadFromURL(){
 }
 loadFromURL();
 syncSoundButton();
+syncPauseButton();
 
 /* ═══════════════════════════════════════════════════
    §28  KEYBOARD SHORTCUTS
