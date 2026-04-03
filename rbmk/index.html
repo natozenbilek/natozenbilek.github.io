@@ -147,9 +147,9 @@ canvas{display:block}
   background:rgba(255,255,255,.85);
   border:1px solid rgba(200,198,190,.7);
   color:var(--text-1);
-  padding:6px 11px;border-radius:5px;font-size:.78rem;cursor:pointer;
+  padding:4px 7px;border-radius:5px;font-size:.7rem;cursor:pointer;
   transition:all .18s ease;
-  font-family:inherit;font-weight:600;text-align:center;min-width:64px;
+  font-family:inherit;font-weight:600;text-align:center;min-width:42px;
   letter-spacing:.02px;line-height:1.2;
   box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
@@ -179,13 +179,6 @@ canvas{display:block}
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);
   white-space:nowrap;border:0;
 }
-.skip{
-  position:absolute;left:12px;top:8px;z-index:100;padding:10px 16px;background:#1e3e60;color:#fff;
-  font-size:.85rem;font-weight:600;border-radius:8px;text-decoration:none;transform:translateY(-120%);
-  transition:transform .2s;
-}
-.skip:focus{transform:translateY(0);outline:2px solid #fff;outline-offset:2px}
-
 
 
 /* ── Debrief modal ── */
@@ -397,7 +390,6 @@ canvas{display:block}
 </style>
 </head>
 <body>
-<a class="skip" href="#ctrl-bar">Skip to controls</a>
 <canvas id="c" tabindex="0" role="img" lang="en"
   aria-label="RBMK-1000 primary heat system diagram. Click a labeled plant region to zoom in; click again or press Escape to zoom out."></canvas>
 
@@ -447,7 +439,7 @@ canvas{display:block}
   <div class="sb"><div class="sf" id="bRpm" style="width:0%;background:#3a8a6a"></div></div>
 </div>
 
-<div class="ctrl" id="ctrl-bar" role="toolbar" aria-label="Reactor simulation controls">
+<div class="ctrl" role="toolbar" aria-label="Reactor simulation controls">
   <div class="cg">
     <label class="cg-lbl" for="sRod">Control Rods</label>
     <div class="cg-row">
@@ -460,10 +452,12 @@ canvas{display:block}
   <div class="cg">
     <span class="cg-lbl">Time</span>
     <div class="cg-row">
-      <button type="button" class="b pa" id="btnPause" aria-pressed="false">Play</button>
-      <button type="button" class="b ts-active" data-ts="1" aria-label="1x speed">1x</button>
-      <button type="button" class="b" data-ts="2" aria-label="2x speed">2x</button>
-      <button type="button" class="b" data-ts="5" aria-label="5x speed">5x</button>
+      <button type="button" class="b pa" id="btnPause" aria-pressed="false">Pause</button>
+      <select class="mode-sel" id="selSpeed" aria-label="Simulation speed">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="5">5×</option>
+      </select>
     </div>
   </div>
   <div class="cg">
@@ -807,27 +801,31 @@ function updateAudio(){
    §11  ZONES (tooltip + zoom targets)
    ═══════════════════════════════════════════════════ */
 const zones=[
-  {x:68,y:172,w:184,h:336,title:'Reactor Core',
+  {x:100,y:220,w:120,h:250,title:'Fuel Assemblies (UO₂)',
+   info:'UO₂ fuel enriched to 2.0% U-235. Each of 1661 channels contains two fuel assemblies stacked vertically. 18 fuel rods per assembly in two concentric rings around a central carrier rod. Sintered UO₂ pellets (Ø 11.5 mm) clad in Zr-1%Nb alloy tubing. Active fuel height: 7 m. Total uranium loading: ~192 tonnes.'},
+  {x:68,y:172,w:184,h:336,title:'3 – Reactor Core',
    info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite (mass: 1850 t) serves as neutron moderator while light water acts as both coolant and neutron absorber — the key reason for the positive void coefficient unique to RBMK designs.'},
   {x:30,y:100,w:260,h:480,title:'Concrete Shielding',
    info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
-  {x:335,y:83,w:130,h:58,title:'Drum Separator',
+  {x:335,y:83,w:130,h:58,title:'4 – Drum Separator',
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
-  {x:216,y:592,w:48,h:48,title:'Main Circulation Pump (MCP)',
-   info:'Eight MCPs arranged in 4 per loop. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
-  {x:515,y:72,w:80,h:80,title:'HP Turbine',
+  {x:216,y:592,w:48,h:48,title:'1 – MCP (Loop 1)',
+   info:'Four MCPs in Loop 1. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+  {x:137,y:652,w:36,h:36,title:'2 – MCP (Loop 2)',
+   info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. Both loops feed the same reactor core via separate headers. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+  {x:515,y:72,w:80,h:80,title:'5 – HP Turbine',
    info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
-  {x:610,y:87,w:30,h:50,title:'Moisture Separator / Reheater',
+  {x:610,y:87,w:30,h:50,title:'6 – Moisture Separator',
    info:'Chevron-type vane separators remove water droplets from HP exhaust (moisture ~12% → <0.5%). Prevents blade erosion in LP turbine, improves cycle efficiency by ~3%.'},
-  {x:672,y:64,w:96,h:96,title:'LP Turbine',
+  {x:672,y:64,w:96,h:96,title:'7 – LP Turbine',
    info:'Low-pressure turbine. Inlet: ~1.2 MPa dry steam. Exhaust: ~4 kPa to condenser. Produces ~60% of total electrical output due to larger enthalpy drop.'},
-  {x:823,y:81,w:55,h:62,title:'Generator',
+  {x:823,y:81,w:55,h:62,title:'8 – Generator',
    info:'TVV-500 hydrogen-cooled synchronous generator. Output: 500 MWe per unit (2 units = 1000 MWe). Voltage: 24 kV, stepped up to 330/750 kV for grid transmission.'},
-  {x:678,y:451,w:85,h:48,title:'Condenser',
+  {x:678,y:451,w:85,h:48,title:'9 – Condenser',
    info:'Shell-and-tube heat exchanger with ~30,000 titanium alloy tubes. Condenses exhaust steam at ~4 kPa (~30°C). Cooling water flow: ~120,000 m³/h.'},
-  {x:522,y:457,w:36,h:36,title:'Feedwater Pump',
+  {x:522,y:457,w:36,h:36,title:'10 – Feedwater Pump',
    info:'Multi-stage centrifugal pump returning condensed water at 7 MPa. Feedwater passes through LP heaters, deaerator, and HP heaters for regenerative heating.'},
-  {x:868,y:439,w:45,h:72,title:'Cooling Tower',
+  {x:868,y:439,w:45,h:72,title:'11 – Cooling Tower',
    info:'Natural-draft hyperbolic cooling tower (~150m). Dissipates ~2200 MWt waste heat. Evaporation rate: ~1.5% of flow (~1800 m³/h).'},
 ];
 
@@ -1102,8 +1100,9 @@ function drawCore(){
   }
   const labelCol=isDark?'#c0c0b8':'#4a4a45';
   const subCol=isDark?'#908880':'#808078';
-  label('REACTOR CORE',ccx,598,10,labelCol,true);
+  label('3. REACTOR CORE',ccx,598,10,labelCol,true);
   label('Graphite · '+V.channels+' Ch.',ccx,612,7,subCol);
+  pipeLabelStroke('UO₂ FUEL',ccx,ccy-10,8.5,isDark?'#d0a060':'#8a4a20');
   label('VALVES',160,556,6.5,isDark?'#8a8a82':'#6a6a62',true);
 }
 
@@ -1128,7 +1127,7 @@ function drawDrumSep(){
   }
   cx.restore();
   const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
-  label('DRUM SEPARATOR',dcx,dcy-dh/2-18,10,lc,true);
+  label('4. DRUM SEPARATOR',dcx,dcy-dh/2-18,10,lc,true);
   label('(4 units, Ø 2.3m)',dcx,dcy-dh/2-6,7,sc2);
 }
 
@@ -1136,20 +1135,20 @@ function drawPump(pcx,pcy,r,lbl,sub){
   const pf=Math.min(1,S.power/100);
   cx.fillStyle=isDark?'#3a4048':'#ced6de';cx.strokeStyle=isDark?'#5a6878':'#8a9aa8';cx.lineWidth=ts(1.8);
   cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
-  const spd=S.time*(1+pf*4)*(S.mcpTrip&&lbl==='MCP'?.1:1);
+  const spd=S.time*(1+pf*4)*(S.mcpTrip&&lbl.includes('MCP')?.1:1);
   cx.save();cx.translate(tx(pcx),ty(pcy));cx.rotate(spd);
   cx.strokeStyle=`rgba(70,100,130,${.25+pf*.5})`;cx.lineWidth=ts(2);
   for(let b=0;b<6;b++){const a=b*Math.PI/3;cx.beginPath();cx.moveTo(0,0);
     cx.quadraticCurveTo(Math.cos(a+.4)*ts(r*.4),Math.sin(a+.4)*ts(r*.4),Math.cos(a)*ts(r*.7),Math.sin(a)*ts(r*.7));cx.stroke()}
   cx.restore();
   cx.fillStyle=isDark?'#5a6878':'#8a9aaa';cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(4),0,Math.PI*2);cx.fill();
-  if(S.mcpTrip&&lbl==='MCP'){
+  if(S.mcpTrip&&lbl.includes('MCP')){
     cx.strokeStyle='rgba(200,50,50,.6)';cx.lineWidth=ts(2);
     cx.beginPath();cx.moveTo(tx(pcx-r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx+r*.7),ty(pcy+r*.7));cx.stroke();
     cx.beginPath();cx.moveTo(tx(pcx+r*.7),ty(pcy-r*.7));cx.lineTo(tx(pcx-r*.7),ty(pcy+r*.7));cx.stroke();
   }
   const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
-  if(sub&&lbl==='MCP'){
+  if(sub&&lbl.includes('MCP')){
     const lx=pcx+r+12;
     label(lbl,lx,pcy-4,9.5,lc,true,'left');label(sub,lx,pcy+10,7,sc2,false,'left');
   }else{label(lbl,pcx,pcy+r+12,9.5,lc,true);if(sub)label(sub,pcx,pcy+r+24,7,sc2)}
@@ -1190,7 +1189,7 @@ function drawMSR(){
   cx.strokeStyle=`rgba(80,130,200,${.1+pf*.15})`;cx.lineWidth=ts(.8);
   for(let v=0;v<3;v++){const vy=my-mh*.25+v*mh*.25;
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke()}
-  label('MOISTURE\nSEPARATOR',mx,my-mh/2-22,8.5,isDark?'#8a9a70':'#4a5a40',true);
+  label('6. MOISTURE\nSEPARATOR',mx,my-mh/2-22,8.5,isDark?'#8a9a70':'#4a5a40',true);
 }
 
 function drawGenerator(){
@@ -1208,7 +1207,7 @@ function drawGenerator(){
     const sa=.2+pf*.4;
     cx.fillStyle=`rgba(40,140,40,${sa})`;cx.font=cFont(Math.max(8,ts(7)),true);cx.textAlign='center';cx.fillText('~',tx(gx),ty(gy+4));
   }
-  label('GENERATOR',gx,gy-gh/2-16,10,isDark?'#5aaa5a':'#3a6a3a',true);
+  label('8. GENERATOR',gx,gy-gh/2-16,10,isDark?'#5aaa5a':'#3a6a3a',true);
   label(S.elec.toFixed(0)+' MWe',gx,gy-gh/2-4,7.5,pf>.08?(isDark?'#5aaa5a':'#2a6a2a'):(isDark?'#5a5a52':'#9a9a90'));
 }
 
@@ -1233,7 +1232,7 @@ function drawCondenser(){
     cx.fillStyle='rgba(50,120,200,.3)';cx.beginPath();
     cx.arc(tx(ccx+cw*.3+Math.random()*10),ty(ccy-ch*.3+Math.random()*ch*.6),ts(1.5),0,Math.PI*2);cx.fill();
   }
-  label('CONDENSER',ccx,ccy+ch/2+14,10,isDark?'#6a90b0':'#4a6080',true);
+  label('9. CONDENSER',ccx,ccy+ch/2+14,10,isDark?'#6a90b0':'#4a6080',true);
 }
 
 function drawCoolingTower(){
@@ -1253,13 +1252,13 @@ function drawCoolingTower(){
     if(a>0){const r=4+p*1.5+Math.sin(S.time*.8+p)*1.5;
       cx.fillStyle=`rgba(180,190,200,${Math.min(.4,a)})`;cx.beginPath();cx.arc(tx(px),ty(py),ts(r),0,Math.PI*2);cx.fill()}
   }
-  label('COOLING\nTOWER',ctcx,bot+10,9,isDark?'#a0a098':'#5a5a52',true);
+  label('11. COOLING\nTOWER',ctcx,bot+10,9,isDark?'#a0a098':'#5a5a52',true);
 }
 
 function drawPipeLabels(){
   pipeLabelStroke('Steam-Water Mix',220,95,6.5,isDark?'#d0a080':'#804030');
   label('Dry Steam',490,98,6.5,isDark?'#c0a060':'#906830');
-  label('Return Water',300,415,6.5,isDark?'#60a8d0':'#306898');
+  pipeLabelStroke('Return Water',305,425,7,isDark?'#60a8d0':'#2a5a88');
   label('Exhaust',756,305,6.5,isDark?'#a0a098':'#808078');
   label('Condensate',620,461,6.5,isDark?'#60a8d0':'#306898');
   label('Feedwater',570,185,6.5,isDark?'#60a8d0':'#306898');
@@ -1699,7 +1698,7 @@ function doReset(){
   el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
   el('btnPipe').classList.remove('on');el('btnPipe').setAttribute('aria-pressed','false');
   el('flash').classList.remove('on');
-  el('btnPause').textContent='Play';el('btnPause').setAttribute('aria-pressed','false');
+  el('btnPause').textContent='Pause';el('btnPause').setAttribute('aria-pressed','false');
   updateTimeScaleUI();
   showP('Reactor Reset — All Systems Nominal');logEvent('Reset');
 }
@@ -1734,15 +1733,11 @@ function togglePause(){
   el('btnPause').setAttribute('aria-pressed',S.paused?'true':'false');
 }
 
-const tsBtns=document.querySelectorAll('[data-ts]');
-tsBtns.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    S.timeScale=parseFloat(btn.dataset.ts);
-    updateTimeScaleUI();
-  });
+el('selSpeed').addEventListener('change',e=>{
+  S.timeScale=parseFloat(e.target.value);
 });
 function updateTimeScaleUI(){
-  tsBtns.forEach(b=>{b.classList.toggle('ts-active',parseFloat(b.dataset.ts)===S.timeScale)});
+  el('selSpeed').value=String(S.timeScale);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1853,14 +1848,15 @@ function frame(t){
   drawShielding();
   drawCore();
   drawDrumSep();
-  drawPump(240,616,24,'MCP','(8 pumps, 2 loops)');
+  drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
+  drawPump(155,670,18,'2. MCP','(Loop 2, 4 pumps)');
   drawShaft();
-  drawTurbine(555,112,40,'HP TURBINE',12);
+  drawTurbine(555,112,40,'5. HP TURBINE',12);
   drawMSR();
-  drawTurbine(720,112,48,'LP TURBINE',16);
+  drawTurbine(720,112,48,'7. LP TURBINE',16);
   drawGenerator();
   drawCondenser();
-  drawPump(540,475,18,'FW PUMP',null);
+  drawPump(540,475,18,'10. FW PUMP',null);
   drawCoolingTower();
   drawLeaks();
   drawGraph();
