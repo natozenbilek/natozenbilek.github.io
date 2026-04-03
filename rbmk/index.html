@@ -828,7 +828,7 @@ const zones=[
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
   {x:216,y:592,w:48,h:48,title:'1 – MCP (Loop 1)',
    info:'Four MCPs in Loop 1. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
-  {x:466,y:592,w:48,h:48,title:'2 – MCP (Loop 2)',
+  {x:131,y:592,w:48,h:48,title:'2 – MCP (Loop 2)',
    info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. Both loops feed the same reactor core via separate headers. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
   {x:515,y:72,w:80,h:80,title:'5 – HP Turbine',
    info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
@@ -899,8 +899,6 @@ function updateZoom(){
    ═══════════════════════════════════════════════════ */
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
-  /* Thin downcomer from drum → joins main MCP header (drawn after drum so it exits below vessel) */
-  sepReturnRiser:{pts:[[400,141],[400,432],[365,432],[365,440]],fluid:'water',thin:true},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
   mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
@@ -969,8 +967,7 @@ const pipeColors={
   cool:{outer:'#4088b8',inner:'#70b0d8'},
 };
 function drawPipes(){
-  const list=Object.values(pipes);
-  list.filter(p=>!p.thin).forEach(p=>{
+  Object.values(pipes).forEach(p=>{
     const pc=pipeColors[p.fluid]||pipeColors.water;
     cx.strokeStyle=pc.outer;cx.lineWidth=ts(9);cx.lineCap='round';cx.lineJoin='round';
     cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
@@ -979,15 +976,6 @@ function drawPipes(){
     cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
     for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
   });
-}
-function drawThinReturnRiser(){
-  const p=pipes.sepReturnRiser,pc=pipeColors.water;
-  cx.strokeStyle=pc.outer;cx.lineWidth=ts(3.2);cx.lineCap='round';cx.lineJoin='round';
-  cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
-  for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
-  cx.strokeStyle=pc.inner;cx.lineWidth=ts(1.5);
-  cx.beginPath();cx.moveTo(tx(p.pts[0][0]),ty(p.pts[0][1]));
-  for(let i=1;i<p.pts.length;i++)cx.lineTo(tx(p.pts[i][0]),ty(p.pts[i][1]));cx.stroke();
 }
 function drawFlow(){
   const pf=S.power/100;
@@ -1012,8 +1000,7 @@ function drawFlow(){
 function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
-  arrow(365,180,365,400,c);arrow(400,165,400,380,c);arrow(395,432,372,432,c);
-  arrow(340,440,260,440,c);
+  arrow(365,180,365,400,c);arrow(340,440,260,440,c);
   arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
@@ -1233,7 +1220,6 @@ function drawMSR(){
   cx.strokeStyle=`rgba(80,130,200,${.1+pf*.15})`;cx.lineWidth=ts(.8);
   for(let v=0;v<3;v++){const vy=my-mh*.25+v*mh*.25;
     cx.beginPath();cx.moveTo(tx(mx-mw*.35),ty(vy));cx.lineTo(tx(mx),ty(vy+4));cx.lineTo(tx(mx+mw*.35),ty(vy));cx.stroke()}
-  label('6. MOISTURE\nSEPARATOR',mx,my-mh/2-22,8.5,isDark?'#8a9a70':'#4a5a40',true);
 }
 
 function drawGenerator(){
@@ -1303,12 +1289,16 @@ function drawPipeLabels(){
   pipeLabelStroke('Steam-Water Mix',220,95,6.5,isDark?'#d0a080':'#804030');
   label('Dry Steam',490,98,6.5,isDark?'#c0a060':'#906830');
   const rw=isDark?'#60a8d0':'#2a5a88';
-  pipeLabelStroke('Return',418,268,6.2,rw);
-  pipeLabelStroke('Water',418,278,6.2,rw);
+  pipeLabelStroke('Return',330,288,6.2,rw);
+  pipeLabelStroke('Water',330,298,6.2,rw);
   label('Exhaust',768,298,6.5,isDark?'#a0a098':'#808078');
   label('Condensate',638,468,6.2,isDark?'#60a8d0':'#306898');
-  label('Feedwater',582,178,6.2,isDark?'#60a8d0':'#306898');
+  const fw=isDark?'#60a8d0':'#2a5a88';
+  pipeLabelStroke('Feedwater',540,326,6.2,fw);
   label('Cooling',848,472,6.2,isDark?'#50a8d0':'#286898');
+  const ms=isDark?'#9ab88a':'#4a6a4a';
+  pipeLabelStroke('6. MOISTURE',625,44,7.5,ms);
+  pipeLabelStroke('SEPARATOR',625,55,7.5,ms);
 }
 
 function drawLeaks(){
@@ -1900,9 +1890,8 @@ function frame(t){
   drawShielding();
   drawCore();
   drawDrumSep();
-  drawThinReturnRiser();
   drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
-  drawPump(490,616,24,'2. MCP','(Loop 2, 4 pumps)',true);
+  drawPump(155,616,24,'2. MCP','(Loop 2, 4 pumps)',true);
   drawShaft();
   drawTurbine(555,112,40,'5. HP TURBINE',12);
   drawMSR();
