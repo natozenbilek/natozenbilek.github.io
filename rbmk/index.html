@@ -828,7 +828,7 @@ const zones=[
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
   {x:216,y:592,w:48,h:48,title:'1 – MCP (Loop 1)',
    info:'Four MCPs in Loop 1. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
-  {x:137,y:652,w:36,h:36,title:'2 – MCP (Loop 2)',
+  {x:466,y:592,w:48,h:48,title:'2 – MCP (Loop 2)',
    info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. Both loops feed the same reactor core via separate headers. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
   {x:515,y:72,w:80,h:80,title:'5 – HP Turbine',
    info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
@@ -900,9 +900,7 @@ function updateZoom(){
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
-  sepToMCP2:{pts:[[352,141],[352,438],[155,438],[155,652]],fluid:'water'},
   mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
-  mcp2ToCore:{pts:[[155,688],[155,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
   hpToMSR:{pts:[[595,112],[610,112]],fluid:'steam'},
   msrToLP:{pts:[[640,112],[672,112]],fluid:'steam'},
@@ -1003,9 +1001,7 @@ function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
   arrow(365,180,365,400,c);arrow(340,440,260,440,c);
-  arrow(352,180,352,395,c);arrow(335,438,168,438,c);
-  arrow(240,640,240,665,c);arrow(155,655,155,672,c);
-  arrow(220,670,110,670,c);arrow(85,650,85,600,c);
+  arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c);arrow(540,440,540,220,c);arrow(520,200,450,200,c);
@@ -1152,7 +1148,7 @@ function drawDrumSep(){
   label('(4 units, Ø 2.3m)',dcx,dcy-dh/2-6,7,sc2);
 }
 
-function drawPump(pcx,pcy,r,lbl,sub){
+function drawPump(pcx,pcy,r,lbl,sub,mcpLabelsLeft){
   const pf=Math.min(1,S.power/100);
   cx.fillStyle=isDark?'#3a4048':'#ced6de';cx.strokeStyle=isDark?'#5a6878':'#8a9aa8';cx.lineWidth=ts(1.8);
   cx.beginPath();cx.arc(tx(pcx),ty(pcy),ts(r),0,Math.PI*2);cx.fill();cx.stroke();
@@ -1170,8 +1166,13 @@ function drawPump(pcx,pcy,r,lbl,sub){
   }
   const lc=isDark?'#c0c0b8':'#4a4a45',sc2=isDark?'#908880':'#808078';
   if(sub&&lbl.includes('MCP')){
-    const lx=pcx+r+12;
-    label(lbl,lx,pcy-4,9.5,lc,true,'left');label(sub,lx,pcy+10,7,sc2,false,'left');
+    if(mcpLabelsLeft){
+      const lx=pcx-r-12;
+      label(lbl,lx,pcy-4,9.5,lc,true,'right');label(sub,lx,pcy+10,7,sc2,false,'right');
+    }else{
+      const lx=pcx+r+12;
+      label(lbl,lx,pcy-4,9.5,lc,true,'left');label(sub,lx,pcy+10,7,sc2,false,'left');
+    }
   }else{label(lbl,pcx,pcy+r+12,9.5,lc,true);if(sub)label(sub,pcx,pcy+r+24,7,sc2)}
 }
 
@@ -1879,7 +1880,7 @@ function frame(t){
   drawCore();
   drawDrumSep();
   drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
-  drawPump(155,670,18,'2. MCP','(Loop 2, 4 pumps)');
+  drawPump(490,616,24,'2. MCP','(Loop 2, 4 pumps)',true);
   drawShaft();
   drawTurbine(555,112,40,'5. HP TURBINE',12);
   drawMSR();
