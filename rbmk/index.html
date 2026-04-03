@@ -123,6 +123,14 @@ canvas{display:block}
   opacity:.8;
 }
 .cg-row{display:flex;gap:5px;align-items:center}
+.ctrl .cg-row>.b,.ctrl .cg-row>.mode-sel,.ctrl .cg-row>.variant-sel{
+  min-height:30px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+}
+.ctrl .b-icon{
+  min-width:30px;width:30px;padding:4px;flex-shrink:0;
+}
+.ctrl .b-icon .b-ico{display:block;width:18px;height:18px;margin:auto}
+.ctrl .b-icon svg{display:block;width:18px;height:18px}
 .ctrl input[type=range]{
   -webkit-appearance:none;appearance:none;
   width:100px;height:4px;
@@ -379,6 +387,9 @@ canvas{display:block}
   .cg{width:100%;max-width:100%;padding:6px 8px 7px}
   .cg-row{flex-wrap:wrap;justify-content:center;gap:6px}
   .b{min-height:40px;min-width:min(44px,100%);padding:8px 12px;border-radius:6px}
+  .ctrl .cg-row>.mode-sel,.ctrl .cg-row>.variant-sel{min-height:40px}
+  .ctrl .b-icon{min-width:44px;width:44px;min-height:44px;padding:6px}
+  .ctrl .b-icon .b-ico,.ctrl .b-icon svg{width:22px;height:22px}
   .ctrl input[type=range]{width:min(140px,50vw);height:5px}
   .ctrl input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
   .ctrl input[type=range]::-moz-range-thumb{width:20px;height:20px}
@@ -493,7 +504,13 @@ canvas{display:block}
   <div class="cg">
     <span class="cg-lbl">System</span>
     <div class="cg-row">
-      <button type="button" class="b" id="btnSound" style="min-width:82px" aria-pressed="false">Sound: OFF</button>
+      <button type="button" class="b b-icon" id="btnSound" title="Sound" aria-label="Sound off — click to enable" aria-pressed="false">
+        <span class="b-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5L6 9H3v6h3l5 4V5z"/>
+          <path class="snd-waves" d="M15.54 8.46a5 5 0 010 7.07M17.66 6.34a8 8 0 010 11.32" style="display:none"/>
+          <path class="snd-off" d="M2 3l20 20"/>
+        </svg></span>
+      </button>
       <button type="button" class="b" id="btnDebrief" aria-label="Show debrief">Debrief</button>
       <button type="button" class="b" id="btnShare" aria-label="Share state via URL">Share</button>
       <button type="button" class="b rs" id="btnReset" aria-label="Reset simulation">Reset</button>
@@ -883,7 +900,9 @@ function updateZoom(){
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
+  sepToMCP2:{pts:[[352,141],[352,438],[155,438],[155,652]],fluid:'water'},
   mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
+  mcp2ToCore:{pts:[[155,688],[155,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
   hpToMSR:{pts:[[595,112],[610,112]],fluid:'steam'},
   msrToLP:{pts:[[640,112],[672,112]],fluid:'steam'},
@@ -984,7 +1003,9 @@ function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
   arrow(365,180,365,400,c);arrow(340,440,260,440,c);
-  arrow(240,640,240,665,c);arrow(220,670,110,670,c);arrow(85,650,85,600,c);
+  arrow(352,180,352,395,c);arrow(335,438,168,438,c);
+  arrow(240,640,240,665,c);arrow(155,655,155,672,c);
+  arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
   arrow(660,475,575,475,c);arrow(540,440,540,220,c);arrow(520,200,450,200,c);
@@ -1103,7 +1124,7 @@ function drawCore(){
   label('3. REACTOR CORE',ccx,598,10,labelCol,true);
   label('Graphite · '+V.channels+' Ch.',ccx,612,7,subCol);
   pipeLabelStroke('UO₂ FUEL',ccx,ccy-10,8.5,isDark?'#d0a060':'#8a4a20');
-  label('VALVES',160,556,6.5,isDark?'#8a8a82':'#6a6a62',true);
+  label('VALVES',178,562,6.2,isDark?'#8a8a82':'#6a6a62',true);
 }
 
 function drawDrumSep(){
@@ -1258,11 +1279,13 @@ function drawCoolingTower(){
 function drawPipeLabels(){
   pipeLabelStroke('Steam-Water Mix',220,95,6.5,isDark?'#d0a080':'#804030');
   label('Dry Steam',490,98,6.5,isDark?'#c0a060':'#906830');
-  pipeLabelStroke('Return Water',305,425,7,isDark?'#60a8d0':'#2a5a88');
-  label('Exhaust',756,305,6.5,isDark?'#a0a098':'#808078');
-  label('Condensate',620,461,6.5,isDark?'#60a8d0':'#306898');
-  label('Feedwater',570,185,6.5,isDark?'#60a8d0':'#306898');
-  label('Cooling',835,468,6.5,isDark?'#50a8d0':'#286898');
+  const rw=isDark?'#60a8d0':'#2a5a88';
+  pipeLabelStroke('Return',292,426,6.5,rw);
+  pipeLabelStroke('Water',292,436,6.5,rw);
+  label('Exhaust',768,298,6.5,isDark?'#a0a098':'#808078');
+  label('Condensate',638,468,6.2,isDark?'#60a8d0':'#306898');
+  label('Feedwater',582,178,6.2,isDark?'#60a8d0':'#306898');
+  label('Cooling',848,472,6.2,isDark?'#50a8d0':'#286898');
 }
 
 function drawLeaks(){
@@ -1703,11 +1726,17 @@ function doReset(){
   showP('Reactor Reset — All Systems Nominal');logEvent('Reset');
 }
 
+function syncSoundButton(){
+  const btn=el('btnSound');if(!btn)return;
+  btn.setAttribute('aria-pressed',S.soundOn?'true':'false');
+  btn.setAttribute('aria-label',S.soundOn?'Sound on — click to mute':'Sound off — click to enable');
+  const w=btn.querySelector('.snd-waves'),s=btn.querySelector('.snd-off');
+  if(w)w.style.display=S.soundOn?'':'none';
+  if(s)s.style.display=S.soundOn?'none':'';
+  btn.classList.toggle('on',S.soundOn);
+}
 el('btnSound').addEventListener('click',()=>{
-  initAudio();S.soundOn=!S.soundOn;
-  el('btnSound').textContent='Sound: '+(S.soundOn?'ON':'OFF');
-  el('btnSound').classList.toggle('on',S.soundOn);
-  el('btnSound').setAttribute('aria-pressed',S.soundOn?'true':'false');
+  initAudio();S.soundOn=!S.soundOn;syncSoundButton();
   if(S.soundOn&&ac.state==='suspended')ac.resume();
 });
 
@@ -1794,6 +1823,7 @@ function loadFromURL(){
   }catch(e){}
 }
 loadFromURL();
+syncSoundButton();
 
 /* ═══════════════════════════════════════════════════
    §28  KEYBOARD SHORTCUTS
