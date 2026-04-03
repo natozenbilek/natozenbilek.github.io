@@ -840,9 +840,9 @@ const zones=[
    info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
   {x:335,y:83,w:130,h:58,title:'4 – Drum Separator',
    info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
-  {x:216,y:448,w:48,h:48,title:'2 – MCP (Loop 2)',
-   info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. Both loops share the same downcomer from the drum in this schematic. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
-  {x:216,y:544,w:48,h:48,title:'1 – MCP (Loop 1)',
+  {x:279,y:416,w:48,h:48,title:'2 – MCP (Loop 2)',
+   info:'Four MCPs in Loop 2. Each pump: 5500 kW, flow rate ~8000 m³/h. In this schematic Loop 2 sits on the horizontal feed leg (same line as the drum downcomer — no extra branch). Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+  {x:216,y:592,w:48,h:48,title:'1 – MCP (Loop 1)',
    info:'Four MCPs in Loop 1. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
   {x:515,y:72,w:80,h:80,title:'5 – HP Turbine',
    info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
@@ -914,7 +914,7 @@ function updateZoom(){
 const pipes={
   coreToSep:{pts:[[160,163],[160,112],[335,112]],fluid:'mix'},
   sepToMCP:{pts:[[365,141],[365,440],[240,440],[240,592]],fluid:'water'},
-  mcpToCore:{pts:[[240,592],[240,670],[85,670],[85,580]],fluid:'water'},
+  mcpToCore:{pts:[[240,640],[240,670],[85,670],[85,580]],fluid:'water'},
   sepToHP:{pts:[[465,112],[515,112]],fluid:'steam'},
   hpToMSR:{pts:[[595,112],[610,112]],fluid:'steam'},
   msrToLP:{pts:[[640,112],[672,112]],fluid:'steam'},
@@ -1014,8 +1014,8 @@ function drawFlow(){
 function drawArrows(){
   const c='rgba(80,90,100,.7)';
   arrow(160,150,160,120,c);arrow(180,112,315,112,c);
-  arrow(365,180,365,400,c);arrow(340,440,260,440,c);
-  arrow(240,455,240,545,c);arrow(240,592,240,655,c);
+  arrow(365,180,365,400,c);arrow(340,440,268,440,c);arrow(318,440,252,440,c);
+  arrow(240,640,240,665,c);arrow(240,592,240,620,c);
   arrow(220,670,110,670,c);arrow(85,650,85,600,c);
   arrow(470,112,510,112,c);arrow(598,112,606,112,c);arrow(645,112,667,112,c);
   arrow(720,180,720,420,c);
@@ -1911,8 +1911,8 @@ function frame(t){
   drawShielding();
   drawCore();
   drawDrumSep();
-  drawPump(240,472,24,'2. MCP','(Loop 2, 4 pumps)');
-  drawPump(240,568,24,'1. MCP','(Loop 1, 4 pumps)');
+  drawPump(303,440,24,'2. MCP','(Loop 2, 4 pumps)');
+  drawPump(240,616,24,'1. MCP','(Loop 1, 4 pumps)');
   drawShaft();
   drawTurbine(555,112,40,'5. HP TURBINE',12);
   drawMSR();
