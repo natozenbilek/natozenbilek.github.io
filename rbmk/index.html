@@ -808,27 +808,27 @@ function updateAudio(){
    ═══════════════════════════════════════════════════ */
 const zones=[
   {x:68,y:172,w:184,h:336,title:'Reactor Core',
-   info:'1661 pressure channels in a graphite moderator matrix. Each channel contains two fuel assemblies of UO₂ enriched to 2%. Thermal output: 3200 MWt. Graphite (mass: 1850 t) serves as neutron moderator while light water acts as both coolant and neutron absorber — the key reason for the positive void coefficient unique to RBMK designs.'},
+   info:'This is the heart of the reactor. It contains 1661 pressure channels in a graphite moderator, with two fuel assemblies in each channel. Light water cools the core while graphite moderates neutrons, which is why RBMK units can show a positive void effect under certain conditions.'},
   {x:30,y:100,w:260,h:480,title:'Concrete Shielding',
-   info:'Biological shield with upper (UBS, 3m thick steel+serpentinite) and lower (LBS) structures. Surrounded by a sand-filled annular tank and 2m thick reinforced concrete walls. Reduces neutron flux by ~10⁹ and gamma radiation to safe levels outside the vault.'},
+   info:'This biological shielding protects personnel and surrounding systems from radiation. It combines upper and lower shielding structures with thick reinforced concrete walls to keep neutron and gamma levels at safe values outside the reactor vault.'},
   {x:335,y:83,w:130,h:58,title:'Drum Separator',
-   info:'Four horizontal drum separators (Ø 2.3m × 31m each). Operating pressure: 7 MPa, steam quality at outlet: >99.8%. Receives steam-water mixture (14-20% steam) from the core.'},
+   info:'The drum separators receive the steam-water mixture coming from the core. Their job is to separate dry steam for the turbine and send water back into the circulation loop.'},
   {x:216,y:592,w:48,h:48,title:'Main Circulation Pump (MCP)',
-   info:'Eight MCPs arranged in 4 per loop. Each pump: 5500 kW, flow rate ~8000 m³/h. Loss of MCPs reduces coolant flow, causing rapid void increase — positive reactivity insertion.'},
+   info:'Main circulation pumps keep coolant moving through the reactor loops. If several pumps trip, coolant flow drops quickly, steam voids increase, and reactivity can rise.'},
   {x:515,y:72,w:80,h:80,title:'HP Turbine',
-   info:'K-500-65/3000 high-pressure turbine. Inlet: saturated steam at 6.5 MPa / 280°C. Rotation: 3000 rpm (50 Hz). Handles initial high-pressure expansion (~40% of electrical output).'},
+   info:'The high-pressure turbine handles the first expansion stage of reactor steam. It extracts a large share of the mechanical energy before steam moves to the next stage.'},
   {x:610,y:87,w:30,h:50,title:'Moisture Separator / Reheater',
-   info:'Chevron-type vane separators remove water droplets from HP exhaust (moisture ~12% → <0.5%). Prevents blade erosion in LP turbine, improves cycle efficiency by ~3%.'},
+   info:'This section removes moisture from turbine exhaust and reheats the steam. Drier steam protects turbine blades and improves overall cycle efficiency.'},
   {x:672,y:64,w:96,h:96,title:'LP Turbine',
-   info:'Low-pressure turbine. Inlet: ~1.2 MPa dry steam. Exhaust: ~4 kPa to condenser. Produces ~60% of total electrical output due to larger enthalpy drop.'},
+   info:'The low-pressure turbine performs the final expansion. Even at lower pressure, this stage contributes a major part of the plant electrical output.'},
   {x:823,y:81,w:55,h:62,title:'Generator',
-   info:'TVV-500 hydrogen-cooled synchronous generator. Output: 500 MWe per unit (2 units = 1000 MWe). Voltage: 24 kV, stepped up to 330/750 kV for grid transmission.'},
+   info:'The generator converts turbine shaft rotation into electrical power. Output from each unit is produced at generator voltage and then stepped up for grid transmission.'},
   {x:678,y:451,w:85,h:48,title:'Condenser',
-   info:'Shell-and-tube heat exchanger with ~30,000 titanium alloy tubes. Condenses exhaust steam at ~4 kPa (~30°C). Cooling water flow: ~120,000 m³/h.'},
+   info:'After the turbine, exhaust steam is cooled in the condenser and turned back into water. This closes the steam-water cycle and helps maintain low turbine back-pressure.'},
   {x:522,y:457,w:36,h:36,title:'Feedwater Pump',
-   info:'Multi-stage centrifugal pump returning condensed water at 7 MPa. Feedwater passes through LP heaters, deaerator, and HP heaters for regenerative heating.'},
+   info:'Feedwater pumps send condensed water back toward the reactor at high pressure. Along the way, the water is preheated to improve thermal efficiency.'},
   {x:868,y:439,w:45,h:72,title:'Cooling Tower',
-   info:'Natural-draft hyperbolic cooling tower (~150m). Dissipates ~2200 MWt waste heat. Evaporation rate: ~1.5% of flow (~1800 m³/h).'},
+   info:'The cooling tower rejects waste heat from the secondary cooling circuit to the atmosphere. It allows the plant to continuously remove heat from the condenser system.'},
 ];
 
 /* ═══════════════════════════════════════════════════
@@ -1374,15 +1374,15 @@ function rodWorth(rodPos){
 }
 
 function voidReactivity(vf){
-  /* Non-linear positive void coefficient — more dangerous at high void fractions */
-  return vf*V.voidCoeff*(1 + vf*0.8);
+  /* Non-linear positive void coefficient — significant but not instantly runaway */
+  return vf*V.voidCoeff*(1 + vf*0.5);
 }
 
 function dopplerFeedback(fuelT){
-  /* Fuel temperature coefficient with non-linear component at high temperatures */
+  /* Fuel temperature coefficient — stronger negative feedback for stability */
   const dT=fuelT-300;
-  const base=0.00015*dT;
-  const nonlin=0.0000001*dT*dT;
+  const base=0.00025*dT;
+  const nonlin=0.0000002*dT*dT;
   return -(base+nonlin);
 }
 
@@ -1403,11 +1403,35 @@ function updateAutoMode(dt){
   if(!S.autoMode||S.chernobyl)return;
   S.autoTimer+=dt;
   switch(S.autoPhase){
-    case 0:S.rod=Math.max(.25,S.rod-dt*.06);if(S.rod<=.25){S.autoPhase=1;showP('Criticality Reached')}break;
-    case 1:S.rod=Math.max(.1,S.rod-dt*.02);if(S.power>60){S.autoPhase=2;showP('Full Power Operation')}break;
-    case 2:S.rod=.1+Math.sin(S.time*.2)*.02;if(S.autoTimer>25){S.autoPhase=3;S.autoTimer=0;showP('Power Reduction')}break;
-    case 3:S.rod=Math.min(1,S.rod+dt*.05);if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown')}break;
-    case 4:if(S.autoTimer>5){S.autoPhase=0;S.autoTimer=0;showP('Reactor Startup...')}break;
+    case 0:
+      /* Slow startup: withdraw rods gently to ~0.55 (45% inserted) */
+      S.rod=Math.max(.55,S.rod-dt*.025);
+      if(S.power>5){S.autoPhase=1;showP('Criticality Reached')}
+      break;
+    case 1:{
+      /* Power ascension with feedback control — target 95% power */
+      const pErr=(95-S.power)/100;
+      const rodAdj=Math.max(-0.01,Math.min(0.01,pErr*0.04));
+      S.rod=Math.max(.30,Math.min(.70,S.rod-rodAdj*dt*10));
+      if(S.power>85){S.autoPhase=2;S.autoTimer=0;showP('Full Power Operation')}
+      break;
+    }
+    case 2:{
+      /* Steady-state: continuously adjust rods to hold ~95% power */
+      const pErr2=(95-S.power)/100;
+      const adj2=pErr2*0.03;
+      S.rod=Math.max(.28,Math.min(.70,S.rod-adj2*dt*10));
+      if(S.autoTimer>30){S.autoPhase=3;S.autoTimer=0;showP('Power Reduction')}
+      break;
+    }
+    case 3:
+      /* Controlled shutdown */
+      S.rod=Math.min(1,S.rod+dt*.03);
+      if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown')}
+      break;
+    case 4:
+      if(S.autoTimer>8){S.autoPhase=0;S.autoTimer=0;showP('Reactor Startup...')}
+      break;
   }
   sRod.value=S.rod*100;
 }
@@ -1432,9 +1456,10 @@ function updateReactivity(){
 
 function updatePowerKinetics(dt){
   if(S.explosion)return;
-  const maxRate=S.chernobyl?200:60;
-  const dP=Math.max(-maxRate,Math.min(maxRate,S.reactivity*Math.max(S.power,0.5)*0.8));
-  S.power=Math.max(0,Math.min(S.chernobyl?300:150,S.power+dP*dt));
+  const maxRate=S.chernobyl?200:40;
+  const gain=S.chernobyl?0.8:0.5;
+  const dP=Math.max(-maxRate,Math.min(maxRate,S.reactivity*Math.max(S.power,0.5)*gain));
+  S.power=Math.max(0,Math.min(S.chernobyl?300:130,S.power+dP*dt));
 }
 
 function updateFuelTemperature(dt){
