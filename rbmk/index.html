@@ -593,7 +593,7 @@ canvas{display:block}
       <h3>Scenarios &amp; events</h3>
       <ul>
         <li><strong>Auto Run</strong> — scripted startup → full power → coast-down → shutdown cycle demonstrating normal operational phases.</li>
-        <li><strong>Chernobyl</strong> — dramatized reconstruction of the April 26, 1986 accident sequence at Unit 4. Shows xenon poisoning, ORM violation, the AZ-5 SCRAM with graphite tip insertion, and the subsequent prompt-critical excursion reaching ~30,000 MWt (approximately 100× nominal power).<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref5">[5]</a></sup></li>
+        <li><strong>Chernobyl</strong> — dramatized reconstruction of the April 26, 1986 accident sequence at Unit 4. On-screen timestamps (00:00, 00:28, 01:23:xx) follow the familiar narrative clock; <strong>simulation time is compressed</strong> (a few tens of seconds) so the phases stay playable. The scenario begins at <strong>low thermal power</strong> so the xenon/rod-withdrawal beat is visible before the AZ-5 and excursion. It still shows ORM violation, graphite-tip SCRAM effect, and a spike to ~30,000 MWt (~100× nominal).<sup><a href="#ref3">[3]</a></sup><sup><a href="#ref5">[5]</a></sup></li>
         <li><strong>MCP Trip</strong> — simulates failure of the Main Circulation Pumps (8 × 5,500 kW centrifugal pumps in 2 loops). Reduces coolant flow, causing rapid void formation and positive reactivity insertion.<sup><a href="#ref1">[1]</a></sup></li>
         <li><strong>Pipe Rupture</strong> — simulates a Loss of Coolant Accident (LOCA) with depressurisation of the condenser circuit.</li>
       </ul>
@@ -1507,8 +1507,13 @@ function updateReactivity(){
 
 function updatePowerKinetics(dt){
   if(S.explosion)return;
-  const maxRate=S.chernobyl?200:25;
-  const gain=S.chernobyl?0.8:0.35;
+  let maxRate=S.chernobyl?200:25;
+  let gain=S.chernobyl?0.8:0.35;
+  /* Chernobyl: slow the first ~18 sim seconds so gauges do not “jump hot” before the scripted beats */
+  if(S.chernobyl&&S.chTimer<18){
+    maxRate=Math.min(maxRate,20);
+    gain*=0.42;
+  }
   const dP=Math.max(-maxRate,Math.min(maxRate,S.reactivity*Math.max(S.power,0.5)*gain));
   S.power=Math.max(0,Math.min(S.chernobyl?300:115,S.power+dP*dt));
 }
@@ -1609,14 +1614,14 @@ function updatePhysics(dt){
    §19  CHERNOBYL SCENARIO
    ═══════════════════════════════════════════════════ */
 const chScript=[
-  {t:0,msg:'April 26, 1986, 01:00\nPower reduction test begins...',rod:.7},
-  {t:6,msg:'Power dropped to 30 MWt\nXenon-135 buildup detected',rod:.55,xenon:60},
-  {t:12,msg:'WARNING: Operators withdraw control rods\nORM < 15 rods — Safety violation!',rod:.06},
-  {t:18,msg:'Power recovering: 200 MWt\nTurbine coast-down test initiated',rod:.1,mcpTrip:true},
-  {t:23,msg:'01:23:40 — AZ-5 SCRAM pressed!',scram:true},
-  {t:25,msg:'GRAPHITE TIP EFFECT\nPositive reactivity insertion!',surge:true},
-  {t:27,msg:'POWER EXCURSION\n30,000 MWt — 100x nominal!',explode:true},
-  {t:31,msg:'3.6 Roentgen.\nNot great, not terrible.',easter:true},
+  {t:0,msg:'00:00 — A quiet night in Pripyat.\nReactor 4: engineers prepare the safety test.',rod:.7,power:2},
+  {t:6,msg:'00:28 — Power fell far below the test plan.\nXenon-135 poisons the core; operators withdraw rods.',rod:.55,xenon:60,power:1.5},
+  {t:12,msg:'01:22 — Power climbs again; too many rods are out.\nORM violated — the reactor is unstable.',rod:.06,power:24},
+  {t:18,msg:'01:23:04 — Test run: flow drops; boiling surges.\nMore steam → more reactivity (void coefficient).',rod:.1,mcpTrip:true,power:44},
+  {t:23,msg:'01:23:40 — AZ-5 (SCRAM): all rods driven in.',scram:true},
+  {t:25,msg:'01:23:42 — Graphite displacer tips displace water.\nBrief positive reactivity before boron enters.',surge:true},
+  {t:27,msg:'01:24 — Steam explosion, then a second burst.\nCore destroyed; radioactivity into the atmosphere.',explode:true},
+  {t:31,msg:'Educational replay only — not a forensic timeline.',easter:true},
 ];
 
 function updateChernobyl(dt){
@@ -1628,6 +1633,7 @@ function updateChernobyl(dt){
     S.chPhase=idx;const p=chScript[idx];
     if(p.msg){showP(p.msg,p.surge||p.explode||p.easter);logEvent(p.msg.split('\n')[0])}
     if(p.rod!==undefined){S.rod=p.rod;sRod.value=S.rod*100}
+    if(p.power!==undefined)S.power=p.power;
     if(p.xenon!==undefined){S.xenon=p.xenon/25;S.iodine=p.xenon/15}
     if(p.mcpTrip)S.mcpTrip=true;
     if(p.scram){S.scram=true;S.scramTimer=0;playAlarm()}
@@ -1744,7 +1750,9 @@ el('btnChernobyl').addEventListener('click',()=>{
   if(S.chernobyl)return;
   S.chernobyl=true;S.chPhase=-1;S.chTimer=0;S.autoMode=false;S.scram=false;S.scramTipDone=false;S.scramTimer=0;
   S.mcpTrip=false;S.pipeRupture=false;S.explosion=false;
-  S.power=80;S.rod=.3;S.xenon=0;S.iodine=0;
+  S.power=2;S.rod=.7;S.xenon=0;S.iodine=0;
+  S.temp=282;S.pressure=0.14;S.fuelTemp=318;
+  powerHist.clear();
   if(chResetTid){clearTimeout(chResetTid);chResetTid=0}
   el('btnAuto').textContent='Auto Run';el('btnAuto').classList.remove('on');el('btnAuto').setAttribute('aria-pressed','false');
   el('btnMCP').classList.remove('on');el('btnMCP').setAttribute('aria-pressed','false');
