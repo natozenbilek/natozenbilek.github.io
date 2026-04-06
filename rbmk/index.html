@@ -1454,28 +1454,28 @@ function updateAutoMode(dt){
   switch(S.autoPhase){
     case 0:
       /* Slow startup: withdraw rods gently to ~0.55 (45% inserted) */
-      S.rod=Math.max(.55,S.rod-dt*.025);
-      if(S.power>5){S.autoPhase=1;showP('Criticality Reached')}
+      S.rod=Math.max(.35,S.rod-dt*.06);
+      if(S.power>2){S.autoPhase=1;showP('Criticality Reached')}
       break;
     case 1:{
       /* Power ascension with feedback control — target 90% power */
       const pErr=(90-S.power)/100;
-      const rodAdj=Math.max(-0.008,Math.min(0.008,pErr*0.03));
-      S.rod=Math.max(.38,Math.min(.65,S.rod-rodAdj*dt*10));
+      const rodAdj=Math.max(-0.015,Math.min(0.015,pErr*0.06));
+      S.rod=Math.max(.25,Math.min(.55,S.rod-rodAdj*dt*10));
       if(S.power>80){S.autoPhase=2;S.autoTimer=0;showP('Full Power Operation')}
       break;
     }
     case 2:{
       /* Steady-state: continuously adjust rods to hold ~90% power */
       const pErr2=(90-S.power)/100;
-      const adj2=pErr2*0.025;
-      S.rod=Math.max(.36,Math.min(.65,S.rod-adj2*dt*10));
+      const adj2=pErr2*0.04;
+      S.rod=Math.max(.25,Math.min(.55,S.rod-adj2*dt*10));
       if(S.autoTimer>30){S.autoPhase=3;S.autoTimer=0;showP('Power Reduction')}
       break;
     }
     case 3:
       /* Controlled shutdown */
-      S.rod=Math.min(1,S.rod+dt*.03);
+      S.rod=Math.min(1,S.rod+dt*.04);
       if(S.rod>=.95){S.autoPhase=4;S.autoTimer=0;showP('Reactor Shutdown')}
       break;
     case 4:
