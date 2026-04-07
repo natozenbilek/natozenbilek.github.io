@@ -1,9 +1,10 @@
 // ============================================================
 // PAT-286 WebSerial Bridge
-// PAT monitor V1.1: 9600 baud, 8N2
+// PAT monitor V1.1: 9600 baud, 8N2, DTR+RTS required
 // Prompt is "PAT: " (not ">")
 // Monitor commands: M, C, G, T, L, H+
-// LED port: UPORT1=90H, direction: UPORT1CTL=88H
+// C mode exit: ESC (0x1B) + CR (0x0D)
+// MUART 8256: init regs 80-86H before using UPORT1=90H (direction: 88H)
 // ============================================================
 
 let serialPort = null;
@@ -32,6 +33,8 @@ async function serialConnect() {
       stopBits: SERIAL_STOP_BITS,
       parity: 'none'
     });
+    // PAT requires DTR+RTS enabled for communication
+    await serialPort.setSignals({ dataTerminalReady: true, requestToSend: true });
     serialWriter = serialPort.writable.getWriter();
     serialConnected = true;
     updateSerialUI();
@@ -223,14 +226,13 @@ async function uploadHexAndRun(machineCode, label) {
 }
 
 // ===================================================================
-// METHOD 2: C command + DTR reset — write bytes, reset board, G 0100
-// C mode has no reliable exit char, so we toggle DTR to reset the PAT.
-// RAM survives reset, so written bytes at 0080:0100 persist.
+// METHOD 2: C command + ESC exit — write bytes, ESC+CR to exit C mode,
+// then G 0100 to execute. RAM is preserved (no reset needed).
 // ===================================================================
 async function uploadCmdAndRun(machineCode, label) {
   if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
 
-  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C + DTR reset) ===\n';
+  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C + ESC exit) ===\n';
   updateSerialTerminal();
 
   // 1. Check prompt
@@ -266,29 +268,20 @@ async function uploadCmdAndRun(machineCode, label) {
   serialRxLog += '\n[OK] ' + machineCode.length + ' byte yazildi.\n';
   updateSerialTerminal();
 
-  // 4. DTR toggle to reset the PAT board (exits C mode, RAM preserved)
-  serialRxLog += '[...] DTR reset ile PAT yeniden baslatiliyor...\n';
+  // 4. ESC + CR to exit C interactive mode (RAM preserved)
+  serialRxLog += '[...] ESC+CR ile C modundan cikiliyor...\n';
   updateSerialTerminal();
-  try {
-    await serialPort.setSignals({ dataTerminalReady: false });
-    await sleep(100);
-    await serialPort.setSignals({ dataTerminalReady: true });
-    await sleep(100);
-    await serialPort.setSignals({ dataTerminalReady: false });
-  } catch (e) {
-    serialRxLog += '[WARN] DTR sinyal hatasi: ' + e.message + '\n';
-    updateSerialTerminal();
-  }
+  await serialSendBytes([0x1B, 0x0D]);  // ESC + CR
 
-  // 5. Wait for PAT boot message
-  let gotBoot = await sendAndWait('', PAT_PROMPT, 5000);
-  if (!gotBoot) {
-    // Try sending Enter to wake it
-    gotBoot = await sendAndWait('\r\n', PAT_PROMPT, 3000);
+  // 5. Wait for PAT prompt
+  let gotExit = await sendAndWait('', PAT_PROMPT, 3000);
+  if (!gotExit) {
+    // Try Enter to nudge
+    gotExit = await sendAndWait('\r\n', PAT_PROMPT, 2000);
   }
-  serialRxLog += gotBoot ? '[OK] PAT: prompt alindi\n' : '[WARN] PAT: prompt gelmedi — RESET basin\n';
+  serialRxLog += gotExit ? '[OK] PAT: prompt alindi\n' : '[WARN] PAT: prompt gelmedi\n';
   updateSerialTerminal();
-  if (!gotBoot) return;
+  if (!gotExit) return;
 
   // 6. G 0100 — execute
   await sleep(200);
@@ -305,9 +298,8 @@ async function uploadCmdAndRun(machineCode, label) {
 // Uses HEX upload (Method 1) which is the official IDE way.
 // ===================================================================
 async function directLedTest(portVal, label) {
-  // Simple program: OUT 88h,FFh; OUT 90h,val; EXIT
-  let mc = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, portVal & 0xFF, 0xE6, 0x90,
-            0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+  // MUART init + OUT 90h,val + EXIT
+  let mc = [...MUART_INIT, 0xB0, portVal & 0xFF, 0xE6, 0x90, ...MC_EXIT_TAIL];
   await uploadHexAndRun(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
 }
 
@@ -315,25 +307,39 @@ async function directLedTest(portVal, label) {
 // Test functions — try HEX method first
 // ===================================================================
 
+// MUART init prefix: write FFh to command regs 80-86, direction reg 88
+// Required to enable UPORT1 (90H) output on the 8256 MUART
+const MUART_INIT = [
+  0xB0, 0xFF,       // MOV AL, FFh
+  0xE6, 0x80,       // OUT 80h, AL  (UCRREG1)
+  0xE6, 0x82,       // OUT 82h, AL  (UCRREG2)
+  0xE6, 0x84,       // OUT 84h, AL  (UCRREG3)
+  0xE6, 0x86,       // OUT 86h, AL  (UMODEREG)
+  0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL - all output)
+];
+// EXIT: INT 28H AH=04H
+const MC_EXIT_TAIL = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+
 // EXIT test machine code
-const MC_EXIT = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
-// D2 ON
-const MC_D2ON = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0x04, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+const MC_EXIT = MC_EXIT_TAIL;
+// D2 ON (bit 2)
+const MC_D2ON = [...MUART_INIT, 0xB0, 0x04, 0xE6, 0x90, ...MC_EXIT_TAIL];
 // ALL ON
-const MC_ALLON = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0xFF, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+const MC_ALLON = [...MUART_INIT, 0xB0, 0xFF, 0xE6, 0x90, ...MC_EXIT_TAIL];
 // OFF
-const MC_OFF = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0x00, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+const MC_OFF = [...MUART_INIT, 0xB0, 0x00, 0xE6, 0x90, ...MC_EXIT_TAIL];
 
-async function testExit()   { await uploadHexAndRun(MC_EXIT, 'EXIT TEST'); }
-async function testLedOn()  { await uploadHexAndRun(MC_D2ON, 'D2 ON'); }
-async function testLedAll()  { await uploadHexAndRun(MC_ALLON, 'ALL ON'); }
-async function testLedOff() { await uploadHexAndRun(MC_OFF, 'LED OFF'); }
+// C command method (confirmed working: C + ESC exit + G)
+async function testExit()   { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
+async function testLedOn()  { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
+async function testLedAll() { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
+async function testLedOff() { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
 
-// C command versions (bypass HEX upload)
-async function testExitC()  { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
-async function testLedOnC() { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
-async function testAllC()   { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
-async function testOffC()   { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
+// HEX upload versions (L + /t1 — experimental, may not work on all firmware)
+async function testExitHex()  { await uploadHexAndRun(MC_EXIT, 'EXIT HEX'); }
+async function testLedOnHex() { await uploadHexAndRun(MC_D2ON, 'D2 ON HEX'); }
+async function testAllHex()   { await uploadHexAndRun(MC_ALLON, 'ALL ON HEX'); }
+async function testOffHex()   { await uploadHexAndRun(MC_OFF, 'LED OFF HEX'); }
 
 // --- Run / Trace commands (fast send) ---
 async function sendGo() {
