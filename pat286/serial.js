@@ -280,14 +280,12 @@ async function uploadCmdAndRun(machineCode, label) {
   // 5. Verify memory
   serialRxLog += 'TX: M 0100\n';
   updateSerialTerminal();
-  await sendAndWait('M 0100\r\n', PAT_PROMPT, 3000);
+  await sendAndWait('M 0100\r\n', PAT_PROMPT, 5000);
   await sleep(500);
 
-  // 6. Execute
-  serialRxLog += 'TX: G 0100\n';
-  updateSerialTerminal();
-  let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  // 6. Show what was written and prompt user
+  serialRxLog += '\n[READY] Simdi terminale "G 0100" yazin veya asagidaki butonu kullanin.\n';
+  serialRxLog += '        "T 0100" ile trace (1 instruction) da deneyebilirsiniz.\n';
   updateSerialTerminal();
 }
 
@@ -314,6 +312,22 @@ async function testExitC()  { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
 async function testLedOnC() { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
 async function testAllC()   { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
 async function testOffC()   { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
+
+// --- Run / Trace commands ---
+async function sendGo() {
+  serialRxLog += '\nTX: G 0100\n';
+  updateSerialTerminal();
+  let got = await sendAndWait('G 0100\r\n', PAT_PROMPT, 8000);
+  serialRxLog += got ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  updateSerialTerminal();
+}
+async function sendTrace() {
+  serialRxLog += '\nTX: T 0100\n';
+  updateSerialTerminal();
+  let got = await sendAndWait('T 0100\r\n', PAT_PROMPT, 5000);
+  serialRxLog += got ? '[OK] Trace tamamlandi\n' : '--- TIMEOUT ---\n';
+  updateSerialTerminal();
+}
 
 // --- Send from terminal input (slow) ---
 async function serialTermSend() {
