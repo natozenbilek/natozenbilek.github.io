@@ -1,5 +1,5 @@
 // ============================================================
-// PAT-286 ↔ DigiAC WebSerial Bridge
+// PAT-286 WebSerial Bridge
 // PAT monitor V1.1: 9600 baud, 8N2
 // Prompt is "PAT: " (not ">")
 // Monitor commands: M, C, G, T, L, H+
@@ -139,7 +139,7 @@ async function serialSendBytesSlow(bytes) {
 }
 
 // --- Send and wait for response pattern ---
-// Uses FAST raw send (like DigiACIDE). For terminal input use serialSendSlow.
+// Uses FAST raw send (like IDE). For terminal input use serialSendSlow.
 async function sendAndWait(cmd, pattern, timeoutMs) {
   let mark = serialRxBuf.length;
   if (cmd) await serialSendRaw(cmd);
@@ -172,8 +172,8 @@ function ihexLine(addr, data) {
 }
 
 // ===================================================================
-// METHOD 1: Intel HEX upload via L + /t1 (DigiACIDE protocol)
-// DigiACIDE sends commands as FAST whole writes, 10ms between HEX lines.
+// METHOD 1: Intel HEX upload via L + /t1 (IDE protocol)
+// IDE sends commands as FAST whole writes, 10ms between HEX lines.
 // We replicate exact same timing.
 // ===================================================================
 async function uploadHexAndRun(machineCode, label) {
@@ -190,7 +190,7 @@ async function uploadHexAndRun(machineCode, label) {
   serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok, devam ediliyor...\n';
   updateSerialTerminal();
 
-  // 2. L — send FAST (not slow), wait 700ms like DigiACIDE
+  // 2. L — send FAST (not slow), wait 700ms like IDE
   serialRxLog += 'TX: L\n';
   updateSerialTerminal();
   await serialSendRaw('L\r\n');
@@ -302,7 +302,7 @@ async function uploadCmdAndRun(machineCode, label) {
 // ===================================================================
 // METHOD 3: Direct port write — no program upload, use C to write
 // directly to I/O ports via OUT-like machine code at 0100, then G.
-// Uses HEX upload (Method 1) which is the official DigiACIDE way.
+// Uses HEX upload (Method 1) which is the official IDE way.
 // ===================================================================
 async function directLedTest(portVal, label) {
   // Simple program: OUT 88h,FFh; OUT 90h,val; EXIT
@@ -386,7 +386,7 @@ function updateSerialUI() {
   let dot = document.getElementById('serialDot');
   let lbl = document.getElementById('serialLbl');
   if (btn) {
-    btn.textContent = serialConnected ? 'Disconnect' : 'DigiAC';
+    btn.textContent = serialConnected ? 'Disconnect' : 'Device';
     btn.classList.toggle('connected', serialConnected);
   }
   if (dot) dot.classList.toggle('connected', serialConnected);
@@ -416,7 +416,7 @@ function copySerialLog() {
 }
 
 // Forwarding stubs
-const DIGIAC_PORTS = new Set([0x80,0x82,0x84,0x86,0x88,0x8A,0x8C,0x8E,0x90,0x92,0x94,0x96,0x98,0x9A,0x9C,0x9E]);
+const HW_PORTS = new Set([0x80,0x82,0x84,0x86,0x88,0x8A,0x8C,0x8E,0x90,0x92,0x94,0x96,0x98,0x9A,0x9C,0x9E]);
 async function serialWritePort(port, val) {}
 function serialReadPort(port) {
   return Promise.resolve(ioPorts ? ioPorts[port & 0xFF] : 0);

@@ -168,7 +168,7 @@ function checkInterrupts() {
 }
 
 // === I/O PORT HANDLING ===
-// DIGIAC_PORTS defined in serial.js
+// HW_PORTS defined in serial.js
 
 function ioWrite(port, val) {
   port &= 0xFF; val &= 0xFF;
@@ -176,8 +176,8 @@ function ioWrite(port, val) {
   ioLog.push({dir:'OUT', port, val, ic});
   if(ioLog.length > IO_LOG_MAX) ioLog.shift();
 
-  // Forward to real DigiAC if connected
-  if (serialConnected && DIGIAC_PORTS.has(port)) {
+  // Forward to real hardware if connected
+  if (serialConnected && HW_PORTS.has(port)) {
     serialWritePort(port, val);
   }
 
@@ -194,8 +194,8 @@ function ioRead(port) {
   port &= 0xFF;
   let val = ioPorts[port];
 
-  // If connected to real DigiAC, queue an async read (result arrives next cycle)
-  if (serialConnected && DIGIAC_PORTS.has(port)) {
+  // If connected to real hardware, queue an async read (result arrives next cycle)
+  if (serialConnected && HW_PORTS.has(port)) {
     serialReadPort(port).then(v => { ioPorts[port] = v; });
   }
 
