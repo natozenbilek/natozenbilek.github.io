@@ -1,20 +1,21 @@
 // ============================================================
 // PAT-286 ↔ DigiAC WebSerial Bridge
-// USB-to-9pin (DB-9) serial connection to real PAT-286 board
-// PAT monitor V1.1: 9600 baud, 8 data bits, NO parity, 2 stop bits (8N2)
-// Monitor commands: M (memory), C (change), G (go), T (trace), L (load), H+ (help)
-// LED port: UPORT1 = 90H, direction: UPORT1CTL = 88H
+// PAT monitor V1.1: 9600 baud, 8N2
+// Prompt is "PAT: " (not ">")
+// Monitor commands: M, C, G, T, L, H+
+// LED port: UPORT1=90H, direction: UPORT1CTL=88H
 // ============================================================
 
 let serialPort = null;
 let serialReader = null;
 let serialWriter = null;
 let serialConnected = false;
-let serialRxBuf = '';  // rolling buffer for response detection
-let serialRxLog = '';  // display log
+let serialRxBuf = '';
+let serialRxLog = '';
 
 const SERIAL_BAUD = 9600;
-const SERIAL_STOP_BITS = 2; // PAT uses 8N2
+const SERIAL_STOP_BITS = 2;
+const PAT_PROMPT = 'PAT:';  // The real prompt!
 
 // --- Connect / Disconnect ---
 async function serialConnect() {
@@ -34,8 +35,8 @@ async function serialConnect() {
     serialWriter = serialPort.writable.getWriter();
     serialConnected = true;
     updateSerialUI();
-    sLog('PAT-286 baglandi (' + SERIAL_BAUD + ' baud, 8N2)', 0);
-    serialRxLog = 'Baglandi. PAT RESET basin, > gorunce test butonlarina basin.\n';
+    sLog('PAT-286 baglandi (8N2)', 0);
+    serialRxLog = 'Baglandi. PAT RESET basin, "PAT:" gorunce test butonlarina basin.\n';
     updateSerialTerminal();
     startSerialRead();
   } catch (e) {
@@ -53,7 +54,7 @@ async function serialDisconnect() {
     if (serialPort) { await serialPort.close(); serialPort = null; }
   } catch (e) {}
   updateSerialUI();
-  sLog('PAT-286 baglantisi kesildi.', 0);
+  sLog('Baglanti kesildi.', 0);
 }
 
 // --- Serial read loop ---
@@ -100,10 +101,9 @@ async function serialSendRaw(text) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// --- Send command and wait for pattern in response ---
-// Captures buffer position BEFORE sending, then checks new data
+// --- Send command and wait for pattern ---
 async function sendAndWait(cmd, pattern, timeoutMs) {
-  let mark = serialRxBuf.length; // mark BEFORE send
+  let mark = serialRxBuf.length;
   await serialSendRaw(cmd);
   return new Promise(resolve => {
     let start = Date.now();
@@ -146,10 +146,11 @@ async function uploadAndRun(machineCode) {
   serialRxLog += '\n--- UPLOAD ---\n';
   updateSerialTerminal();
 
-  // 1. Check > prompt
-  let gotP = await sendAndWait('\r\n', '>', 1500);
-  serialRxLog += gotP ? '[OK] > alindi\n' : '[WARN] > yok\n';
+  // 1. Check PAT: prompt
+  let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
+  serialRxLog += gotP ? '[OK] PAT: alindi\n' : '[WARN] PAT: prompt yok — RESET basin\n';
   updateSerialTerminal();
+  if (!gotP) return; // Don't proceed without prompt
 
   // 2. L command
   serialRxLog += 'TX: L\n';
@@ -157,46 +158,57 @@ async function uploadAndRun(machineCode) {
   let gotL = await sendAndWait('L\r\n', 'evice', 3000);
   serialRxLog += gotL ? '[OK] Device prompt\n' : '[WARN] L cevap yok\n';
   updateSerialTerminal();
+  if (!gotL) return;
 
   // 3. /t1 device select
   serialRxLog += 'TX: /t1\n';
   updateSerialTerminal();
   let gotT = await sendAndWait('/t1\r\n', 'oading', 3000);
-  serialRxLog += gotT ? '[OK] Loading...\n' : '[WARN] Loading yok\n';
+  serialRxLog += gotT ? '[OK] Loading\n' : '[WARN] Loading yok\n';
   updateSerialTerminal();
+  if (!gotT) return;
 
-  // 4. HEX data
+  // 4. Wait a bit after Loading...
+  await sleep(500);
+
+  // 5. HEX data
   serialRxLog += 'TX: ' + hexData + '\n';
   updateSerialTerminal();
   await serialSendRaw(hexData + '\r\n');
-  await sleep(100);
+  await sleep(200);
 
-  // 5. End record
+  // 6. End record
   serialRxLog += 'TX: ' + hexEnd + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexEnd + '\r\n');
-  await sleep(1000);
-
-  // 6. Verify upload — dump memory at 0100
-  serialRxLog += 'TX: M 0100 010F (dogrulama)\n';
+  let gotEnd = await sendAndWait(hexEnd + '\r\n', PAT_PROMPT, 5000);
+  if (gotEnd) {
+    serialRxLog += '[OK] Upload tamamlandi\n';
+  } else {
+    serialRxLog += '[WARN] Upload sonrasi PAT: prompt gelmedi (5s)\n';
+    updateSerialTerminal();
+    return;
+  }
   updateSerialTerminal();
-  await sendAndWait('M 0100 010F\r\n', '>', 3000);
-  await sleep(300);
 
-  // 7. Execute
+  // 7. Verify: dump memory
+  serialRxLog += 'TX: M 0100 010F\n';
+  updateSerialTerminal();
+  await sendAndWait('M 0100 010F\r\n', PAT_PROMPT, 3000);
+  await sleep(200);
+
+  // 8. Execute
   serialRxLog += '--- G 0100 ---\n';
   updateSerialTerminal();
-  let gotExit = await sendAndWait('G 0100\r\n', '>', 5000);
-  serialRxLog += gotExit ? '--- DONE ---\n' : '--- TIMEOUT ---\n';
+  let gotExit = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
+  serialRxLog += gotExit ? '--- DONE ---\n' : '--- TIMEOUT (program cikamadi) ---\n';
   updateSerialTerminal();
 }
 
 // --- Test: D2 ON (bit 2 = 04H on Port 1) ---
 async function testLedOn() {
-  sLog('D2 LED ON...', 0);
   await uploadAndRun([
     0xB0, 0xFF,             // MOV AL, FFH
-    0xE6, 0x88,             // OUT 88H, AL (port1 = output)
+    0xE6, 0x88,             // OUT 88H, AL (port1 dir = output)
     0xB0, 0x04,             // MOV AL, 04H (D2)
     0xE6, 0x90,             // OUT 90H, AL (write port1)
     0xBB, 0x00, 0x00,       // MOV BX, 0000H
@@ -207,7 +219,6 @@ async function testLedOn() {
 
 // --- Test: LEDs OFF ---
 async function testLedOff() {
-  sLog('LED OFF...', 0);
   await uploadAndRun([
     0xB0, 0xFF, 0xE6, 0x88,
     0xB0, 0x00, 0xE6, 0x90,
@@ -217,7 +228,6 @@ async function testLedOff() {
 
 // --- Test: ALL LEDs ON (FFH) ---
 async function testLedAll() {
-  sLog('ALL LEDs ON...', 0);
   await uploadAndRun([
     0xB0, 0xFF, 0xE6, 0x88,
     0xB0, 0xFF, 0xE6, 0x90,
@@ -225,9 +235,8 @@ async function testLedAll() {
   ]);
 }
 
-// --- Test: Just EXIT (minimal — does program run at all?) ---
+// --- Test: Just EXIT (no I/O — does program run at all?) ---
 async function testExit() {
-  sLog('EXIT test...', 0);
   await uploadAndRun([
     0xBB, 0x00, 0x00,       // MOV BX, 0000H
     0xB4, 0x04,             // MOV AH, 04H
@@ -235,7 +244,7 @@ async function testExit() {
   ]);
 }
 
-// --- Send command from terminal input ---
+// --- Send from terminal input ---
 async function serialTermSend() {
   let input = document.getElementById('serialInput');
   if (!input || !input.value.trim()) return;
