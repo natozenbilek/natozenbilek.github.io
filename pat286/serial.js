@@ -101,6 +101,22 @@ async function serialSendRaw(text) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// --- Slow send: character by character with 2ms delay ---
+// PAT-286 has a tiny UART buffer (8256 MUART). Sending too fast
+// from WebSerial overflows it. At 9600/8N2 each char takes ~1.15ms.
+async function serialSendSlow(text) {
+  if (!serialConnected || !serialWriter) return;
+  let enc = new TextEncoder();
+  try {
+    for (let i = 0; i < text.length; i++) {
+      await serialWriter.write(enc.encode(text[i]));
+      await sleep(2); // ~2ms per char, safe for 9600 baud
+    }
+  } catch (e) {
+    sLog('Seri yazma hatasi: ' + e.message, 1);
+  }
+}
+
 // --- Send command and wait for pattern ---
 async function sendAndWait(cmd, pattern, timeoutMs) {
   let mark = serialRxBuf.length;
@@ -171,19 +187,18 @@ async function uploadAndRun(machineCode, label) {
   // 4. Wait after Loading...
   await sleep(500);
 
-  // 5. Send HEX data line (CRLF — matches DigiACIDE exactly)
-  serialRxLog += 'TX: ' + hexData + '\n';
+  // 5. Send HEX data SLOWLY (char by char to avoid UART buffer overflow)
+  serialRxLog += 'TX(slow): ' + hexData + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexData + '\r\n');
-  await sleep(100);  // DigiACIDE uses 10ms inter-line delay
+  await serialSendSlow(hexData + '\r\n');
+  await sleep(300);
 
-  // 6. End record (CRLF)
-  serialRxLog += 'TX: ' + hexEnd + '\n';
+  // 6. End record SLOWLY
+  serialRxLog += 'TX(slow): ' + hexEnd + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexEnd + '\r\n');
+  await serialSendSlow(hexEnd + '\r\n');
 
-  // 7. Wait for upload to complete — DigiACIDE does NOT wait for prompt!
-  //    PAT monitor may not return to prompt after Loading. Just wait briefly.
+  // 7. Wait for upload to complete
   serialRxLog += '[...] HEX gonderildi, 1.5s bekleniyor\n';
   updateSerialTerminal();
   await sleep(1500);
