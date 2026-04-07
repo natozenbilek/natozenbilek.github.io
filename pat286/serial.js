@@ -222,8 +222,8 @@ async function uploadAndRun(machineCode) {
   await serialSendRaw('G 0100\r\n');
 
   // 8. Wait for > prompt (program should EXIT back to monitor)
-  let gotPrompt = await waitForResponse('>', 3000);
-  if (gotPrompt) {
+  let gotExit = await waitForResponse('>', 3000);
+  if (gotExit) {
     serialRxLog += '=== DONE (> prompt received) ===\n';
   } else {
     serialRxLog += '=== TIMEOUT (no > prompt) ===\n';
