@@ -139,9 +139,10 @@ async function serialSendBytesSlow(bytes) {
 }
 
 // --- Send and wait for response pattern ---
+// Uses FAST raw send (like DigiACIDE). For terminal input use serialSendSlow.
 async function sendAndWait(cmd, pattern, timeoutMs) {
   let mark = serialRxBuf.length;
-  await serialSendSlow(cmd); // ALL sends are slow now
+  if (cmd) await serialSendRaw(cmd);
   return new Promise(resolve => {
     let start = Date.now();
     let check = () => {
@@ -172,6 +173,8 @@ function ihexLine(addr, data) {
 
 // ===================================================================
 // METHOD 1: Intel HEX upload via L + /t1 (DigiACIDE protocol)
+// DigiACIDE sends commands as FAST whole writes, 10ms between HEX lines.
+// We replicate exact same timing.
 // ===================================================================
 async function uploadHexAndRun(machineCode, label) {
   if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
@@ -182,58 +185,52 @@ async function uploadHexAndRun(machineCode, label) {
   serialRxLog += '\n=== ' + (label || 'HEX UPLOAD') + ' ===\n';
   updateSerialTerminal();
 
-  // 1. Check prompt
+  // 1. Send Enter to check prompt
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok, devam ediliyor...\n';
   updateSerialTerminal();
-  if (!gotP) return;
 
-  // 2. L
+  // 2. L — send FAST (not slow), wait 700ms like DigiACIDE
   serialRxLog += 'TX: L\n';
   updateSerialTerminal();
-  let gotL = await sendAndWait('L\r\n', 'evice', 3000);
-  serialRxLog += gotL ? '[OK] Device\n' : '[WARN] L yok\n';
-  updateSerialTerminal();
-  if (!gotL) return;
+  await serialSendRaw('L\r\n');
+  await sleep(700);
 
-  // 3. /t1
+  // 3. /t1 — send FAST, wait 700ms
   serialRxLog += 'TX: /t1\n';
   updateSerialTerminal();
-  let gotT = await sendAndWait('/t1\r\n', 'oading', 3000);
-  serialRxLog += gotT ? '[OK] Loading\n' : '[WARN] Loading yok\n';
-  updateSerialTerminal();
-  if (!gotT) return;
+  await serialSendRaw('/t1\r\n');
+  await sleep(700);
 
+  // 4. HEX data line — send FAST as one write, 10ms delay
+  serialRxLog += 'TX: ' + hexData + '\n';
+  updateSerialTerminal();
+  await serialSendRaw(hexData + '\r\n');
+  await sleep(10);
+
+  // 5. End record — send FAST, 10ms delay
+  serialRxLog += 'TX: ' + hexEnd + '\n';
+  updateSerialTerminal();
+  await serialSendRaw(hexEnd + '\r\n');
   await sleep(1000);
 
-  // 4. HEX data (slow)
-  serialRxLog += 'TX(slow): ' + hexData + '\\r\\n\n';
-  updateSerialTerminal();
-  await serialSendSlow(hexData + '\r\n');
-  await sleep(500);
-
-  // 5. End record (slow)
-  serialRxLog += 'TX(slow): ' + hexEnd + '\\r\\n\n';
-  updateSerialTerminal();
-  await serialSendSlow(hexEnd + '\r\n');
-  await sleep(2000);
-
-  // 6. G 0100 (slow)
+  // 6. G 0100 — send FAST
   serialRxLog += 'TX: G 0100\n';
   updateSerialTerminal();
   let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
   updateSerialTerminal();
 }
 
 // ===================================================================
-// METHOD 2: C command — interactive byte entry, then G
-// C 0100 → enter bytes one by one → . to exit → G 0100
+// METHOD 2: C command + DTR reset — write bytes, reset board, G 0100
+// C mode has no reliable exit char, so we toggle DTR to reset the PAT.
+// RAM survives reset, so written bytes at 0080:0100 persist.
 // ===================================================================
 async function uploadCmdAndRun(machineCode, label) {
   if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
 
-  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C komutu) ===\n';
+  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C + DTR reset) ===\n';
   updateSerialTerminal();
 
   // 1. Check prompt
@@ -256,37 +253,62 @@ async function uploadCmdAndRun(machineCode, label) {
   // 3. Send each byte value, wait for next address prompt
   for (let i = 0; i < machineCode.length; i++) {
     let val = machineCode[i].toString(16).toUpperCase().padStart(2, '0');
-    let nextAddr = (0x0101 + i).toString(16).toUpperCase().padStart(4, '0');
     serialRxLog += val + ' ';
     updateSerialTerminal();
-    // Send just the hex value + CR
     let gotNext = await sendAndWait(val + '\r\n', ':', 2000);
     if (!gotNext && i < machineCode.length - 1) {
-      serialRxLog += '\n[WARN] ' + nextAddr + ' bekleniyor ama cevap yok\n';
+      serialRxLog += '[!] ';
       updateSerialTerminal();
     }
     await sleep(50);
   }
 
-  // 4. Exit C interactive mode — send just Enter or period
-  serialRxLog += '\nTX: . (cikis)\n';
-  updateSerialTerminal();
-  await sendAndWait('.\r\n', PAT_PROMPT, 2000);
-  await sleep(300);
-
-  serialRxLog += '[OK] ' + machineCode.length + ' byte yazildi\n';
+  serialRxLog += '\n[OK] ' + machineCode.length + ' byte yazildi.\n';
   updateSerialTerminal();
 
-  // 5. Verify memory
-  serialRxLog += 'TX: M 0100\n';
+  // 4. DTR toggle to reset the PAT board (exits C mode, RAM preserved)
+  serialRxLog += '[...] DTR reset ile PAT yeniden baslatiliyor...\n';
   updateSerialTerminal();
-  await sendAndWait('M 0100\r\n', PAT_PROMPT, 5000);
-  await sleep(500);
+  try {
+    await serialPort.setSignals({ dataTerminalReady: false });
+    await sleep(100);
+    await serialPort.setSignals({ dataTerminalReady: true });
+    await sleep(100);
+    await serialPort.setSignals({ dataTerminalReady: false });
+  } catch (e) {
+    serialRxLog += '[WARN] DTR sinyal hatasi: ' + e.message + '\n';
+    updateSerialTerminal();
+  }
 
-  // 6. Show what was written and prompt user
-  serialRxLog += '\n[READY] Simdi terminale "G 0100" yazin veya asagidaki butonu kullanin.\n';
-  serialRxLog += '        "T 0100" ile trace (1 instruction) da deneyebilirsiniz.\n';
+  // 5. Wait for PAT boot message
+  let gotBoot = await sendAndWait('', PAT_PROMPT, 5000);
+  if (!gotBoot) {
+    // Try sending Enter to wake it
+    gotBoot = await sendAndWait('\r\n', PAT_PROMPT, 3000);
+  }
+  serialRxLog += gotBoot ? '[OK] PAT: prompt alindi\n' : '[WARN] PAT: prompt gelmedi — RESET basin\n';
   updateSerialTerminal();
+  if (!gotBoot) return;
+
+  // 6. G 0100 — execute
+  await sleep(200);
+  serialRxLog += 'TX: G 0100\n';
+  updateSerialTerminal();
+  let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 8000);
+  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
+  updateSerialTerminal();
+}
+
+// ===================================================================
+// METHOD 3: Direct port write — no program upload, use C to write
+// directly to I/O ports via OUT-like machine code at 0100, then G.
+// Uses HEX upload (Method 1) which is the official DigiACIDE way.
+// ===================================================================
+async function directLedTest(portVal, label) {
+  // Simple program: OUT 88h,FFh; OUT 90h,val; EXIT
+  let mc = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, portVal & 0xFF, 0xE6, 0x90,
+            0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+  await uploadHexAndRun(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
 }
 
 // ===================================================================
@@ -313,12 +335,12 @@ async function testLedOnC() { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
 async function testAllC()   { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
 async function testOffC()   { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
 
-// --- Run / Trace commands ---
+// --- Run / Trace commands (fast send) ---
 async function sendGo() {
   serialRxLog += '\nTX: G 0100\n';
   updateSerialTerminal();
   let got = await sendAndWait('G 0100\r\n', PAT_PROMPT, 8000);
-  serialRxLog += got ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  serialRxLog += got ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
   updateSerialTerminal();
 }
 async function sendTrace() {
@@ -326,6 +348,24 @@ async function sendTrace() {
   updateSerialTerminal();
   let got = await sendAndWait('T 0100\r\n', PAT_PROMPT, 5000);
   serialRxLog += got ? '[OK] Trace tamamlandi\n' : '--- TIMEOUT ---\n';
+  updateSerialTerminal();
+}
+
+// --- DTR Reset (manual button) ---
+async function sendDtrReset() {
+  if (!serialConnected || !serialPort) { sLog('Once Connect basin!', 1); return; }
+  serialRxLog += '\n[...] DTR reset...\n';
+  updateSerialTerminal();
+  try {
+    await serialPort.setSignals({ dataTerminalReady: false });
+    await sleep(100);
+    await serialPort.setSignals({ dataTerminalReady: true });
+    await sleep(100);
+    await serialPort.setSignals({ dataTerminalReady: false });
+    serialRxLog += '[OK] DTR toggle yapildi. PAT: bekleniyor...\n';
+  } catch (e) {
+    serialRxLog += '[WARN] DTR hatasi: ' + e.message + '\n';
+  }
   updateSerialTerminal();
 }
 

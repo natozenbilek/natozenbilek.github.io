@@ -237,7 +237,7 @@
         <button class="b" onclick="testLedOff()" style="font-size:9px;padding:2px 8px">OFF</button>
       </div>
       <div style="display:flex;gap:3px;margin-bottom:3px;flex-wrap:wrap">
-        <span style="font-size:7px;color:var(--cyn);align-self:center">C yaz:</span>
+        <span style="font-size:7px;color:var(--cyn);align-self:center">C+Reset:</span>
         <button class="b" onclick="testAllC()" style="font-size:9px;padding:2px 8px;border-color:var(--cyn);color:var(--cyn);font-weight:bold">ALL(C)</button>
         <button class="b" onclick="testLedOnC()" style="font-size:9px;padding:2px 8px;border-color:var(--cyn);color:var(--cyn)">D2(C)</button>
         <button class="b" onclick="testOffC()" style="font-size:9px;padding:2px 8px;border-color:var(--cyn);color:var(--cyn)">OFF(C)</button>
@@ -247,6 +247,7 @@
         <span style="font-size:7px;color:var(--ylw);align-self:center">Calistir:</span>
         <button class="b" onclick="sendGo()" style="font-size:9px;padding:2px 10px;border-color:var(--grn);color:var(--grn);font-weight:bold">G 0100</button>
         <button class="b" onclick="sendTrace()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw)">T 0100</button>
+        <button class="b" onclick="sendDtrReset()" style="font-size:9px;padding:2px 8px;border-color:var(--red);color:var(--red)">DTR Reset</button>
         <button class="b" onclick="copySerialLog()" style="font-size:9px;padding:2px 8px;border-color:var(--text3);color:var(--text3)">Copy</button>
       </div>
       <div class="io-log" id="serialLog" style="min-height:60px;max-height:200px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap;user-select:text">Connect > PAT RESET > test butonlari</div>
