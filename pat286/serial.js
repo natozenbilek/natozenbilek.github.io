@@ -35,10 +35,16 @@ async function serialConnect() {
     serialConnected = true;
     updateSerialUI();
     sLog('PAT-286 baglandi (' + SERIAL_BAUD + ' baud, 8N2)', 0);
+    serialRxLog += 'Baglandi. PAT uzerinden RESET basin ve > bekleyin.\n';
+    updateSerialTerminal();
     startSerialRead();
-    // Send CR to wake up monitor prompt
-    await sleep(300);
-    await serialSendRaw('\r\n');
+    // Send a few CRs to try waking up monitor
+    await sleep(500);
+    await serialSendRaw('\r');
+    await sleep(200);
+    await serialSendRaw('\r');
+    await sleep(200);
+    await serialSendRaw('\r');
   } catch (e) {
     if (e.name !== 'NotFoundError') sLog('Seri port hatasi: ' + e.message, 1);
     serialConnected = false;
@@ -153,25 +159,47 @@ async function uploadAndRun(machineCode) {
   // 1. Make sure we're at > prompt — send CR
   clearRxBuf();
   await serialSendRaw('\r\n');
-  await sleep(500);
+  let gotPrompt = await waitForResponse('>', 1500);
+  if (!gotPrompt) {
+    serialRxLog += '[WARN] > prompt yok — PAT reset gerekebilir\n';
+    updateSerialTerminal();
+  } else {
+    serialRxLog += '[OK] > prompt alindi\n';
+    updateSerialTerminal();
+  }
 
   // 2. Send L command (enter load mode)
   clearRxBuf();
+  serialRxLog += 'TX: L\n';
+  updateSerialTerminal();
   await serialSendRaw('L\r\n');
   await sleep(200);
   // Wait up to 2s for "Device" or "Load" response
-  let gotL = await waitForResponse('Load', 2000);
+  let gotL = await waitForResponse('evice', 2000);
   if (!gotL) {
-    // Try waiting for any response
+    serialRxLog += '[WARN] L cevabi gelmedi\n';
+    updateSerialTerminal();
     await sleep(500);
+  } else {
+    serialRxLog += '[OK] L cevabi alindi\n';
+    updateSerialTerminal();
   }
 
   // 3. Send /t1 (select device 0 = /t1)
   clearRxBuf();
+  serialRxLog += 'TX: /t1\n';
+  updateSerialTerminal();
   await serialSendRaw('/t1\r\n');
   await sleep(200);
   // Wait up to 2s for "Loading" response
-  await waitForResponse('Loading', 2000);
+  let gotLoad = await waitForResponse('oading', 2000);
+  if (!gotLoad) {
+    serialRxLog += '[WARN] Loading cevabi gelmedi\n';
+    updateSerialTerminal();
+  } else {
+    serialRxLog += '[OK] Loading cevabi alindi\n';
+    updateSerialTerminal();
+  }
 
   // 4. Send Intel HEX data record
   serialRxLog += 'TX: ' + hexData + '\n';
