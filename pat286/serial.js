@@ -171,44 +171,28 @@ async function uploadAndRun(machineCode, label) {
   // 4. Wait after Loading...
   await sleep(500);
 
-  // 5. Send HEX data (try CR only, not CRLF)
+  // 5. Send HEX data line (CRLF — matches DigiACIDE exactly)
   serialRxLog += 'TX: ' + hexData + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexData + '\r');
-  await sleep(500);
+  await serialSendRaw(hexData + '\r\n');
+  await sleep(100);  // DigiACIDE uses 10ms inter-line delay
 
-  // 6. End record (CR only)
+  // 6. End record (CRLF)
   serialRxLog += 'TX: ' + hexEnd + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexEnd + '\r');
-  await sleep(500);
+  await serialSendRaw(hexEnd + '\r\n');
 
-  // 7. Send extra CR in case PAT needs it
-  await serialSendRaw('\r');
-
-  // 8. Wait for PAT: prompt
-  let gotEnd = await sendAndWait('', PAT_PROMPT, 5000);
-  if (gotEnd) {
-    serialRxLog += '[OK] Upload tamamlandi\n';
-  } else {
-    serialRxLog += '[WARN] Upload sonrasi PAT: prompt gelmedi\n';
-    serialRxLog += '(PAT Loading modunda takili olabilir. RESET deneyin.)\n';
-    updateSerialTerminal();
-    return;
-  }
+  // 7. Wait for upload to complete — DigiACIDE does NOT wait for prompt!
+  //    PAT monitor may not return to prompt after Loading. Just wait briefly.
+  serialRxLog += '[...] HEX gonderildi, 1.5s bekleniyor\n';
   updateSerialTerminal();
+  await sleep(1500);
 
-  // 9. Verify: dump memory
-  serialRxLog += 'TX: M 0100 010F\n';
-  updateSerialTerminal();
-  await sendAndWait('M 0100 010F\r\n', PAT_PROMPT, 3000);
-  await sleep(200);
-
-  // 10. Execute
+  // 8. Execute — send G 0100 directly (like DigiACIDE F9)
   serialRxLog += '--- G 0100 ---\n';
   updateSerialTerminal();
   let gotExit = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotExit ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  serialRxLog += gotExit ? '=== BASARILI ===\n' : '--- TIMEOUT (PAT: prompt gelmedi) ---\n';
   updateSerialTerminal();
 }
 
@@ -280,6 +264,23 @@ function updateSerialTerminal() {
   if (!el) return;
   el.textContent = serialRxLog;
   el.scrollTop = el.scrollHeight;
+}
+
+// --- Copy terminal log to clipboard ---
+function copySerialLog() {
+  navigator.clipboard.writeText(serialRxLog).then(() => {
+    sLog('Terminal logu kopyalandi', 0);
+  }).catch(() => {
+    // Fallback: select text
+    let el = document.getElementById('serialLog');
+    if (el) {
+      let range = document.createRange();
+      range.selectNodeContents(el);
+      let sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  });
 }
 
 // Forwarding stubs

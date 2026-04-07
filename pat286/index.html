@@ -234,8 +234,9 @@
         <button class="b bg" onclick="testLedOn()" style="font-size:9px;padding:2px 8px">D2 ON</button>
         <button class="b" onclick="testLedOff()" style="font-size:9px;padding:2px 8px">OFF</button>
         <button class="b" onclick="testLedAll()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw)">ALL ON</button>
+        <button class="b" onclick="copySerialLog()" style="font-size:9px;padding:2px 8px;border-color:var(--text3);color:var(--text3)" title="Terminal logunu kopyala">Copy</button>
       </div>
-      <div class="io-log" id="serialLog" style="min-height:60px;max-height:200px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap">Connect > PAT RESET > test butonlari</div>
+      <div class="io-log" id="serialLog" style="min-height:60px;max-height:200px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap;user-select:text">Connect > PAT RESET > test butonlari</div>
       <div style="display:flex;gap:3px;margin-top:3px">
         <input id="serialInput" type="text" style="flex:1;font-family:var(--mono);font-size:9px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg);color:var(--text)" placeholder="Monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
         <button class="b" onclick="serialTermSend()" style="font-size:9px;padding:2px 6px">Send</button>
