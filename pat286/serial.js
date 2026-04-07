@@ -134,7 +134,7 @@ function ihexLine(addr, data) {
 }
 
 // --- Upload and run via PAT monitor ---
-async function uploadAndRun(machineCode) {
+async function uploadAndRun(machineCode, label) {
   if (!serialConnected) {
     sLog('Once Connect basin!', 1);
     return;
@@ -143,20 +143,20 @@ async function uploadAndRun(machineCode) {
   let hexData = ihexLine(0x0100, machineCode);
   let hexEnd = ':00000001FF';
 
-  serialRxLog += '\n--- UPLOAD ---\n';
+  serialRxLog += '\n=== ' + (label || 'UPLOAD') + ' ===\n';
   updateSerialTerminal();
 
   // 1. Check PAT: prompt
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT: alindi\n' : '[WARN] PAT: prompt yok — RESET basin\n';
+  serialRxLog += gotP ? '[OK] PAT: prompt\n' : '[WARN] PAT: yok — RESET basin\n';
   updateSerialTerminal();
-  if (!gotP) return; // Don't proceed without prompt
+  if (!gotP) return;
 
   // 2. L command
   serialRxLog += 'TX: L\n';
   updateSerialTerminal();
   let gotL = await sendAndWait('L\r\n', 'evice', 3000);
-  serialRxLog += gotL ? '[OK] Device prompt\n' : '[WARN] L cevap yok\n';
+  serialRxLog += gotL ? '[OK] Device\n' : '[WARN] L yok\n';
   updateSerialTerminal();
   if (!gotL) return;
 
@@ -168,53 +168,57 @@ async function uploadAndRun(machineCode) {
   updateSerialTerminal();
   if (!gotT) return;
 
-  // 4. Wait a bit after Loading...
+  // 4. Wait after Loading...
   await sleep(500);
 
-  // 5. HEX data
+  // 5. Send HEX data (try CR only, not CRLF)
   serialRxLog += 'TX: ' + hexData + '\n';
   updateSerialTerminal();
-  await serialSendRaw(hexData + '\r\n');
-  await sleep(200);
+  await serialSendRaw(hexData + '\r');
+  await sleep(500);
 
-  // 6. End record
+  // 6. End record (CR only)
   serialRxLog += 'TX: ' + hexEnd + '\n';
   updateSerialTerminal();
-  let gotEnd = await sendAndWait(hexEnd + '\r\n', PAT_PROMPT, 5000);
+  await serialSendRaw(hexEnd + '\r');
+  await sleep(500);
+
+  // 7. Send extra CR in case PAT needs it
+  await serialSendRaw('\r');
+
+  // 8. Wait for PAT: prompt
+  let gotEnd = await sendAndWait('', PAT_PROMPT, 5000);
   if (gotEnd) {
     serialRxLog += '[OK] Upload tamamlandi\n';
   } else {
-    serialRxLog += '[WARN] Upload sonrasi PAT: prompt gelmedi (5s)\n';
+    serialRxLog += '[WARN] Upload sonrasi PAT: prompt gelmedi\n';
+    serialRxLog += '(PAT Loading modunda takili olabilir. RESET deneyin.)\n';
     updateSerialTerminal();
     return;
   }
   updateSerialTerminal();
 
-  // 7. Verify: dump memory
+  // 9. Verify: dump memory
   serialRxLog += 'TX: M 0100 010F\n';
   updateSerialTerminal();
   await sendAndWait('M 0100 010F\r\n', PAT_PROMPT, 3000);
   await sleep(200);
 
-  // 8. Execute
+  // 10. Execute
   serialRxLog += '--- G 0100 ---\n';
   updateSerialTerminal();
   let gotExit = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotExit ? '--- DONE ---\n' : '--- TIMEOUT (program cikamadi) ---\n';
+  serialRxLog += gotExit ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
   updateSerialTerminal();
 }
 
 // --- Test: D2 ON (bit 2 = 04H on Port 1) ---
 async function testLedOn() {
   await uploadAndRun([
-    0xB0, 0xFF,             // MOV AL, FFH
-    0xE6, 0x88,             // OUT 88H, AL (port1 dir = output)
-    0xB0, 0x04,             // MOV AL, 04H (D2)
-    0xE6, 0x90,             // OUT 90H, AL (write port1)
-    0xBB, 0x00, 0x00,       // MOV BX, 0000H
-    0xB4, 0x04,             // MOV AH, 04H (EXIT)
-    0xCD, 0x28              // INT 28H
-  ]);
+    0xB0, 0xFF, 0xE6, 0x88,
+    0xB0, 0x04, 0xE6, 0x90,
+    0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
+  ], 'D2 ON');
 }
 
 // --- Test: LEDs OFF ---
@@ -223,7 +227,7 @@ async function testLedOff() {
     0xB0, 0xFF, 0xE6, 0x88,
     0xB0, 0x00, 0xE6, 0x90,
     0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
-  ]);
+  ], 'LED OFF');
 }
 
 // --- Test: ALL LEDs ON (FFH) ---
@@ -232,16 +236,16 @@ async function testLedAll() {
     0xB0, 0xFF, 0xE6, 0x88,
     0xB0, 0xFF, 0xE6, 0x90,
     0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
-  ]);
+  ], 'ALL ON');
 }
 
-// --- Test: Just EXIT (no I/O — does program run at all?) ---
+// --- Test: Just EXIT (no I/O) ---
 async function testExit() {
   await uploadAndRun([
     0xBB, 0x00, 0x00,       // MOV BX, 0000H
     0xB4, 0x04,             // MOV AH, 04H
     0xCD, 0x28              // INT 28H
-  ]);
+  ], 'EXIT TEST');
 }
 
 // --- Send from terminal input ---
