@@ -15,7 +15,7 @@ let serialRxLog = '';
 
 const SERIAL_BAUD = 9600;
 const SERIAL_STOP_BITS = 2;
-const PAT_PROMPT = 'PAT:';  // The real prompt!
+const PAT_PROMPT = 'PAT:';
 
 // --- Connect / Disconnect ---
 async function serialConnect() {
@@ -78,7 +78,7 @@ async function startSerialRead() {
         serialRxBuf += text;
         serialRxLog += text;
         if (serialRxBuf.length > 2000) serialRxBuf = serialRxBuf.slice(-1000);
-        if (serialRxLog.length > 6000) serialRxLog = serialRxLog.slice(-4000);
+        if (serialRxLog.length > 8000) serialRxLog = serialRxLog.slice(-6000);
         updateSerialTerminal();
       }
     }
@@ -99,28 +99,49 @@ async function serialSendRaw(text) {
   }
 }
 
+// --- Send raw bytes (Uint8Array) ---
+async function serialSendBytes(bytes) {
+  if (!serialConnected || !serialWriter) return;
+  try {
+    await serialWriter.write(new Uint8Array(bytes));
+  } catch (e) {
+    sLog('Seri yazma hatasi: ' + e.message, 1);
+  }
+}
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// --- Slow send: character by character with 2ms delay ---
-// PAT-286 has a tiny UART buffer (8256 MUART). Sending too fast
-// from WebSerial overflows it. At 9600/8N2 each char takes ~1.15ms.
+// --- Slow send: char by char at baud rate ---
 async function serialSendSlow(text) {
   if (!serialConnected || !serialWriter) return;
   let enc = new TextEncoder();
   try {
     for (let i = 0; i < text.length; i++) {
       await serialWriter.write(enc.encode(text[i]));
-      await sleep(2); // ~2ms per char, safe for 9600 baud
+      await sleep(2);
     }
   } catch (e) {
     sLog('Seri yazma hatasi: ' + e.message, 1);
   }
 }
 
-// --- Send command and wait for pattern ---
+// --- Slow send bytes ---
+async function serialSendBytesSlow(bytes) {
+  if (!serialConnected || !serialWriter) return;
+  try {
+    for (let i = 0; i < bytes.length; i++) {
+      await serialWriter.write(new Uint8Array([bytes[i]]));
+      await sleep(2);
+    }
+  } catch (e) {
+    sLog('Seri yazma hatasi: ' + e.message, 1);
+  }
+}
+
+// --- Send and wait for response pattern ---
 async function sendAndWait(cmd, pattern, timeoutMs) {
   let mark = serialRxBuf.length;
-  await serialSendRaw(cmd);
+  await serialSendSlow(cmd); // ALL sends are slow now
   return new Promise(resolve => {
     let start = Date.now();
     let check = () => {
@@ -149,26 +170,25 @@ function ihexLine(addr, data) {
   return hex;
 }
 
-// --- Upload and run via PAT monitor ---
-async function uploadAndRun(machineCode, label) {
-  if (!serialConnected) {
-    sLog('Once Connect basin!', 1);
-    return;
-  }
+// ===================================================================
+// METHOD 1: Intel HEX upload via L + /t1 (DigiACIDE protocol)
+// ===================================================================
+async function uploadHexAndRun(machineCode, label) {
+  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
 
   let hexData = ihexLine(0x0100, machineCode);
   let hexEnd = ':00000001FF';
 
-  serialRxLog += '\n=== ' + (label || 'UPLOAD') + ' ===\n';
+  serialRxLog += '\n=== ' + (label || 'HEX UPLOAD') + ' ===\n';
   updateSerialTerminal();
 
-  // 1. Check PAT: prompt
+  // 1. Check prompt
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT: prompt\n' : '[WARN] PAT: yok — RESET basin\n';
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
   updateSerialTerminal();
   if (!gotP) return;
 
-  // 2. L command
+  // 2. L
   serialRxLog += 'TX: L\n';
   updateSerialTerminal();
   let gotL = await sendAndWait('L\r\n', 'evice', 3000);
@@ -176,7 +196,7 @@ async function uploadAndRun(machineCode, label) {
   updateSerialTerminal();
   if (!gotL) return;
 
-  // 3. /t1 device select
+  // 3. /t1
   serialRxLog += 'TX: /t1\n';
   updateSerialTerminal();
   let gotT = await sendAndWait('/t1\r\n', 'oading', 3000);
@@ -184,77 +204,102 @@ async function uploadAndRun(machineCode, label) {
   updateSerialTerminal();
   if (!gotT) return;
 
-  // 4. Wait after Loading...
-  await sleep(500);
+  await sleep(1000);
 
-  // 5. Send HEX data SLOWLY (char by char to avoid UART buffer overflow)
-  serialRxLog += 'TX(slow): ' + hexData + '\n';
+  // 4. HEX data (slow)
+  serialRxLog += 'TX(slow): ' + hexData + '\\r\\n\n';
   updateSerialTerminal();
   await serialSendSlow(hexData + '\r\n');
-  await sleep(300);
+  await sleep(500);
 
-  // 6. End record SLOWLY
-  serialRxLog += 'TX(slow): ' + hexEnd + '\n';
+  // 5. End record (slow)
+  serialRxLog += 'TX(slow): ' + hexEnd + '\\r\\n\n';
   updateSerialTerminal();
   await serialSendSlow(hexEnd + '\r\n');
+  await sleep(2000);
 
-  // 7. Wait for upload to complete
-  serialRxLog += '[...] HEX gonderildi, 1.5s bekleniyor\n';
+  // 6. G 0100 (slow)
+  serialRxLog += 'TX: G 0100\n';
   updateSerialTerminal();
-  await sleep(1500);
-
-  // 8. Execute — send G 0100 directly (like DigiACIDE F9)
-  serialRxLog += '--- G 0100 ---\n';
-  updateSerialTerminal();
-  let gotExit = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotExit ? '=== BASARILI ===\n' : '--- TIMEOUT (PAT: prompt gelmedi) ---\n';
+  let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
+  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
   updateSerialTerminal();
 }
 
-// --- Test: D2 ON (bit 2 = 04H on Port 1) ---
-async function testLedOn() {
-  await uploadAndRun([
-    0xB0, 0xFF, 0xE6, 0x88,
-    0xB0, 0x04, 0xE6, 0x90,
-    0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
-  ], 'D2 ON');
+// ===================================================================
+// METHOD 2: C command — write bytes directly to memory, then G
+// Bypasses Intel HEX entirely
+// ===================================================================
+async function uploadCmdAndRun(machineCode, label) {
+  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+
+  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C komutu ile) ===\n';
+  updateSerialTerminal();
+
+  // 1. Check prompt
+  let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
+  updateSerialTerminal();
+  if (!gotP) return;
+
+  // 2. Write bytes one at a time using C command
+  for (let i = 0; i < machineCode.length; i++) {
+    let addr = (0x0100 + i).toString(16).toUpperCase().padStart(4, '0');
+    let val = machineCode[i].toString(16).toUpperCase().padStart(2, '0');
+    let cmd = 'C ' + addr + ' ' + val;
+    serialRxLog += 'TX: ' + cmd + '\n';
+    updateSerialTerminal();
+    await sendAndWait(cmd + '\r\n', PAT_PROMPT, 2000);
+    await sleep(100);
+  }
+
+  serialRxLog += '[OK] ' + machineCode.length + ' byte yazildi\n';
+  updateSerialTerminal();
+
+  // 3. Verify first few bytes
+  serialRxLog += 'TX: M 0100\n';
+  updateSerialTerminal();
+  await sendAndWait('M 0100\r\n', PAT_PROMPT, 3000);
+  await sleep(200);
+
+  // 4. Execute
+  serialRxLog += 'TX: G 0100\n';
+  updateSerialTerminal();
+  let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
+  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- TIMEOUT ---\n';
+  updateSerialTerminal();
 }
 
-// --- Test: LEDs OFF ---
-async function testLedOff() {
-  await uploadAndRun([
-    0xB0, 0xFF, 0xE6, 0x88,
-    0xB0, 0x00, 0xE6, 0x90,
-    0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
-  ], 'LED OFF');
-}
+// ===================================================================
+// Test functions — try HEX method first
+// ===================================================================
 
-// --- Test: ALL LEDs ON (FFH) ---
-async function testLedAll() {
-  await uploadAndRun([
-    0xB0, 0xFF, 0xE6, 0x88,
-    0xB0, 0xFF, 0xE6, 0x90,
-    0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28
-  ], 'ALL ON');
-}
+// EXIT test machine code
+const MC_EXIT = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+// D2 ON
+const MC_D2ON = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0x04, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+// ALL ON
+const MC_ALLON = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0xFF, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+// OFF
+const MC_OFF = [0xB0, 0xFF, 0xE6, 0x88, 0xB0, 0x00, 0xE6, 0x90, 0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
 
-// --- Test: Just EXIT (no I/O) ---
-async function testExit() {
-  await uploadAndRun([
-    0xBB, 0x00, 0x00,       // MOV BX, 0000H
-    0xB4, 0x04,             // MOV AH, 04H
-    0xCD, 0x28              // INT 28H
-  ], 'EXIT TEST');
-}
+async function testExit()   { await uploadHexAndRun(MC_EXIT, 'EXIT TEST'); }
+async function testLedOn()  { await uploadHexAndRun(MC_D2ON, 'D2 ON'); }
+async function testLedAll()  { await uploadHexAndRun(MC_ALLON, 'ALL ON'); }
+async function testLedOff() { await uploadHexAndRun(MC_OFF, 'LED OFF'); }
 
-// --- Send from terminal input ---
+// C command versions (bypass HEX upload)
+async function testExitC()  { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
+async function testLedOnC() { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
+
+// --- Send from terminal input (slow) ---
 async function serialTermSend() {
   let input = document.getElementById('serialInput');
   if (!input || !input.value.trim()) return;
   let cmd = input.value;
   serialRxLog += '> ' + cmd + '\n';
   updateSerialTerminal();
-  await serialSendRaw(cmd + '\r\n');
+  await serialSendSlow(cmd + '\r\n');
   input.value = '';
 }
 
@@ -281,19 +326,14 @@ function updateSerialTerminal() {
   el.scrollTop = el.scrollHeight;
 }
 
-// --- Copy terminal log to clipboard ---
 function copySerialLog() {
   navigator.clipboard.writeText(serialRxLog).then(() => {
-    sLog('Terminal logu kopyalandi', 0);
+    sLog('Log kopyalandi', 0);
   }).catch(() => {
-    // Fallback: select text
     let el = document.getElementById('serialLog');
     if (el) {
-      let range = document.createRange();
-      range.selectNodeContents(el);
-      let sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
+      let r = document.createRange(); r.selectNodeContents(el);
+      let s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
 }
