@@ -312,6 +312,8 @@ async function testLedOff() { await uploadHexAndRun(MC_OFF, 'LED OFF'); }
 // C command versions (bypass HEX upload)
 async function testExitC()  { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
 async function testLedOnC() { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
+async function testAllC()   { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
+async function testOffC()   { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
 
 // --- Send from terminal input (slow) ---
 async function serialTermSend() {
