@@ -227,13 +227,13 @@ async function uploadHexAndRun(machineCode, label) {
 }
 
 // ===================================================================
-// METHOD 2: C command — write bytes directly to memory, then G
-// Bypasses Intel HEX entirely
+// METHOD 2: C command — interactive byte entry, then G
+// C 0100 → enter bytes one by one → . to exit → G 0100
 // ===================================================================
 async function uploadCmdAndRun(machineCode, label) {
   if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
 
-  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C komutu ile) ===\n';
+  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C komutu) ===\n';
   updateSerialTerminal();
 
   // 1. Check prompt
@@ -242,27 +242,48 @@ async function uploadCmdAndRun(machineCode, label) {
   updateSerialTerminal();
   if (!gotP) return;
 
-  // 2. Write bytes one at a time using C command
-  for (let i = 0; i < machineCode.length; i++) {
-    let addr = (0x0100 + i).toString(16).toUpperCase().padStart(4, '0');
-    let val = machineCode[i].toString(16).toUpperCase().padStart(2, '0');
-    let cmd = 'C ' + addr + ' ' + val;
-    serialRxLog += 'TX: ' + cmd + '\n';
+  // 2. Enter C interactive mode at address 0100
+  serialRxLog += 'TX: C 0100\n';
+  updateSerialTerminal();
+  let gotC = await sendAndWait('C 0100\r\n', '0100', 3000);
+  if (!gotC) {
+    serialRxLog += '[WARN] C komutu cevap yok\n';
     updateSerialTerminal();
-    await sendAndWait(cmd + '\r\n', PAT_PROMPT, 2000);
-    await sleep(100);
+    return;
   }
+  await sleep(200);
+
+  // 3. Send each byte value, wait for next address prompt
+  for (let i = 0; i < machineCode.length; i++) {
+    let val = machineCode[i].toString(16).toUpperCase().padStart(2, '0');
+    let nextAddr = (0x0101 + i).toString(16).toUpperCase().padStart(4, '0');
+    serialRxLog += val + ' ';
+    updateSerialTerminal();
+    // Send just the hex value + CR
+    let gotNext = await sendAndWait(val + '\r\n', ':', 2000);
+    if (!gotNext && i < machineCode.length - 1) {
+      serialRxLog += '\n[WARN] ' + nextAddr + ' bekleniyor ama cevap yok\n';
+      updateSerialTerminal();
+    }
+    await sleep(50);
+  }
+
+  // 4. Exit C interactive mode — send just Enter or period
+  serialRxLog += '\nTX: . (cikis)\n';
+  updateSerialTerminal();
+  await sendAndWait('.\r\n', PAT_PROMPT, 2000);
+  await sleep(300);
 
   serialRxLog += '[OK] ' + machineCode.length + ' byte yazildi\n';
   updateSerialTerminal();
 
-  // 3. Verify first few bytes
+  // 5. Verify memory
   serialRxLog += 'TX: M 0100\n';
   updateSerialTerminal();
   await sendAndWait('M 0100\r\n', PAT_PROMPT, 3000);
-  await sleep(200);
+  await sleep(500);
 
-  // 4. Execute
+  // 6. Execute
   serialRxLog += 'TX: G 0100\n';
   updateSerialTerminal();
   let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
