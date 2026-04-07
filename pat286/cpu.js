@@ -63,7 +63,8 @@ let halt=false, running=false, tmr=null;
 let cy=0, ic=0;
 let curInstr='—', curDesc='—', lastDiff='—';
 let stepPast=[], stepFuture=[];
-let pLen=0, labels={}, asmLines=[], instrLines=new Set();
+let pLen=0, labels={}, asmLines=[], asmOutput=[], instrLines=new Set();
+let progOrg=0x100; // original ORG from last assembly (stable, unlike IP)
 let breakpoints=new Set(), asmErrLines=new Set();
 let patDisplay='', patDisplayBuf='';
 let memFollowMode = null; // null, 'IP', or 'SP'

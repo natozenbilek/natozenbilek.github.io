@@ -168,7 +168,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ultra-btn.on{background:var(--pur-l);border-color:var(--pur);color:var(--pur)}
 
 /* I/O log */
-.io-log{font-family:var(--mono);font-size:9px;max-height:80px;overflow-y:auto;background:var(--bg3);border-radius:var(--r);padding:4px 6px;color:var(--text2);scrollbar-width:thin}
+.io-log{font-family:var(--mono);font-size:9px;max-height:80px;overflow-y:auto;background:var(--bg3);border-radius:var(--r);padding:4px 6px;color:var(--text2);scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .io-log .io-out{color:var(--grn)}.io-log .io-in{color:var(--blu)}
 
 /* Light theme */
@@ -254,7 +254,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .b-serial{border-color:var(--cyn);color:var(--cyn)}
 .b-serial:hover{background:var(--cyn);color:#111}
 .b-serial.connected{background:var(--grn);color:#111;border-color:var(--grn)}
-.b-upload{border-color:var(--grn);color:var(--grn);font-weight:600}
-.b-upload:hover{background:var(--grn);color:#111}
+.b-upload{border-color:var(--brd);color:var(--text3);font-weight:600;opacity:.5;pointer-events:none}
+.b-upload.active{border-color:var(--grn);color:var(--grn);opacity:1;pointer-events:auto}
+.b-upload.active:hover{background:var(--grn);color:#111}
 .ctrl-label{font-family:var(--mono);font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;align-self:center;margin-right:2px}
 .cd-device{border-left:2px solid var(--cyn)}

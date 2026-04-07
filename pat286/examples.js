@@ -590,6 +590,115 @@ DONE:   MOV     AH,EXIT
         INT     028H
 SRC     DB      "HELLO",00H
 DST     DB      00H,00H,00H,00H,00H,00H`,
+
+'HW: LED all on/off': `; MUART init + LED all on, wait, off, EXIT
+; Upload & Run ile gercek donanim testi
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init (gerekli)
+        MOV     AL,0FFH
+        OUT     80H,AL
+        OUT     82H,AL
+        OUT     84H,AL
+        OUT     86H,AL
+        OUT     88H,AL
+        ; LED'leri yak
+        MOV     AL,0FFH
+        OUT     90H,AL
+        ; Gecikme
+        MOV     CX,0FFFFH
+WAIT1:  NOP
+        LOOP    WAIT1
+        ; LED'leri sondur
+        MOV     AL,00H
+        OUT     90H,AL
+        MOV     AH,EXIT
+        INT     28H`,
+
+'HW: LED chase': `; LED kayan isik — D0'dan D7'ye sirayla yakar
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     80H,AL
+        OUT     82H,AL
+        OUT     84H,AL
+        OUT     86H,AL
+        OUT     88H,AL
+AGAIN:  MOV     BL,01H
+        MOV     DL,8
+SHIFT:  MOV     AL,BL
+        OUT     90H,AL
+        MOV     CX,0FFFFH
+DELAY:  NOP
+        LOOP    DELAY
+        SHL     BL,1
+        DEC     DL
+        JNZ     SHIFT
+        JMP     AGAIN`,
+
+'HW: Binary counter': `; LED'lerde 0-FF binary sayici
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     80H,AL
+        OUT     82H,AL
+        OUT     84H,AL
+        OUT     86H,AL
+        OUT     88H,AL
+        MOV     BL,00H
+COUNT:  MOV     AL,BL
+        OUT     90H,AL
+        MOV     CX,0FFFFH
+DELAY:  NOP
+        LOOP    DELAY
+        INC     BL
+        JMP     COUNT`,
+
+'HW: Hello serial': `; Seri porta "Hello PAT!" yazar
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     AH,CLRSCR
+        INT     28H
+        MOV     SI,OFFSET MSG
+PRINT:  MOV     AL,[SI]
+        TEST    AL,0FFH
+        JZ      DONE
+        MOV     AH,WRCHAR
+        INT     28H
+        INC     SI
+        JMP     PRINT
+DONE:   MOV     AH,EXIT
+        INT     28H
+MSG     DB      "Hello PAT!",00H`,
+
+'HW: Piezo beep': `; Piezo buzzer kisa bip sesi
+; PB5 (bit 5 of port 90H) piezo kontrolu
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     80H,AL
+        OUT     82H,AL
+        OUT     84H,AL
+        OUT     86H,AL
+        OUT     88H,AL
+        MOV     DX,500
+BEEP:   MOV     AL,20H
+        OUT     90H,AL
+        MOV     CX,200
+D1:     NOP
+        LOOP    D1
+        MOV     AL,00H
+        OUT     90H,AL
+        MOV     CX,200
+D2:     NOP
+        LOOP    D2
+        DEC     DX
+        JNZ     BEEP
+        MOV     AH,EXIT
+        INT     28H`,
 };
 
 function loadEx() {

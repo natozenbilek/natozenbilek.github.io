@@ -139,7 +139,9 @@ function doAssemble() {
   labels = p2.lbls;
   instrLines = p2.instrLineSet;
   asmLines = p2.output.filter(x => x.type === 'instr');
+  asmOutput = p2.output; // all items including data (DB/DW) for upload
   pLen = asmLines.length;
+  progOrg = p2.org; // save original ORG for hardware upload
 
   AX=BX=CX=DX=SI=DI=BP=0;
   CS=DS=SS=ES=0x80;

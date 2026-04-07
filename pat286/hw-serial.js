@@ -346,22 +346,14 @@ async function uploadProgram() {
   if (!pLen) { sLog('Once Assemble basin!', 1); return; }
 
   // Find program byte range from assembled output in mem[]
-  // Program starts at pa(CS=0x80, org) and we scan for the extent
-  let org = IP; // IP is set to p2.org after assembly
-  // Scan memory from org to find last non-zero byte (or use asmLines)
-  let startPhys = 0x80 * 16 + org;  // physical start
+  let org = progOrg; // stable ORG from last assembly (not mutable IP)
+  let startPhys = 0x80 * 16 + org;
   let endPhys = startPhys;
-  // Find extent from asmLines (instruction list) and data
-  for (let line of asmLines) {
-    let lineEnd = 0x80 * 16 + line.addr + (line.bytes ? line.bytes.length : 0);
-    if (lineEnd > endPhys) endPhys = lineEnd;
-  }
-  // Also scan mem for any data bytes written after instructions
-  // (DB/DW data might extend beyond last instruction)
-  let maxScan = startPhys + 0x2000; // max 8KB scan
-  for (let a = endPhys; a < maxScan; a++) {
-    if (mem[a] !== 0) endPhys = a + 1;
-    else if (a - endPhys > 16) break; // 16 consecutive zeros = end
+  // Find extent from all assembled items (instructions + data)
+  for (let item of asmOutput) {
+    let len = item.bytes ? item.bytes.length : (item.words ? item.words.length * 2 : 0);
+    let itemEnd = 0x80 * 16 + item.addr + len;
+    if (itemEnd > endPhys) endPhys = itemEnd;
   }
 
   let progBytes = [];
@@ -375,7 +367,7 @@ async function uploadProgram() {
 
 // --- Run / Trace commands (fast send) ---
 async function sendGo() {
-  let addr = IP ? IP.toString(16).toUpperCase().padStart(4, '0') : '0100';
+  let addr = progOrg ? progOrg.toString(16).toUpperCase().padStart(4, '0') : '0100';
   serialRxLog += '\nTX: G ' + addr + '\n';
   updateSerialTerminal();
   let got = await sendAndWait('G ' + addr + '\r\n', PAT_PROMPT, 8000);
@@ -436,9 +428,9 @@ function updateSerialUI() {
     btn2.textContent = serialConnected ? 'Disconnect' : 'Connect';
     btn2.classList.toggle('connected', serialConnected);
   }
-  // Show/hide upload button
+  // Toggle upload button active state
   let upBtn = document.getElementById('uploadBtn');
-  if (upBtn) upBtn.style.display = serialConnected ? '' : 'none';
+  if (upBtn) upBtn.classList.toggle('active', serialConnected);
 }
 
 function updateSerialTerminal() {
