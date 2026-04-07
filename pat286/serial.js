@@ -1,8 +1,8 @@
 // ============================================================
 // PAT-286 ↔ DigiAC WebSerial Bridge
 // USB-to-9pin (DB-9) serial connection to real PAT-286 board
-// PAT monitor: 9600 baud, 8 data bits, NO parity, 2 stop bits (8N2)
-// Monitor commands: D (dump), R (regs), S (patch), L (load), G (go)
+// PAT monitor V1.1: 9600 baud, 8 data bits, NO parity, 2 stop bits (8N2)
+// Monitor commands: M (memory), C (change), G (go), T (trace), L (load), H+ (help)
 // LED port: UPORT1 = 90H, direction: UPORT1CTL = 88H
 // ============================================================
 
@@ -10,7 +10,8 @@ let serialPort = null;
 let serialReader = null;
 let serialWriter = null;
 let serialConnected = false;
-let serialRxLog = ''; // raw text received from PAT monitor
+let serialRxBuf = '';  // rolling buffer of received text
+let serialRxLog = '';  // display log
 
 const SERIAL_BAUD = 9600;
 const SERIAL_STOP_BITS = 2; // PAT uses 8N2
@@ -35,8 +36,9 @@ async function serialConnect() {
     updateSerialUI();
     sLog('PAT-286 baglandi (' + SERIAL_BAUD + ' baud, 8N2)', 0);
     startSerialRead();
-    // Send CR to wake up monitor and see > prompt
-    await serialSendText('\r\n');
+    // Send CR to wake up monitor prompt
+    await sleep(300);
+    await serialSendRaw('\r\n');
   } catch (e) {
     if (e.name !== 'NotFoundError') sLog('Seri port hatasi: ' + e.message, 1);
     serialConnected = false;
@@ -69,10 +71,13 @@ async function startSerialRead() {
           let ch = value[i];
           if (ch >= 32 && ch <= 126) text += String.fromCharCode(ch);
           else if (ch === 13) text += '\n';
-          else if (ch === 10) {} // skip LF after CR
+          else if (ch === 10) {} // skip LF
+          else if (ch === 0x0C) text += '[FF]'; // form feed from PAT reset
           else text += '[' + ch.toString(16).toUpperCase().padStart(2,'0') + ']';
         }
+        serialRxBuf += text;
         serialRxLog += text;
+        if (serialRxBuf.length > 2000) serialRxBuf = serialRxBuf.slice(-1000);
         if (serialRxLog.length > 4000) serialRxLog = serialRxLog.slice(-3000);
         updateSerialTerminal();
       }
@@ -84,26 +89,35 @@ async function startSerialRead() {
   }
 }
 
-// --- Send text to PAT monitor ---
-async function serialSendText(text) {
+// --- Low-level send (raw string to bytes) ---
+async function serialSendRaw(text) {
   if (!serialConnected || !serialWriter) return;
   try {
-    let enc = new TextEncoder();
-    await serialWriter.write(enc.encode(text));
+    await serialWriter.write(new TextEncoder().encode(text));
   } catch (e) {
     sLog('Seri yazma hatasi: ' + e.message, 1);
   }
 }
 
-// --- Send raw bytes ---
-async function serialSendBytes(bytes) {
-  if (!serialConnected || !serialWriter) return;
-  try {
-    await serialWriter.write(new Uint8Array(bytes));
-  } catch (e) {
-    sLog('Seri yazma hatasi: ' + e.message, 1);
-  }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// --- Wait for a string pattern in receive buffer, with timeout ---
+function waitForResponse(pattern, timeoutMs) {
+  return new Promise(resolve => {
+    let start = Date.now();
+    let idx = serialRxBuf.length; // only check new data
+    let check = () => {
+      let tail = serialRxBuf.slice(idx);
+      if (tail.includes(pattern)) { resolve(true); return; }
+      if (Date.now() - start > timeoutMs) { resolve(false); return; }
+      setTimeout(check, 50);
+    };
+    check();
+  });
 }
+
+// Clear receive buffer (to track new responses)
+function clearRxBuf() { serialRxBuf = ''; }
 
 // --- Intel HEX helpers ---
 function ihexChecksum(bytes) {
@@ -113,8 +127,7 @@ function ihexChecksum(bytes) {
 }
 
 function ihexLine(addr, data) {
-  let len = data.length;
-  let bytes = [len, (addr >> 8) & 0xFF, addr & 0xFF, 0x00, ...data];
+  let bytes = [data.length, (addr >> 8) & 0xFF, addr & 0xFF, 0x00, ...data];
   let cs = ihexChecksum(bytes);
   let hex = ':';
   for (let b of bytes) hex += b.toString(16).toUpperCase().padStart(2, '0');
@@ -122,82 +135,125 @@ function ihexLine(addr, data) {
   return hex;
 }
 
-// --- Upload and run a tiny program via PAT monitor ---
-// Flow: L\r\n -> /t1\r\n -> Intel HEX lines -> EOF record -> G 0100\r\n
+// --- Upload and run via PAT monitor (matches DigiACIDE timing) ---
+// Protocol: L\r\n → (wait) → /t1\r\n → (wait) → HEX lines → EOF → G 0100\r\n
 async function uploadAndRun(machineCode) {
   if (!serialConnected) {
     await serialConnect();
     if (!serialConnected) return;
-    await new Promise(r => setTimeout(r, 800));
+    await sleep(1000);
   }
 
-  let hexLine = ihexLine(0x0100, machineCode);
-  let endLine = ':00000001FF';
+  let hexData = ihexLine(0x0100, machineCode);
+  let hexEnd = ':00000001FF';
 
-  serialRxLog += '\n--- UPLOAD ---\n';
+  serialRxLog += '\n=== UPLOAD START ===\n';
   updateSerialTerminal();
 
-  // Enter load mode
-  await serialSendText('L\r\n');
-  await new Promise(r => setTimeout(r, 300));
+  // 1. Make sure we're at > prompt — send CR
+  clearRxBuf();
+  await serialSendRaw('\r\n');
+  await sleep(500);
 
-  // Select transfer type 1
-  await serialSendText('/t1\r\n');
-  await new Promise(r => setTimeout(r, 300));
+  // 2. Send L command (enter load mode)
+  clearRxBuf();
+  await serialSendRaw('L\r\n');
+  await sleep(200);
+  // Wait up to 2s for "Device" or "Load" response
+  let gotL = await waitForResponse('Load', 2000);
+  if (!gotL) {
+    // Try waiting for any response
+    await sleep(500);
+  }
 
-  // Send hex data
-  serialRxLog += 'HEX: ' + hexLine + '\n';
+  // 3. Send /t1 (select device 0 = /t1)
+  clearRxBuf();
+  await serialSendRaw('/t1\r\n');
+  await sleep(200);
+  // Wait up to 2s for "Loading" response
+  await waitForResponse('Loading', 2000);
+
+  // 4. Send Intel HEX data record
+  serialRxLog += 'TX: ' + hexData + '\n';
   updateSerialTerminal();
-  await serialSendText(hexLine + '\r\n');
-  await new Promise(r => setTimeout(r, 200));
+  await serialSendRaw(hexData + '\r\n');
+  await sleep(50);
 
-  // Send end record
-  await serialSendText(endLine + '\r\n');
-  await new Promise(r => setTimeout(r, 500));
-
-  // Execute
-  serialRxLog += '--- G 0100 ---\n';
+  // 5. Send end record
+  serialRxLog += 'TX: ' + hexEnd + '\n';
   updateSerialTerminal();
-  await serialSendText('G 0100\r\n');
+  await serialSendRaw(hexEnd + '\r\n');
+
+  // 6. Wait for loading to complete (PAT processes HEX)
+  await sleep(1000);
+
+  // 7. Execute program
+  serialRxLog += '=== G 0100 ===\n';
+  updateSerialTerminal();
+  clearRxBuf();
+  await serialSendRaw('G 0100\r\n');
+
+  // 8. Wait for > prompt (program should EXIT back to monitor)
+  let gotPrompt = await waitForResponse('>', 3000);
+  if (gotPrompt) {
+    serialRxLog += '=== DONE (> prompt received) ===\n';
+  } else {
+    serialRxLog += '=== TIMEOUT (no > prompt) ===\n';
+  }
+  updateSerialTerminal();
 }
 
-// --- Test: Light up D2 on port monitor ---
-// Port 1 (UPORT1 = 90H) has the LEDs
-// Port 1 Control (UPORT1CTL = 88H) sets direction
+// --- Test: Light up LEDs on port monitor ---
+// UPORT1CTL (88H) = direction, UPORT1 (90H) = data
 // D2 = bit 2 = 04H
 //
-// Machine code at ORG 0100H:
-//   MOV AL, FFH     -> B0 FF     ; all bits output
-//   OUT 88H, AL     -> E6 88     ; set Port 1 direction
-//   MOV AL, 04H     -> B0 04     ; D2 = bit 2
-//   OUT 90H, AL     -> E6 90     ; write to Port 1
-//   MOV AH, 04H     -> B4 04     ; EXIT
-//   INT 28H         -> CD 28     ; return to monitor
+// ORG 0100H:
+//   B0 FF    MOV AL, FFH       ; all bits output
+//   E6 88    OUT 88H, AL       ; set Port 1 direction
+//   B0 04    MOV AL, 04H       ; D2 = bit 2
+//   E6 90    OUT 90H, AL       ; write to Port 1
+//   BB 00 00 MOV BX, 0000H     ; clear BX (PA14 convention)
+//   B4 04    MOV AH, 04H       ; EXIT function
+//   CD 28    INT 28H           ; return to monitor
 async function testLedOn() {
   sLog('Test: D2 LED ON yukleniyor...', 0);
   await uploadAndRun([
-    0xB0, 0xFF,       // MOV AL, FFH
-    0xE6, 0x88,       // OUT 88H, AL  (Port 1 = all output)
-    0xB0, 0x04,       // MOV AL, 04H  (D2 = bit 2)
-    0xE6, 0x90,       // OUT 90H, AL  (write to Port 1)
-    0xB4, 0x04,       // MOV AH, 04H  (EXIT)
-    0xCD, 0x28        // INT 28H
+    0xB0, 0xFF,             // MOV AL, FFH
+    0xE6, 0x88,             // OUT 88H, AL
+    0xB0, 0x04,             // MOV AL, 04H (D2)
+    0xE6, 0x90,             // OUT 90H, AL
+    0xBB, 0x00, 0x00,       // MOV BX, 0000H
+    0xB4, 0x04,             // MOV AH, 04H
+    0xCD, 0x28              // INT 28H
   ]);
-  sLog('Test: D2 LED ON gonderildi (UPORT1=90H, bit2=04H)', 0);
 }
 
 // --- Test: Turn off all LEDs ---
 async function testLedOff() {
   sLog('Test: LED OFF yukleniyor...', 0);
   await uploadAndRun([
-    0xB0, 0xFF,       // MOV AL, FFH
-    0xE6, 0x88,       // OUT 88H, AL  (Port 1 = all output)
-    0xB0, 0x00,       // MOV AL, 00H  (all off)
-    0xE6, 0x90,       // OUT 90H, AL
-    0xB4, 0x04,       // MOV AH, 04H  (EXIT)
-    0xCD, 0x28        // INT 28H
+    0xB0, 0xFF,             // MOV AL, FFH
+    0xE6, 0x88,             // OUT 88H, AL
+    0xB0, 0x00,             // MOV AL, 00H
+    0xE6, 0x90,             // OUT 90H, AL
+    0xBB, 0x00, 0x00,       // MOV BX, 0000H
+    0xB4, 0x04,             // MOV AH, 04H
+    0xCD, 0x28              // INT 28H
   ]);
-  sLog('Test: LED OFF gonderildi', 0);
+}
+
+// --- Test: Light ALL LEDs (FFH) for maximum visibility ---
+async function testLedAll() {
+  sLog('Test: ALL LEDs ON yukleniyor...', 0);
+  await uploadAndRun([
+    0xB0, 0xFF,             // MOV AL, FFH
+    0xE6, 0x88,             // OUT 88H, AL
+    0xB0, 0xFF,             // MOV AL, FFH (all LEDs)
+    0xE6, 0x90,             // OUT 90H, AL
+    0xBB, 0x00, 0x00,       // MOV BX, 0000H
+    0xB4, 0x04,             // MOV AH, 04H
+    0xCD, 0x28              // INT 28H
+  ]);
 }
 
 // --- Send command from terminal input ---
@@ -207,7 +263,7 @@ async function serialTermSend() {
   let cmd = input.value;
   serialRxLog += '> ' + cmd + '\n';
   updateSerialTerminal();
-  await serialSendText(cmd + '\r\n');
+  await serialSendRaw(cmd + '\r\n');
   input.value = '';
 }
 
@@ -220,10 +276,7 @@ function updateSerialUI() {
     btn.textContent = serialConnected ? 'Disconnect' : 'DigiAC';
     btn.classList.toggle('connected', serialConnected);
   }
-  if (dot) {
-    dot.classList.toggle('connected', serialConnected);
-    dot.classList.toggle('error', false);
-  }
+  if (dot) dot.classList.toggle('connected', serialConnected);
   if (lbl) {
     lbl.textContent = serialConnected ? 'CONNECTED' : 'OFFLINE';
     lbl.style.color = serialConnected ? 'var(--grn)' : 'var(--text3)';
@@ -237,13 +290,10 @@ function updateSerialTerminal() {
   el.scrollTop = el.scrollHeight;
 }
 
-// Forwarding stubs for ioWrite/ioRead integration
+// Forwarding stubs
 const DIGIAC_PORTS = new Set([0x80,0x82,0x84,0x86,0x88,0x8A,0x8C,0x8E,0x90,0x92,0x94,0x96,0x98,0x9A,0x9C,0x9E]);
 
-async function serialWritePort(port, val) {
-  // Will be implemented once PAT monitor protocol is confirmed
-}
-
+async function serialWritePort(port, val) {}
 function serialReadPort(port) {
   return Promise.resolve(ioPorts ? ioPorts[port & 0xFF] : 0);
 }

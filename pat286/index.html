@@ -230,7 +230,8 @@
     <div class="cd"><div class="ch">DigiAC Serial <span class="ch-sub" id="serialStatusSub">offline</span></div><div class="cb" style="padding:4px 6px">
       <div style="display:flex;gap:3px;margin-bottom:4px;flex-wrap:wrap">
         <button class="b bg" onclick="testLedOn()" style="font-size:9px;padding:2px 8px">D2 ON</button>
-        <button class="b" onclick="testLedOff()" style="font-size:9px;padding:2px 8px">D2 OFF</button>
+        <button class="b" onclick="testLedOff()" style="font-size:9px;padding:2px 8px">OFF</button>
+        <button class="b" onclick="testLedAll()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw)">ALL ON</button>
         <button class="b b-serial" onclick="serialConnect()" style="font-size:9px;padding:2px 8px" id="serialBtn2">Connect</button>
       </div>
       <div class="io-log" id="serialLog" style="min-height:50px;max-height:120px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap">Serial terminal — connect to PAT-286 to begin</div>
