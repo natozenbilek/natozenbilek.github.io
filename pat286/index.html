@@ -447,8 +447,7 @@ function checkInterrupts() {
 }
 
 // === I/O PORT HANDLING ===
-// DigiAC application module ports that are forwarded to real hardware
-const DIGIAC_PORTS = new Set([0x80,0x82,0x84,0x86,0x88,0x8A,0x8C,0x8E,0x90,0x92,0x94,0x96,0x98,0x9A,0x9C,0x9E]);
+// DIGIAC_PORTS defined in serial.js
 
 function ioWrite(port, val) {
   port &= 0xFF; val &= 0xFF;
