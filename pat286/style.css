@@ -246,9 +246,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 
 /* === SERIAL CONNECTION === */
 .serial-status{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px}
-.serial-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:all .2s}
+.serial-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);display:inline-block;transition:all .2s}
 .serial-dot.connected{background:var(--grn);box-shadow:0 0 6px var(--grn)}
 .serial-dot.error{background:var(--red);box-shadow:0 0 6px var(--red)}
+.serial-dot-sm{width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block;vertical-align:middle;margin-left:4px;transition:all .2s}
+.serial-dot-sm.connected{background:var(--grn);box-shadow:0 0 4px var(--grn)}
 .b-serial{border-color:var(--cyn);color:var(--cyn)}
 .b-serial:hover{background:var(--cyn);color:#111}
 .b-serial.connected{background:var(--grn);color:#111;border-color:var(--grn)}
+.b-upload{border-color:var(--grn);color:var(--grn);font-weight:600}
+.b-upload:hover{background:var(--grn);color:#111}
+.ctrl-label{font-family:var(--mono);font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;align-self:center;margin-right:2px}
+.cd-device{border-left:2px solid var(--cyn)}

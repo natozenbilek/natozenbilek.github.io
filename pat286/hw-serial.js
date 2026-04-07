@@ -300,48 +300,42 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
 // Uses HEX upload (Method 1) which is the official IDE way.
 // ===================================================================
 async function directLedTest(portVal, label) {
-  // MUART init + OUT 90h,val + EXIT
-  let mc = [...MUART_INIT, 0xB0, portVal & 0xFF, 0xE6, 0x90, ...MC_EXIT_TAIL];
-  await uploadHexAndRun(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
+  let mc = makeLedProgram(portVal);
+  await uploadCmdAndRun(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
 }
 
 // ===================================================================
 // Test functions — try HEX method first
 // ===================================================================
 
-// MUART init prefix: write FFh to command regs 80-86, direction reg 88
-// Required to enable UPORT1 (90H) output on the 8256 MUART
-const MUART_INIT = [
-  0xB0, 0xFF,       // MOV AL, FFh
-  0xE6, 0x80,       // OUT 80h, AL  (UCRREG1)
-  0xE6, 0x82,       // OUT 82h, AL  (UCRREG2)
-  0xE6, 0x84,       // OUT 84h, AL  (UCRREG3)
-  0xE6, 0x86,       // OUT 86h, AL  (UMODEREG)
-  0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL - all output)
-];
-// EXIT: INT 28H AH=04H
-const MC_EXIT_TAIL = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+// MUART init: configure command regs + direction, then write LED value
+// Writes FFh to 80-88 (control), then a separate value to 90 (data)
+function makeLedProgram(ledVal) {
+  return [
+    0xB0, 0xFF,       // MOV AL, FFh
+    0xE6, 0x80,       // OUT 80h, AL  (UCRREG1)
+    0xE6, 0x82,       // OUT 82h, AL  (UCRREG2)
+    0xE6, 0x84,       // OUT 84h, AL  (UCRREG3)
+    0xE6, 0x86,       // OUT 86h, AL  (UMODEREG)
+    0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL - all output)
+    0xB0, ledVal & 0xFF, // MOV AL, ledVal
+    0xE6, 0x90,       // OUT 90h, AL  (UPORT1 - LEDs)
+    0xBB, 0x00, 0x00, // MOV BX, 0
+    0xB4, 0x04,       // MOV AH, 04h
+    0xCD, 0x28,       // INT 28h (EXIT)
+  ];
+}
 
-// EXIT test machine code
-const MC_EXIT = MC_EXIT_TAIL;
-// D2 ON (bit 2)
-const MC_D2ON = [...MUART_INIT, 0xB0, 0x04, 0xE6, 0x90, ...MC_EXIT_TAIL];
-// ALL ON
-const MC_ALLON = [...MUART_INIT, 0xB0, 0xFF, 0xE6, 0x90, ...MC_EXIT_TAIL];
-// OFF
-const MC_OFF = [...MUART_INIT, 0xB0, 0x00, 0xE6, 0x90, ...MC_EXIT_TAIL];
+// EXIT: INT 28H AH=04H
+const MC_EXIT = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
+// LED programs
+const MC_ALLON = makeLedProgram(0xFF);
+const MC_OFF = makeLedProgram(0x00);
 
 // C command method (confirmed working: C + ESC exit + G)
 async function testExit()   { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
-async function testLedOn()  { await uploadCmdAndRun(MC_D2ON, 'D2 ON'); }
 async function testLedAll() { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
 async function testLedOff() { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
-
-// HEX upload versions (L + /t1 — experimental, may not work on all firmware)
-async function testExitHex()  { await uploadHexAndRun(MC_EXIT, 'EXIT HEX'); }
-async function testLedOnHex() { await uploadHexAndRun(MC_D2ON, 'D2 ON HEX'); }
-async function testAllHex()   { await uploadHexAndRun(MC_ALLON, 'ALL ON HEX'); }
-async function testOffHex()   { await uploadHexAndRun(MC_OFF, 'LED OFF HEX'); }
 
 // ===================================================================
 // Upload assembled program from editor to real hardware
@@ -429,12 +423,14 @@ async function serialTermSend() {
 function updateSerialUI() {
   let btn = document.getElementById('serialBtn');
   let dot = document.getElementById('serialDot');
+  let dot2 = document.getElementById('serialDot2');
   if (btn) {
     btn.textContent = serialConnected ? 'Disconnect' : 'Device';
     btn.classList.toggle('connected', serialConnected);
   }
   if (dot) dot.classList.toggle('connected', serialConnected);
-  // Update all connect buttons
+  if (dot2) dot2.classList.toggle('connected', serialConnected);
+  // Update connect button in Device panel
   let btn2 = document.getElementById('serialBtn2');
   if (btn2) {
     btn2.textContent = serialConnected ? 'Disconnect' : 'Connect';

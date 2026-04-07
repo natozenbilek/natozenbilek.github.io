@@ -12,6 +12,7 @@
   <h1><b>PAT-286</b> Virtual Lab <em>BBM436</em></h1>
   <div class="sep"></div>
   <div class="ctrls">
+    <span class="ctrl-label">Simulator</span>
     <button class="b" id="stepBackBtn" onclick="doStepBack()">&#8592; Back</button>
     <button class="b" onclick="doStep()">Step</button>
     <button class="b" id="stepFwdBtn" onclick="doStepForward()">Fwd &#8594;</button>
@@ -43,7 +44,7 @@
       <select id="ex" onchange="loadEx()"></select>
       <div class="eh-r">
         <button class="b bp" onclick="doAssemble()" title="Ctrl+Enter">Assemble</button>
-        <button class="b b-serial" id="uploadBtn" onclick="uploadProgram()" title="Assemble ve cihaza yukle" style="display:none">Upload</button>
+        <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Cihaza yukle ve calistir" style="display:none">Upload &amp; Run</button>
       </div>
     </div>
     <div class="ew">
@@ -55,22 +56,22 @@
     </div>
     <div class="lb" id="log">Ready.</div>
 
-    <!-- Hardware Serial -->
-    <div class="cd" id="serialPanel"><div class="ch">Hardware Serial</div><div class="cb" style="padding:4px 6px">
+    <!-- Device Serial -->
+    <div class="cd cd-device" id="serialPanel"><div class="ch">Device <span class="ch-sub serial-dot-sm" id="serialDot2"></span></div><div class="cb" style="padding:4px 6px">
       <div style="display:flex;gap:3px;margin-bottom:3px;flex-wrap:wrap;align-items:center">
         <button class="b b-serial" onclick="serialConnect()" style="font-size:9px;padding:2px 8px" id="serialBtn2">Connect</button>
+        <div class="sep"></div>
         <span style="font-size:7px;color:var(--grn);align-self:center">LED:</span>
-        <button class="b" onclick="testLedAll()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw);font-weight:bold">ALL ON</button>
-        <button class="b" onclick="testLedOn()" style="font-size:9px;padding:2px 8px">D2 ON</button>
+        <button class="b" onclick="testLedAll()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw);font-weight:bold">ALL</button>
         <button class="b" onclick="testLedOff()" style="font-size:9px;padding:2px 8px">OFF</button>
         <span style="flex:1"></span>
         <button class="b" onclick="sendGo()" style="font-size:9px;padding:2px 8px;border-color:var(--grn);color:var(--grn)">G</button>
         <button class="b" onclick="sendTrace()" style="font-size:9px;padding:2px 8px;border-color:var(--ylw);color:var(--ylw)">T</button>
         <button class="b" onclick="copySerialLog()" style="font-size:9px;padding:2px 8px;border-color:var(--text3);color:var(--text3)">Copy</button>
       </div>
-      <div class="io-log" id="serialLog" style="min-height:40px;max-height:150px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap;user-select:text">Connect > PAT RESET > Assemble > Upload</div>
+      <div class="io-log" id="serialLog" style="min-height:40px;max-height:150px;background:var(--bg);color:var(--grn);font-size:9px;white-space:pre-wrap;user-select:text">Connect > PAT RESET > Assemble > Upload &amp; Run</div>
       <div style="display:flex;gap:3px;margin-top:3px">
-        <input id="serialInput" type="text" style="flex:1;font-family:var(--mono);font-size:9px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg);color:var(--text)" placeholder="Monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
+        <input id="serialInput" type="text" style="flex:1;font-family:var(--mono);font-size:9px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg);color:var(--text)" placeholder="Monitor komutu..." onkeydown="if(event.key==='Enter')serialTermSend()">
         <button class="b" onclick="serialTermSend()" style="font-size:9px;padding:2px 6px">Send</button>
       </div>
     </div></div>
