@@ -229,8 +229,10 @@ async function uploadHexAndRun(machineCode, label) {
 // METHOD 2: C command + ESC exit — write bytes, ESC+CR to exit C mode,
 // then G 0100 to execute. RAM is preserved (no reset needed).
 // ===================================================================
-async function uploadCmdAndRun(machineCode, label) {
+async function uploadCmdAndRun(machineCode, label, startAddr) {
   if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+  let addr = (startAddr || 0x0100);
+  let addrStr = addr.toString(16).toUpperCase().padStart(4, '0');
 
   serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C + ESC exit) ===\n';
   updateSerialTerminal();
@@ -241,10 +243,10 @@ async function uploadCmdAndRun(machineCode, label) {
   updateSerialTerminal();
   if (!gotP) return;
 
-  // 2. Enter C interactive mode at address 0100
-  serialRxLog += 'TX: C 0100\n';
+  // 2. Enter C interactive mode at address
+  serialRxLog += 'TX: C ' + addrStr + '\n';
   updateSerialTerminal();
-  let gotC = await sendAndWait('C 0100\r\n', '0100', 3000);
+  let gotC = await sendAndWait('C ' + addrStr + '\r\n', addrStr, 3000);
   if (!gotC) {
     serialRxLog += '[WARN] C komutu cevap yok\n';
     updateSerialTerminal();
@@ -283,12 +285,12 @@ async function uploadCmdAndRun(machineCode, label) {
   updateSerialTerminal();
   if (!gotExit) return;
 
-  // 6. G 0100 — execute
+  // 6. G [addr] — execute
   await sleep(200);
-  serialRxLog += 'TX: G 0100\n';
+  serialRxLog += 'TX: G ' + addrStr + '\n';
   updateSerialTerminal();
-  let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 8000);
-  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
+  let gotG = await sendAndWait('G ' + addrStr + '\r\n', PAT_PROMPT, 8000);
+  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT ---\n';
   updateSerialTerminal();
 }
 
@@ -341,12 +343,49 @@ async function testLedOnHex() { await uploadHexAndRun(MC_D2ON, 'D2 ON HEX'); }
 async function testAllHex()   { await uploadHexAndRun(MC_ALLON, 'ALL ON HEX'); }
 async function testOffHex()   { await uploadHexAndRun(MC_OFF, 'LED OFF HEX'); }
 
+// ===================================================================
+// Upload assembled program from editor to real hardware
+// Reads bytes from mem[] (set by doAssemble), sends via C method
+// ===================================================================
+async function uploadProgram() {
+  if (!serialConnected) { sLog('Once Device ile baglanin!', 1); return; }
+  if (!pLen) { sLog('Once Assemble basin!', 1); return; }
+
+  // Find program byte range from assembled output in mem[]
+  // Program starts at pa(CS=0x80, org) and we scan for the extent
+  let org = IP; // IP is set to p2.org after assembly
+  // Scan memory from org to find last non-zero byte (or use asmLines)
+  let startPhys = 0x80 * 16 + org;  // physical start
+  let endPhys = startPhys;
+  // Find extent from asmLines (instruction list) and data
+  for (let line of asmLines) {
+    let lineEnd = 0x80 * 16 + line.addr + (line.bytes ? line.bytes.length : 0);
+    if (lineEnd > endPhys) endPhys = lineEnd;
+  }
+  // Also scan mem for any data bytes written after instructions
+  // (DB/DW data might extend beyond last instruction)
+  let maxScan = startPhys + 0x2000; // max 8KB scan
+  for (let a = endPhys; a < maxScan; a++) {
+    if (mem[a] !== 0) endPhys = a + 1;
+    else if (a - endPhys > 16) break; // 16 consecutive zeros = end
+  }
+
+  let progBytes = [];
+  for (let a = startPhys; a < endPhys; a++) progBytes.push(mem[a]);
+
+  if (!progBytes.length) { sLog('Program bos!', 1); return; }
+
+  sLog(`Uploading ${progBytes.length} bytes to device...`, 0);
+  await uploadCmdAndRun(progBytes, 'UPLOAD: ' + progBytes.length + 'B @ ' + org.toString(16).toUpperCase() + 'H');
+}
+
 // --- Run / Trace commands (fast send) ---
 async function sendGo() {
-  serialRxLog += '\nTX: G 0100\n';
+  let addr = IP ? IP.toString(16).toUpperCase().padStart(4, '0') : '0100';
+  serialRxLog += '\nTX: G ' + addr + '\n';
   updateSerialTerminal();
-  let got = await sendAndWait('G 0100\r\n', PAT_PROMPT, 8000);
-  serialRxLog += got ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
+  let got = await sendAndWait('G ' + addr + '\r\n', PAT_PROMPT, 8000);
+  serialRxLog += got ? '=== BASARILI ===\n' : '--- G TIMEOUT ---\n';
   updateSerialTerminal();
 }
 async function sendTrace() {
@@ -390,16 +429,20 @@ async function serialTermSend() {
 function updateSerialUI() {
   let btn = document.getElementById('serialBtn');
   let dot = document.getElementById('serialDot');
-  let lbl = document.getElementById('serialLbl');
   if (btn) {
     btn.textContent = serialConnected ? 'Disconnect' : 'Device';
     btn.classList.toggle('connected', serialConnected);
   }
   if (dot) dot.classList.toggle('connected', serialConnected);
-  if (lbl) {
-    lbl.textContent = serialConnected ? 'CONNECTED' : 'OFFLINE';
-    lbl.style.color = serialConnected ? 'var(--grn)' : 'var(--text3)';
+  // Update all connect buttons
+  let btn2 = document.getElementById('serialBtn2');
+  if (btn2) {
+    btn2.textContent = serialConnected ? 'Disconnect' : 'Connect';
+    btn2.classList.toggle('connected', serialConnected);
   }
+  // Show/hide upload button
+  let upBtn = document.getElementById('uploadBtn');
+  if (upBtn) upBtn.style.display = serialConnected ? '' : 'none';
 }
 
 function updateSerialTerminal() {
