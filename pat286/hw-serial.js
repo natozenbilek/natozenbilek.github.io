@@ -33,7 +33,9 @@ async function serialConnect() {
       stopBits: SERIAL_STOP_BITS,
       parity: 'none'
     });
-    // PAT requires DTR+RTS enabled for communication
+    // Briefly deassert DTR/RTS, then gently raise to avoid board reset
+    await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await new Promise(r => setTimeout(r, 100));
     await serialPort.setSignals({ dataTerminalReady: true, requestToSend: true });
     serialWriter = serialPort.writable.getWriter();
     serialConnected = true;
