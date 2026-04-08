@@ -145,6 +145,8 @@ function renderAll() {
 
   updateMotor();
   updLn();
+  if (typeof renderWatches === 'function') renderWatches();
+  if (typeof updateCurLineBar === 'function') updateCurLineBar();
 }
 
 function toggleFollow(mode) {
@@ -359,7 +361,7 @@ const edHL = document.getElementById('edHL');
 ed.addEventListener('input', () => { updLn(); updateHighlight(); });
 ed.addEventListener('scroll', syncScroll);
 ed.addEventListener('keydown', function(e) {
-  if (e.key === 'Tab') { e.preventDefault(); let s=this.selectionStart; this.value=this.value.substring(0,s)+'        '+this.value.substring(this.selectionEnd); this.selectionStart=this.selectionEnd=s+8; updLn(); updateHighlight(); }
+  if (e.key === 'Tab') { e.preventDefault(); if (window._acceptGhost && window._acceptGhost()) { updLn(); updateHighlight(); return; } let s=this.selectionStart; this.value=this.value.substring(0,s)+'        '+this.value.substring(this.selectionEnd); this.selectionStart=this.selectionEnd=s+8; updLn(); updateHighlight(); }
   else if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); compileIfC()||doAssemble(); }
 });
 
@@ -512,6 +514,7 @@ function closeAllTabs() {
   document.getElementById('lns').innerHTML = '';
   if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
   renderTabs();
+  if (typeof showWelcome === 'function') showWelcome();
   sLog('Ready.', 0);
 }
 
@@ -527,6 +530,8 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     if (guideOv && !guideOv.hidden) { closeGuide(); return; }
     if (expOv && !expOv.hidden) { closeExport(); return; }
+    let portsOv = document.getElementById('portsOv');
+    if (portsOv && !portsOv.hidden) { closePorts(); return; }
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); compileIfC()||doAssemble(); }
 });

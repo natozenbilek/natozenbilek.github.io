@@ -950,6 +950,7 @@ function loadExByKey(key, fileEl) {
   if (!existing) {
     openTabs.push({key, content: EX[key]});
   }
+  if (typeof hideWelcome === 'function') hideWelcome();
   activeTabKey = key;
   let tab = openTabs.find(t => t.key === key);
   document.getElementById('ed').value = tab.content;
@@ -976,6 +977,7 @@ function switchTab(key) {
     return;
   }
   // For non-EX files (extras, dynamic, local)
+  if (typeof hideWelcome === 'function') hideWelcome();
   activeTabKey = key;
   document.getElementById('ed').value = tab.content;
   updLn(); updateHighlight();
@@ -996,8 +998,10 @@ function closeTab(key, e) {
     } else {
       activeTabKey = null;
       document.getElementById('ed').value = '';
-      updLn(); updateHighlight();
+      document.getElementById('edHL').innerHTML = '';
+      document.getElementById('lns').innerHTML = '';
       if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
+      if (typeof showWelcome === 'function') showWelcome();
     }
   }
   renderTabs();

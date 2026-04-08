@@ -100,7 +100,8 @@ function highlightLine(line) {
         if (HL_KEYWORDS.has(u)) return `<span class="hl-k">${esc(word)}</span>`;
         if (HL_REGS.has(u)) return `<span class="hl-r">${esc(word)}</span>`;
         if (HL_DIRS.has(u)) return `<span class="hl-d">${esc(word)}</span>`;
-        return `<span class="hl-l">${esc(word)}</span>`;
+        let occCls = (window._highlightedSymbol && u === window._highlightedSymbol) ? ' hl-occ' : '';
+        return `<span class="hl-l${occCls}">${esc(word)}</span>`;
       }
       return esc(m);
     }
