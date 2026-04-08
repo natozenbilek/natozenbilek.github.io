@@ -56,16 +56,15 @@
         <textarea id="ed" class="hl-active" spellcheck="false" autocomplete="off" placeholder="; 8086 Assembly — PAT-286"></textarea>
       </div>
     </div>
-    <!-- Terminal / Console -->
+    <div class="lb" id="log">Ready.</div>
+    <!-- Terminal -->
     <div class="term" id="termPanel">
       <div class="term-tabs">
-        <span class="term-tab active" id="termTabLog" onclick="showTermTab('log')">Problems</span>
-        <span class="term-tab" id="termTabPorts" onclick="showTermTab('ports')">Ports</span>
+        <span class="term-tab active" id="termTabPorts" onclick="showTermTab('ports')">Ports</span>
         <span class="term-tab" id="termTabSerial" onclick="showTermTab('serial')">Terminal <span class="serial-dot-sm" id="serialDot2"></span></span>
       </div>
       <div class="term-body">
-        <div class="term-pane" id="termLog"><span class="term-line">Ready.</span></div>
-        <div class="term-pane" id="termPorts" style="display:none">
+        <div class="term-pane" id="termPorts">
           <div class="port-mon" id="portMon"></div>
         </div>
         <div class="term-pane" id="termSerial" style="display:none">

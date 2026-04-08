@@ -83,29 +83,21 @@ function setSt(s) {
   e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s];
 }
 function sLog(m,err) {
-  let e=document.getElementById('termLog');
+  let e=document.getElementById('log');
   if(!e) return;
-  let line=document.createElement('div');
-  line.className='term-line'+(err?' err':' ok');
-  line.textContent=String(m||'');
-  e.appendChild(line);
-  e.scrollTop=e.scrollHeight;
-  while(e.children.length>50) e.removeChild(e.firstChild);
-  let panel=document.getElementById('termPanel');
-  if(panel && !panel.classList.contains('open')) showTermTab('log');
+  e.className='lb'+(err?' le':' ls');
+  e.textContent=String(m||'');
 }
 function showTermTab(tab) {
   let panel = document.getElementById('termPanel');
   if (!panel) return;
   let wasOpen = panel.classList.contains('open');
-  let curTab = panel.dataset.tab || 'log';
+  let curTab = panel.dataset.tab || 'ports';
   if (wasOpen && curTab === tab) { panel.classList.remove('open'); return; }
   panel.classList.add('open');
   panel.dataset.tab = tab;
-  document.getElementById('termLog').style.display = tab==='log' ? '' : 'none';
   document.getElementById('termPorts').style.display = tab==='ports' ? '' : 'none';
   document.getElementById('termSerial').style.display = tab==='serial' ? '' : 'none';
-  document.getElementById('termTabLog').className = 'term-tab'+(tab==='log'?' active':'');
   document.getElementById('termTabPorts').className = 'term-tab'+(tab==='ports'?' active':'');
   document.getElementById('termTabSerial').className = 'term-tab'+(tab==='serial'?' active':'');
   if (tab === 'ports') renderPortMonitor();
@@ -423,11 +415,12 @@ function highlightLine(line) {
   let code = ci >= 0 ? line.substring(0, ci) : line;
   let comment = ci >= 0 ? line.substring(ci) : '';
 
-  let result = code.replace(/('[^']*'|"[^"]*")|(\$)|(\b[0-9][0-9A-Fa-f]*[Hh]\b|\b0[Xx][0-9A-Fa-f]+\b|\b[0-9]+[Bb]\b|\b[0-9]+\b)|(\b[A-Za-z_]\w*\b)/g,
-    function(m, str, dollar, num, word) {
+  let result = code.replace(/('[^']*'|"[^"]*")|(\$)|(\b[0-9][0-9A-Fa-f]*[Hh]\b|\b0[Xx][0-9A-Fa-f]+\b|\b[0-9]+[Bb]\b|\b[0-9]+\b)|(\.[A-Za-z_]\w*)|(\b[A-Za-z_]\w*\b)/g,
+    function(m, str, dollar, num, dotword, word) {
       if (str) return `<span class="hl-s">${esc(str)}</span>`;
       if (dollar) return `<span class="hl-n">$</span>`;
       if (num) return `<span class="hl-n">${esc(num)}</span>`;
+      if (dotword) return `<span class="hl-l">${esc(dotword)}</span>`;
       if (word) {
         let u = word.toUpperCase();
         if (HL_KEYWORDS.has(u)) return `<span class="hl-k">${esc(word)}</span>`;
