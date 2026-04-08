@@ -103,9 +103,12 @@ function showTermTab(tab) {
   panel.classList.add('open');
   panel.dataset.tab = tab;
   document.getElementById('termLog').style.display = tab==='log' ? '' : 'none';
+  document.getElementById('termPorts').style.display = tab==='ports' ? '' : 'none';
   document.getElementById('termSerial').style.display = tab==='serial' ? '' : 'none';
   document.getElementById('termTabLog').className = 'term-tab'+(tab==='log'?' active':'');
+  document.getElementById('termTabPorts').className = 'term-tab'+(tab==='ports'?' active':'');
   document.getElementById('termTabSerial').className = 'term-tab'+(tab==='serial'?' active':'');
+  if (tab === 'ports') renderPortMonitor();
 }
 
 function renderAll() {
@@ -154,6 +157,7 @@ function renderAll() {
   renderMem();
   renderAppModule();
   renderIOLog();
+  if(document.getElementById('termPanel')?.dataset.tab==='ports') renderPortMonitor();
   renderTrace();
 
   let bb=document.getElementById('stepBackBtn'),bf=document.getElementById('stepFwdBtn');
@@ -318,6 +322,23 @@ function updateMotor() {
   if (arm) { arm.setAttribute('x2', x2); arm.setAttribute('y2', y2); }
   let encSlots = document.getElementById('encSlots');
   if (encSlots) encSlots.setAttribute('transform', 'rotate(' + motorAngle + ',90,170)');
+}
+
+function renderPortMonitor() {
+  let el = document.getElementById('portMon');
+  if (!el) return;
+  const ports = [
+    ['PORT1', 0x90], ['PORT2', 0x92], ['P1CTL', 0x88], ['MODE', 0x86],
+    ['CREG1', 0x80], ['IRQEN', 0x8A], ['TMR1', 0x94], ['STATUS', 0x9E]
+  ];
+  let html = '<table class="pm-tbl"><tr><th>Port</th><th>Addr</th><th>Hex</th><th>Dec</th><th>Binary</th></tr>';
+  for (let [name, addr] of ports) {
+    let v = ioPorts[addr] || 0;
+    let bin = v.toString(2).padStart(8, '0').replace(/(.{4})/g, '$1 ').trim();
+    html += `<tr><td>${name}</td><td>${hex8(addr)}</td><td class="pm-val">${hex8(v)}</td><td>${v}</td><td class="pm-bin">${bin}</td></tr>`;
+  }
+  html += '</table>';
+  el.innerHTML = html;
 }
 
 function renderIOLog() {

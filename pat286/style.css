@@ -108,6 +108,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .term-prompt{font-family:var(--mono);font-size:10px;color:var(--text3)}
 .term-input{flex:1;font-family:var(--mono);font-size:10px;padding:3px 4px;border:none;background:transparent;color:var(--text);outline:none}
 .log-ln{font:inherit;border:none;background:transparent;color:var(--blu);text-decoration:underline;cursor:pointer;padding:0}
+.port-mon{overflow-y:auto;padding:4px 8px;background:var(--bg);height:100%}
+.pm-tbl{font-family:var(--mono);font-size:10px;width:100%;border-collapse:collapse}
+.pm-tbl th{text-align:left;color:var(--text3);font-weight:500;padding:2px 8px;border-bottom:1px solid var(--brd)}
+.pm-tbl td{padding:2px 8px;color:var(--text2)}
+.pm-val{color:var(--acc);font-weight:600}
+.pm-bin{color:var(--blu);letter-spacing:1px}
 /* Execution trace */
 .trace{font-family:var(--mono);font-size:9px;max-height:120px;overflow-y:auto;scrollbar-width:thin}
 .trace-row{display:flex;gap:6px;padding:1px 2px;border-bottom:1px solid rgba(255,255,255,.03)}
