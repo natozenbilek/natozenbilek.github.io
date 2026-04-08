@@ -1,3 +1,6 @@
 [submodule "pat286"]
 	path = pat286
 	url = https://github.com/natozenbilek/pat286.git
+[submodule "rbmk"]
+	path = rbmk
+	url = https://github.com/natozenbilek/rbmk.git
