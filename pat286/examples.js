@@ -794,7 +794,7 @@ function fileLabel(key) {
 
 function updateAsmBtnLabel() {
   let btn = document.getElementById('asmBtn');
-  if (btn) btn.textContent = isHighLevelFile() ? 'Compile' : 'Assemble';
+  if (btn) btn.textContent = isHighLevelFile() ? 'Translate to ASM' : 'Assemble';
 }
 
 function renderTabs() {
@@ -831,11 +831,11 @@ function loadEx() {
 }
 
 const EXTRA_FILES = [
-  { folder: 'scripts', name: 'led_blink.c', content: '/* LED blink — compiles to 8086 ASM */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
-  { folder: 'scripts', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
-  { folder: 'scripts', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
-  { folder: 'scripts', name: 'blink.java', content: '// LED blink on/off cycle\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
-  { folder: 'scripts', name: 'counter.cpp', content: '// Binary counter with C++\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
+  { folder: 'scripts', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * Bu dosya egitim amacli pseudo-koddur.\n * "Translate to ASM" ile 8086 Assembly\'e cevrilir.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
+  { folder: 'scripts', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — egitim amacli\n# "Translate to ASM" ile 8086 Assembly\'e cevrilir\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
+  { folder: 'scripts', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
+  { folder: 'scripts', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
+  { folder: 'scripts', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
 ];
 
 function buildExDropdown() {

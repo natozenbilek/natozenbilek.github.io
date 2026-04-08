@@ -23,21 +23,8 @@
   </div>
 </div>
 <div class="mn">
-  <!-- LEFT PANEL: SIM CONTROLS + FILE BROWSER -->
+  <!-- LEFT PANEL: FILE BROWSER -->
   <div class="lp">
-    <div class="sim-bar">
-      <div class="sim-ctrls">
-        <button class="b" id="stepBackBtn" onclick="doStepBack()">&#8592;</button>
-        <button class="b" onclick="doStep()">Step</button>
-        <button class="b" id="stepFwdBtn" onclick="doStepForward()">&#8594;</button>
-        <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
-        <button class="b" onclick="doReset()">Reset</button>
-      </div>
-      <select id="spd" onchange="updSpd()" title="Execution speed (Hz)">
-        <option value="5">5 Hz</option><option value="20" selected>20 Hz</option>
-        <option value="100">100 Hz</option><option value="500">500 Hz</option><option value="9999">Max</option>
-      </select>
-    </div>
     <div class="file-browser">
       <div class="file-browser-hd">Explorer</div>
       <div class="fb-tree" id="fbTree"></div>
@@ -78,15 +65,29 @@
           <div class="term-input-row">
             <span class="term-prompt">&gt;</span>
             <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
-            <button class="b" onclick="serialTermSend()" style="font-size:9px;padding:2px 6px">Send</button>
+            <button class="b" onclick="serialTermSend()" style="font-size:10px;padding:3px 8px">Send</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL: CPU STATE + APPLICATIONS MODULE -->
-  <div class="rp"><div class="ci">
+  <!-- RIGHT PANEL: SIM CONTROLS + CPU STATE + APPLICATIONS MODULE -->
+  <div class="rp">
+    <div class="sim-bar">
+      <div class="sim-ctrls">
+        <button class="b" id="stepBackBtn" onclick="doStepBack()">&#8592;</button>
+        <button class="b" onclick="doStep()">Step</button>
+        <button class="b" id="stepFwdBtn" onclick="doStepForward()">&#8594;</button>
+        <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
+        <button class="b" onclick="doReset()">Reset</button>
+      </div>
+      <select id="spd" onchange="updSpd()" title="Execution speed (Hz)">
+        <option value="5">5 Hz</option><option value="20" selected>20 Hz</option>
+        <option value="100">100 Hz</option><option value="500">500 Hz</option><option value="9999">Max</option>
+      </select>
+    </div>
+    <div class="ci">
     <div class="cyc">
       <span>Cycle: <b id="cyN">0</b></span>
       <span>Instr: <b id="inN">0</b></span>
@@ -117,17 +118,17 @@
     </div></div>
     <div class="cd"><div class="ch">Memory</div><div class="cb">
       <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center">
-        <input id="memAddr" type="text" value="0080:0100" style="font-family:var(--mono);font-size:10px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text);width:80px" placeholder="seg:off">
-        <button class="b" onclick="renderMem()" style="font-size:9px;padding:2px 6px">View</button>
+        <input id="memAddr" type="text" value="0080:0100" style="font-family:var(--mono);font-size:11px;padding:3px 5px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text);width:85px" placeholder="seg:off">
+        <button class="b" onclick="renderMem()" style="font-size:10px;padding:3px 8px">View</button>
         <div class="mem-follow">
-          <button class="b" id="followIP" onclick="toggleFollow('IP')" title="Auto-follow CS:IP" style="font-size:8px;padding:1px 5px">IP</button>
-          <button class="b" id="followSP" onclick="toggleFollow('SP')" title="Auto-follow SS:SP" style="font-size:8px;padding:1px 5px">SP</button>
+          <button class="b" id="followIP" onclick="toggleFollow('IP')" title="Auto-follow CS:IP" style="font-size:10px;padding:2px 6px">IP</button>
+          <button class="b" id="followSP" onclick="toggleFollow('SP')" title="Auto-follow SS:SP" style="font-size:10px;padding:2px 6px">SP</button>
         </div>
       </div>
       <div class="mg" id="memGrid"></div>
     </div></div>
     <div class="cd"><div class="ch">Execution Trace <span class="ch-sub" id="traceCount">0</span></div><div class="cb" style="padding:4px">
-      <div class="trace" id="traceView"><span style="color:var(--text3);font-size:9px">Run program to see trace</span></div>
+      <div class="trace" id="traceView"><span style="color:var(--text3)">Run program to see trace</span></div>
     </div></div>
 
     <!-- APPLICATIONS MODULE -->
@@ -172,7 +173,7 @@
   <div class="guide-pan">
     <div class="guide-hd">
       <h2>PAT-286 — ISA Reference &amp; Guide</h2>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">F1 · Esc closes</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">F1 · Esc closes</span>
       <button class="b" onclick="closeGuide()">Close</button>
     </div>
     <div class="guide-body" id="guideBody"></div>
