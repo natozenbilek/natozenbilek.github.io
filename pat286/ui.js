@@ -83,9 +83,21 @@ function setSt(s) {
   e.className='pill p-'+{READY:'rdy',RUNNING:'run',HALTED:'hlt',ERROR:'err'}[s];
 }
 function sLog(m,err) {
-  let e=document.getElementById('log');
-  e.className='lb'+(err?' le':' ls');
-  e.textContent=String(m||'');
+  let e=document.getElementById('termLog');
+  if(!e) return;
+  let line=document.createElement('div');
+  line.className='term-line'+(err?' err':' ok');
+  line.textContent=String(m||'');
+  e.appendChild(line);
+  e.scrollTop=e.scrollHeight;
+  // Keep max 50 lines
+  while(e.children.length>50) e.removeChild(e.firstChild);
+}
+function showTermTab(tab) {
+  document.getElementById('termLog').style.display = tab==='log' ? '' : 'none';
+  document.getElementById('termSerial').style.display = tab==='serial' ? '' : 'none';
+  document.getElementById('termTabLog').className = 'term-tab'+(tab==='log'?' active':'');
+  document.getElementById('termTabSerial').className = 'term-tab'+(tab==='serial'?' active':'');
 }
 
 function renderAll() {
@@ -108,7 +120,7 @@ function renderAll() {
 
   let fhtml='';
   for(let[b,n] of [[OF,'OF'],[DF,'DF'],[IF_,'IF'],[TF,'TF'],[SF,'SF'],[ZF,'ZF'],[AF,'AF'],[PF,'PF'],[CF,'CF']]) {
-    fhtml+=`<span class="fb${gf(b)?' fs':''}">${n}</span>`;
+    fhtml+=`<span class="flb${gf(b)?' fs':''}">${n}</span>`;
   }
   document.getElementById('flG').innerHTML=fhtml;
 

@@ -780,6 +780,12 @@ function closeTab(key, e) {
   renderTabs();
 }
 
+function fileLabel(key) {
+  let short = key.replace(/^PA(\d+):\s*/, 'pa$1_').replace(/^HW:\s*/, 'hw_');
+  short = short.replace(/\s+/g, '_').toLowerCase();
+  return short + '.asm';
+}
+
 function renderTabs() {
   let bar = document.getElementById('tabBar');
   if (!bar) return;
@@ -787,10 +793,8 @@ function renderTabs() {
   openTabs.forEach(t => {
     let tab = document.createElement('div');
     tab.className = 'tab' + (t.key === activeTabKey ? ' active' : '');
-    // Short label
-    let short = t.key.replace(/^PA(\d+):\s*/, 'PA$1 ').replace(/^HW:\s*/, '');
     let label = document.createElement('span');
-    label.textContent = short;
+    label.textContent = fileLabel(t.key);
     label.title = t.key;
     let close = document.createElement('span');
     close.className = 'tab-close';
@@ -814,12 +818,17 @@ function loadEx() {
   if (EX[s]) loadExByKey(s, null);
 }
 
+const EXTRA_FILES = [
+  { folder: 'scripts', name: 'serial_monitor.py', content: '# Serial port monitor for PAT-286\nimport serial\n\nport = serial.Serial("COM3", 9600)\nwhile True:\n    data = port.readline()\n    print(data.decode().strip())' },
+  { folder: 'scripts', name: 'hex_upload.py', content: '# Upload HEX file to PAT-286 via serial\nimport serial, sys\n\ndef upload(port, hexfile):\n    with open(hexfile) as f:\n        for line in f:\n            port.write(line.encode())\n    print("Upload complete")' }
+];
+
 function buildExDropdown() {
-  // Group examples into folders
   let folders = [
-    { name: 'Pratikler', keys: [] },
-    { name: 'Demos', keys: [] },
-    { name: 'Hardware', keys: [] }
+    { name: 'pratikler', icon: '\uD83D\uDCC1', keys: [] },
+    { name: 'demos', icon: '\uD83D\uDCC1', keys: [] },
+    { name: 'hardware', icon: '\uD83D\uDCC1', keys: [] },
+    { name: 'scripts', icon: '\uD83D\uDCC1', extras: EXTRA_FILES.filter(f => f.folder === 'scripts') }
   ];
   for (let k of Object.keys(EX)) {
     if (k.startsWith('PA')) folders[0].keys.push(k);
@@ -831,7 +840,7 @@ function buildExDropdown() {
   if (!tree) return;
   tree.innerHTML = '';
 
-  folders.forEach((folder, fi) => {
+  function makeFolder(folder) {
     let div = document.createElement('div');
     div.className = 'fb-folder';
 
@@ -840,9 +849,13 @@ function buildExDropdown() {
     let arrow = document.createElement('span');
     arrow.className = 'fb-arrow open';
     arrow.textContent = '\u25B6';
+    let folderIcon = document.createElement('span');
+    folderIcon.className = 'fb-folder-icon';
+    folderIcon.textContent = folder.icon;
     let name = document.createElement('span');
     name.textContent = folder.name;
     hd.appendChild(arrow);
+    hd.appendChild(folderIcon);
     hd.appendChild(name);
 
     let items = document.createElement('div');
@@ -853,29 +866,64 @@ function buildExDropdown() {
       items.classList.toggle('collapsed');
     });
 
-    folder.keys.forEach(k => {
-      let file = document.createElement('div');
-      file.className = 'fb-file';
-      file.setAttribute('data-key', k);
-      let icon = document.createElement('span');
-      icon.className = 'fb-file-icon';
-      icon.textContent = '\u00B6';
-      let label = document.createElement('span');
-      // Short label: strip prefix
-      let short = k.replace(/^PA\d+:\s*/, '').replace(/^HW:\s*/, '');
-      let num = k.match(/^PA(\d+)/);
-      label.textContent = num ? num[0] + ' ' + short : short;
-      label.title = k;
-      file.appendChild(icon);
-      file.appendChild(label);
-      file.addEventListener('click', function() { loadExByKey(k, file); });
-      items.appendChild(file);
-    });
+    // ASM files from EX
+    if (folder.keys) {
+      folder.keys.forEach(k => {
+        let file = document.createElement('div');
+        file.className = 'fb-file';
+        file.setAttribute('data-key', k);
+        let icon = document.createElement('span');
+        icon.className = 'fb-file-icon';
+        icon.textContent = '\uD83D\uDCCB';
+        let label = document.createElement('span');
+        label.textContent = fileLabel(k);
+        label.title = k;
+        file.appendChild(icon);
+        file.appendChild(label);
+        file.addEventListener('click', function() { loadExByKey(k, file); });
+        items.appendChild(file);
+      });
+    }
+
+    // Extra files (Python etc)
+    if (folder.extras) {
+      folder.extras.forEach(ef => {
+        let file = document.createElement('div');
+        file.className = 'fb-file';
+        file.setAttribute('data-key', ef.name);
+        let icon = document.createElement('span');
+        icon.className = 'fb-file-icon';
+        icon.textContent = ef.name.endsWith('.py') ? '\uD83D\uDC0D' : '\uD83D\uDCC4';
+        let label = document.createElement('span');
+        label.textContent = ef.name;
+        file.appendChild(icon);
+        file.appendChild(label);
+        file.addEventListener('click', function() {
+          // Save current tab
+          if (activeTabKey) {
+            let cur = openTabs.find(t => t.key === activeTabKey);
+            if (cur) cur.content = document.getElementById('ed').value;
+          }
+          let existing = openTabs.find(t => t.key === ef.name);
+          if (!existing) openTabs.push({key: ef.name, content: ef.content});
+          activeTabKey = ef.name;
+          let tab = openTabs.find(t => t.key === ef.name);
+          document.getElementById('ed').value = tab.content;
+          updLn(); updateHighlight();
+          if (activeFileEl) activeFileEl.classList.remove('active');
+          file.classList.add('active'); activeFileEl = file;
+          renderTabs();
+        });
+        items.appendChild(file);
+      });
+    }
 
     div.appendChild(hd);
     div.appendChild(items);
     tree.appendChild(div);
-  });
+  }
+
+  folders.forEach(makeFolder);
 
   // Also populate hidden select for backward compat
   let sel = document.getElementById('ex');
