@@ -454,30 +454,35 @@ function renderWatches() {
 }
 
 // === PORTS PANEL ===
+const PORT_DEFS = [
+  ['UCRREG1', 0x80], ['UCRREG2', 0x82], ['UCRREG3', 0x84],
+  ['UMODEREG', 0x86], ['UPORT1CTL', 0x88], ['UIRQEN', 0x8A],
+  ['UPORT1', 0x90], ['UPORT2', 0x92],
+  ['UTIMER1', 0x94], ['USTATUS', 0x9E]
+];
+
+function buildPortsModal() {
+  let rows = PORT_DEFS.map(([name, addr]) =>
+    `<div class="port-row"><label>${name}</label><span class="port-addr">${hex8(addr)}H</span><input id="port_${name}" type="text" class="port-val" maxlength="2" spellcheck="false"></div>`
+  ).join('');
+  document.getElementById('portsOv').innerHTML =
+    `<div class="exp-pan"><div class="exp-hd"><h3>MUART Port Settings</h3><button class="b" onclick="closePorts()">Close</button></div>` +
+    `<div class="exp-body"><div class="port-grid">${rows}</div></div>` +
+    `<div class="exp-foot"><button class="b" onclick="readPortValues()">Read Current</button><button class="b b-blu" onclick="writePortValues()">Write</button></div></div>`;
+}
+
 function openPorts() { document.getElementById('portsOv').hidden = false; readPortValues(); }
 function closePorts() { document.getElementById('portsOv').hidden = true; }
 
 function readPortValues() {
-  let portDefs = [
-    ['UCRREG1', 0x80], ['UCRREG2', 0x82], ['UCRREG3', 0x84],
-    ['UMODEREG', 0x86], ['UPORT1CTL', 0x88], ['UIRQEN', 0x8A],
-    ['UPORT1', 0x90], ['UPORT2', 0x92],
-    ['UTIMER1', 0x94], ['USTATUS', 0x9E]
-  ];
-  for (let [name, addr] of portDefs) {
+  for (let [name, addr] of PORT_DEFS) {
     let input = document.getElementById('port_' + name);
     if (input) input.value = hex8(ioPorts[addr]);
   }
 }
 
 function writePortValues() {
-  let portDefs = [
-    ['UCRREG1', 0x80], ['UCRREG2', 0x82], ['UCRREG3', 0x84],
-    ['UMODEREG', 0x86], ['UPORT1CTL', 0x88], ['UIRQEN', 0x8A],
-    ['UPORT1', 0x90], ['UPORT2', 0x92],
-    ['UTIMER1', 0x94], ['USTATUS', 0x9E]
-  ];
-  for (let [name, addr] of portDefs) {
+  for (let [name, addr] of PORT_DEFS) {
     let input = document.getElementById('port_' + name);
     if (input) {
       let val = parseInt(input.value, 16);
@@ -497,25 +502,12 @@ function initWelcome() {
 
 function showWelcome() {
   if (welcomeEl) welcomeEl.hidden = false;
-  ed.style.visibility = 'hidden';
-  edHL.style.visibility = 'hidden';
-  if (ghostEl) ghostEl.style.visibility = 'hidden';
-  if (curLineBar) curLineBar.style.visibility = 'hidden';
-  document.getElementById('lns').style.visibility = 'hidden';
-  // Ensure .ew has height for welcome to display
-  let ew = document.querySelector('.ew');
-  if (ew) ew.style.minHeight = '160px';
+  document.querySelector('.ew').classList.add('ew-empty');
 }
 
 function hideWelcome() {
   if (welcomeEl) welcomeEl.hidden = true;
-  ed.style.visibility = '';
-  edHL.style.visibility = '';
-  if (ghostEl) ghostEl.style.visibility = '';
-  if (curLineBar) curLineBar.style.visibility = '';
-  document.getElementById('lns').style.visibility = '';
-  let ew = document.querySelector('.ew');
-  if (ew) ew.style.minHeight = '';
+  document.querySelector('.ew').classList.remove('ew-empty');
 }
 
 // === INIT ===
@@ -526,6 +518,7 @@ function hideWelcome() {
   initGhost();
   initCurLineBar();
   initWelcome();
+  buildPortsModal();
 
   // Tooltip + occurrence on mouse move
   ed.addEventListener('mousemove', onEditorMouseMove);

@@ -295,7 +295,10 @@ function encodeInstruction(mn, operands, addr, defs, lbls) {
     'MOVSB':[0xA4],'MOVSW':[0xA5],'STOSB':[0xAA],'STOSW':[0xAB],
     'LODSB':[0xAC],'LODSW':[0xAD],'CMPSB':[0xA6],'CMPSW':[0xA7],
     'SCASB':[0xAE],'SCASW':[0xAF],
-    'CBW':[0x98],'CWD':[0x99]
+    'CBW':[0x98],'CWD':[0x99],
+    'XLAT':[0xD7],'LAHF':[0x9F],'SAHF':[0x9E],
+    'DAA':[0x27],'DAS':[0x2F],'AAA':[0x37],'AAS':[0x3F],
+    'AAM':[0xD4,0x0A],'AAD':[0xD5,0x0A]
   };
   if (simpleOps[mn]) return {bytes: simpleOps[mn]};
 

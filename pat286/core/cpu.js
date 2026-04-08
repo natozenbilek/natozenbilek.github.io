@@ -613,7 +613,7 @@ function execOne() {
           sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
         case 5: // SHR
           c = res & 1; res = (res >> 1) & mask; sf(CF, c);
-          sf(ZF, res===0); sf(SF, 0); sf(PF, parity8(res)); break;
+          sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
         case 7: // SAR
           c = res & 1; let sgn = res & (1 << (bits-1)); res = ((res >> 1) | sgn) & mask; sf(CF, c);
           sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
@@ -710,6 +710,66 @@ function execOne() {
   else if (op === 0xF5) { sf(CF, gf(CF)^1); curInstr = 'CMC'; curDesc = 'CF complemented'; }
   else if (op === 0xFC) { sf(DF, 0); curInstr = 'CLD'; curDesc = 'DF=0'; }
   else if (op === 0xFD) { sf(DF, 1); curInstr = 'STD'; curDesc = 'DF=1'; }
+  // XLAT (D7): AL = DS:[BX+AL]
+  else if (op === 0xD7) {
+    let addr = pa(segOvr !== null ? segOvr : DS, (BX + getAL()) & 0xFFFF);
+    let v = rb(addr); setAL(v);
+    curInstr = 'XLAT'; curDesc = `XLAT: AL=[BX+${hex8(getAL())}]=${hex8(v)}`;
+  }
+  // LAHF (9F): AH = FLAGS low byte
+  else if (op === 0x9F) {
+    setAH(FLAGS & 0xFF);
+    curInstr = 'LAHF'; curDesc = `LAHF: AH=${hex8(FLAGS & 0xFF)}`;
+  }
+  // SAHF (9E): FLAGS low byte = AH
+  else if (op === 0x9E) {
+    FLAGS = (FLAGS & 0xFF00) | (getAH() & 0xD5) | 0x02;
+    curInstr = 'SAHF'; curDesc = `SAHF: FLAGS=${hex16(FLAGS)}`;
+  }
+  // DAA (27): Decimal adjust after addition
+  else if (op === 0x27) {
+    let al = getAL(), oldAL = al, oldCF = gf(CF);
+    if ((al & 0x0F) > 9 || gf(AF)) { al += 6; sf(AF, 1); } else { sf(AF, 0); }
+    if (al > 0x9F || oldCF) { al += 0x60; sf(CF, 1); } else { sf(CF, 0); }
+    al &= 0xFF; setAL(al);
+    sf(ZF, al === 0); sf(SF, (al >> 7) & 1); sf(PF, parity8(al));
+    curInstr = 'DAA'; curDesc = `DAA: AL ${hex8(oldAL)}→${hex8(al)}`;
+  }
+  // DAS (2F): Decimal adjust after subtraction
+  else if (op === 0x2F) {
+    let al = getAL(), oldAL = al, oldCF = gf(CF);
+    if ((al & 0x0F) > 9 || gf(AF)) { al -= 6; sf(AF, 1); } else { sf(AF, 0); }
+    if (oldAL > 0x99 || oldCF) { al -= 0x60; sf(CF, 1); } else { sf(CF, 0); }
+    al &= 0xFF; setAL(al);
+    sf(ZF, al === 0); sf(SF, (al >> 7) & 1); sf(PF, parity8(al));
+    curInstr = 'DAS'; curDesc = `DAS: AL ${hex8(oldAL)}→${hex8(al)}`;
+  }
+  // AAA (37): ASCII adjust after addition
+  else if (op === 0x37) {
+    if ((getAL() & 0x0F) > 9 || gf(AF)) {
+      setAL((getAL() + 6) & 0x0F); setAH(getAH() + 1); sf(AF, 1); sf(CF, 1);
+    } else { setAL(getAL() & 0x0F); sf(AF, 0); sf(CF, 0); }
+    curInstr = 'AAA'; curDesc = `AAA: AX=${hex16(AX)}`;
+  }
+  // AAS (3F): ASCII adjust after subtraction
+  else if (op === 0x3F) {
+    if ((getAL() & 0x0F) > 9 || gf(AF)) {
+      setAL((getAL() - 6) & 0x0F); setAH(getAH() - 1); sf(AF, 1); sf(CF, 1);
+    } else { setAL(getAL() & 0x0F); sf(AF, 0); sf(CF, 0); }
+    curInstr = 'AAS'; curDesc = `AAS: AX=${hex16(AX)}`;
+  }
+  // AAM (D4 0A): ASCII adjust after multiply
+  else if (op === 0xD4) {
+    let imm = fetchByte(); if (imm === 0) { halt = true; curInstr = 'AAM'; curDesc = 'AAM: divide by 0'; }
+    else { setAH(Math.floor(getAL() / imm)); setAL(getAL() % imm); sf(ZF, getAL()===0); sf(SF, (getAL()>>7)&1); sf(PF, parity8(getAL())); curInstr = 'AAM'; curDesc = `AAM: AX=${hex16(AX)}`; }
+  }
+  // AAD (D5 0A): ASCII adjust before division
+  else if (op === 0xD5) {
+    let imm = fetchByte();
+    let res = (getAH() * imm + getAL()) & 0xFF; setAL(res); setAH(0);
+    sf(ZF, res===0); sf(SF, (res>>7)&1); sf(PF, parity8(res));
+    curInstr = 'AAD'; curDesc = `AAD: AX=${hex16(AX)}`;
+  }
   // NOT/NEG/MUL/DIV/TEST (F6/F7 group)
   else if (op === 0xF6 || op === 0xF7) {
     wide = op & 1;

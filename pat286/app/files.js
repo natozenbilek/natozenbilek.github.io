@@ -1027,8 +1027,6 @@ function renderTabs() {
   if (!bar) return;
   bar.innerHTML = '';
   updateAsmBtnLabel();
-  let closeAll = document.getElementById('closeAllBtn');
-  if (closeAll) closeAll.style.display = openTabs.length > 0 ? '' : 'none';
   openTabs.forEach(t => {
     let tab = document.createElement('div');
     tab.className = 'tab' + (t.key === activeTabKey ? ' active' : '');
