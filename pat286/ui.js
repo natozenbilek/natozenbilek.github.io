@@ -252,9 +252,9 @@ function compileIfC() {
     existing.content = asmCode;
   } else {
     openTabs.push({key: asmKey, content: asmCode});
-    // Also register in EX so file tree works
-    EX[asmKey] = asmCode;
   }
+  // Add to dynamic files and rebuild tree
+  addDynamicFile(asmKey, asmCode, 'generated');
   activeTabKey = asmKey;
   document.getElementById('ed').value = asmCode;
   updLn(); updateHighlight();
@@ -868,6 +868,8 @@ function openLocalFile(input) {
       let cur = openTabs.find(t => t.key === activeTabKey);
       if (cur) cur.content = document.getElementById('ed').value;
     }
+    // Add to dynamic files and tree
+    addDynamicFile(name, content, 'local');
     // Add as new tab
     let existing = openTabs.find(t => t.key === name);
     if (existing) { existing.content = content; }
@@ -876,6 +878,7 @@ function openLocalFile(input) {
     document.getElementById('ed').value = content;
     updLn(); updateHighlight();
     renderTabs();
+    highlightFileInTree(name);
     sLog('Opened: ' + name, 0);
   };
   reader.readAsText(file);

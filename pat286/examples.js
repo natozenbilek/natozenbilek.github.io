@@ -831,19 +831,60 @@ function loadEx() {
 }
 
 const EXTRA_FILES = [
-  { folder: 'scripts', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * Bu dosya egitim amacli pseudo-koddur.\n * "Translate to ASM" ile 8086 Assembly\'e cevrilir.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
-  { folder: 'scripts', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — egitim amacli\n# "Translate to ASM" ile 8086 Assembly\'e cevrilir\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
-  { folder: 'scripts', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
-  { folder: 'scripts', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
-  { folder: 'scripts', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
+  { folder: 'c', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * Bu dosya egitim amacli pseudo-koddur.\n * "Translate to ASM" ile 8086 Assembly\'e cevrilir.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
+  { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — egitim amacli\n# "Translate to ASM" ile 8086 Assembly\'e cevrilir\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
+  { folder: 'go', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
+  { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
+  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
 ];
 
+// Dynamic files: generated .asm from translation, opened from PC
+let dynamicFiles = []; // [{name, content, folder}]
+
+function addDynamicFile(name, content, folder) {
+  let existing = dynamicFiles.find(f => f.name === name);
+  if (existing) { existing.content = content; }
+  else { dynamicFiles.push({name, content, folder: folder || 'generated'}); }
+  buildExDropdown();
+}
+
+function openFileInTab(key, content, fileEl) {
+  // Save current tab
+  if (activeTabKey) {
+    let cur = openTabs.find(t => t.key === activeTabKey);
+    if (cur) cur.content = document.getElementById('ed').value;
+  }
+  let existing = openTabs.find(t => t.key === key);
+  if (existing) { existing.content = content; }
+  else { openTabs.push({key, content}); }
+  activeTabKey = key;
+  document.getElementById('ed').value = content;
+  updLn(); updateHighlight();
+  if (activeFileEl) activeFileEl.classList.remove('active');
+  if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
+  else highlightFileInTree(key);
+  renderTabs();
+}
+
 function buildExDropdown() {
+  // Collect language folders from EXTRA_FILES
+  let langFolders = {};
+  for (let ef of EXTRA_FILES) {
+    if (!langFolders[ef.folder]) langFolders[ef.folder] = [];
+    langFolders[ef.folder].push(ef);
+  }
+
+  // Collect dynamic file folders
+  let dynFolders = {};
+  for (let df of dynamicFiles) {
+    if (!dynFolders[df.folder]) dynFolders[df.folder] = [];
+    dynFolders[df.folder].push(df);
+  }
+
   let folders = [
-    { name: 'pratikler', icon: '\uD83D\uDCC1', keys: [] },
-    { name: 'demos', icon: '\uD83D\uDCC1', keys: [] },
-    { name: 'hardware', icon: '\uD83D\uDCC1', keys: [] },
-    { name: 'scripts', icon: '\uD83D\uDCC1', extras: EXTRA_FILES.filter(f => f.folder === 'scripts') }
+    { name: 'pratikler', keys: [] },
+    { name: 'demos', keys: [] },
+    { name: 'hardware', keys: [] }
   ];
   for (let k of Object.keys(EX)) {
     if (k.startsWith('PA')) folders[0].keys.push(k);
@@ -851,9 +892,31 @@ function buildExDropdown() {
     else folders[1].keys.push(k);
   }
 
+  // Add language folders
+  for (let lang of Object.keys(langFolders)) {
+    folders.push({ name: lang, extras: langFolders[lang] });
+  }
+
+  // Add dynamic folders (generated, local)
+  for (let fn of Object.keys(dynFolders)) {
+    folders.push({ name: fn, dynamics: dynFolders[fn] });
+  }
+
   let tree = document.getElementById('fbTree');
   if (!tree) return;
   tree.innerHTML = '';
+
+  function makeFileEl(key, label, clickFn) {
+    let file = document.createElement('div');
+    file.className = 'fb-file';
+    file.setAttribute('data-key', key);
+    let span = document.createElement('span');
+    span.textContent = label;
+    span.title = key;
+    file.appendChild(span);
+    file.addEventListener('click', clickFn);
+    return file;
+  }
 
   function makeFolder(folder) {
     let div = document.createElement('div');
@@ -864,13 +927,9 @@ function buildExDropdown() {
     let arrow = document.createElement('span');
     arrow.className = 'fb-arrow';
     arrow.textContent = '\u25B6';
-    let folderIcon = document.createElement('span');
-    folderIcon.className = 'fb-folder-icon';
-    folderIcon.textContent = folder.icon;
     let name = document.createElement('span');
     name.textContent = folder.name;
     hd.appendChild(arrow);
-    hd.appendChild(folderIcon);
     hd.appendChild(name);
 
     let items = document.createElement('div');
@@ -884,50 +943,26 @@ function buildExDropdown() {
     // ASM files from EX
     if (folder.keys) {
       folder.keys.forEach(k => {
-        let file = document.createElement('div');
-        file.className = 'fb-file';
-        file.setAttribute('data-key', k);
-        let icon = document.createElement('span');
-        icon.className = 'fb-file-icon';
-        icon.textContent = '\uD83D\uDCCB';
-        let label = document.createElement('span');
-        label.textContent = fileLabel(k);
-        label.title = k;
-        file.appendChild(icon);
-        file.appendChild(label);
-        file.addEventListener('click', function() { loadExByKey(k, file); });
+        let file = makeFileEl(k, fileLabel(k), function() { loadExByKey(k, file); });
         items.appendChild(file);
       });
     }
 
-    // Extra files (Python etc)
+    // Extra files (language scripts)
     if (folder.extras) {
       folder.extras.forEach(ef => {
-        let file = document.createElement('div');
-        file.className = 'fb-file';
-        file.setAttribute('data-key', ef.name);
-        let icon = document.createElement('span');
-        icon.className = 'fb-file-icon';
-        icon.textContent = '\uD83D\uDCC4';
-        let label = document.createElement('span');
-        label.textContent = ef.name;
-        file.appendChild(icon);
-        file.appendChild(label);
-        file.addEventListener('click', function() {
-          // Save current tab
-          if (activeTabKey) {
-            let cur = openTabs.find(t => t.key === activeTabKey);
-            if (cur) cur.content = document.getElementById('ed').value;
-          }
-          let existing = openTabs.find(t => t.key === ef.name);
-          if (!existing) openTabs.push({key: ef.name, content: ef.content});
-          activeTabKey = ef.name;
-          let tab = openTabs.find(t => t.key === ef.name);
-          document.getElementById('ed').value = tab.content;
-          updLn(); updateHighlight();
-          if (activeFileEl) activeFileEl.classList.remove('active');
-          file.classList.add('active'); activeFileEl = file;
-          renderTabs();
+        let file = makeFileEl(ef.name, ef.name, function() {
+          openFileInTab(ef.name, ef.content, file);
+        });
+        items.appendChild(file);
+      });
+    }
+
+    // Dynamic files (generated/opened)
+    if (folder.dynamics) {
+      folder.dynamics.forEach(df => {
+        let file = makeFileEl(df.name, df.name, function() {
+          openFileInTab(df.name, df.content, file);
         });
         items.appendChild(file);
       });
@@ -940,13 +975,6 @@ function buildExDropdown() {
 
   folders.forEach(makeFolder);
 
-  // Also populate hidden select for backward compat
-  let sel = document.getElementById('ex');
-  if (sel) {
-    for (let k of Object.keys(EX)) {
-      let opt = document.createElement('option');
-      opt.value = k; opt.textContent = k;
-      sel.appendChild(opt);
-    }
-  }
+  // Restore active file highlight
+  if (activeTabKey) highlightFileInTree(activeTabKey);
 }

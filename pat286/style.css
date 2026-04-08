@@ -48,20 +48,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .sim-bar select{font-family:var(--mono);font-size:11px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text);min-height:26px}
 /* === FILE BROWSER === */
 .file-browser{display:flex;flex-direction:column;background:var(--bg2);min-width:0;overflow:hidden;flex:1}
-.file-browser-hd{font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
+.file-browser-hd{display:flex;align-items:center;justify-content:space-between;font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:4px 8px 4px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
+.fb-open-btn{font-size:9px!important;padding:2px 6px!important;min-height:20px!important;text-transform:none;letter-spacing:0}
 .fb-tree{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--brd) transparent;padding:2px 0}
 .fb-folder{user-select:none}
 .fb-folder-hd{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--text2);transition:background .1s}
 .fb-folder-hd:hover{background:var(--bg3)}
 .fb-arrow{font-size:7px;width:12px;text-align:center;color:var(--text3);transition:transform .15s;flex-shrink:0}
 .fb-arrow.open{transform:rotate(90deg)}
-.fb-folder-icon{flex-shrink:0;font-size:11px}
+.fb-folder-icon{display:none}
 .fb-folder-items{overflow:hidden}
 .fb-folder-items.collapsed{display:none}
-.fb-file{display:flex;align-items:center;gap:5px;padding:1px 8px 1px 28px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text2);transition:all .08s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:22px}
+.fb-file{display:flex;align-items:center;gap:5px;padding:1px 8px 1px 20px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text2);transition:all .08s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:22px}
 .fb-file:hover{background:rgba(255,255,255,.04);color:var(--text)}
 .fb-file.active{background:var(--blu-l);color:var(--text)}
-.fb-file-icon{flex-shrink:0;font-size:12px}
+.fb-file-icon{display:none}
 .fb-ext{color:var(--text3);margin-left:0}
 
 /* === EDITOR PANEL === */
@@ -100,7 +101,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .lb{font-family:var(--mono);font-size:11px;padding:4px 10px;border-top:1px solid var(--brd);color:var(--text3);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lb.ls{color:#6A8759}.lb.le{color:var(--red)}
 /* === TERMINAL / CONSOLE === */
-.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:130px;overflow:hidden}
+.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:160px;overflow:hidden}
 .term-pane{height:100%;display:flex;flex-direction:column;overflow:hidden}
 .term-serial-ctrls{display:flex;gap:4px;padding:4px 8px;align-items:center;background:var(--bg3);border-bottom:1px solid var(--brd);flex-shrink:0}
 .term-serial-ctrls .b{font-size:10px;padding:3px 8px;min-height:22px}
