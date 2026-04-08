@@ -839,8 +839,58 @@ function renderTabs() {
     tab.appendChild(label);
     tab.appendChild(close);
     tab.addEventListener('click', function() { switchTab(t.key); });
+    tab.addEventListener('contextmenu', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      showTabContextMenu(e, t.key);
+    });
     bar.appendChild(tab);
   });
+}
+
+function showTabContextMenu(e, key) {
+  hideCtxMenu();
+  ctxMenu = document.createElement('div');
+  ctxMenu.className = 'ctx-menu';
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top = e.clientY + 'px';
+
+  function addItem(label, fn) {
+    let item = document.createElement('div');
+    item.className = 'ctx-item';
+    item.textContent = label;
+    item.addEventListener('click', function() { hideCtxMenu(); fn(); });
+    ctxMenu.appendChild(item);
+  }
+  function addSep() { let s = document.createElement('div'); s.className = 'ctx-sep'; ctxMenu.appendChild(s); }
+
+  addItem('Close', function() { closeTab(key); });
+  addItem('Close Others', function() {
+    let keep = openTabs.find(t => t.key === key);
+    openTabs = keep ? [keep] : [];
+    activeTabKey = key;
+    if (keep) {
+      document.getElementById('ed').value = keep.content;
+      updLn(); updateHighlight();
+    }
+    renderTabs();
+  });
+  addItem('Close All', function() { closeAllTabs(); });
+  addSep();
+  addItem('Copy Path', function() {
+    navigator.clipboard.writeText(key).then(() => sLog('Copied: ' + key, 0));
+  });
+  addItem('Duplicate', function() {
+    let tab = openTabs.find(t => t.key === key);
+    if (!tab) return;
+    let copyName = 'copy_' + key;
+    addDynamicFile(copyName, tab.content, 'local');
+    openFileInTab(copyName, tab.content);
+  });
+
+  document.body.appendChild(ctxMenu);
+  let rect = ctxMenu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) ctxMenu.style.left = (window.innerWidth - rect.width - 4) + 'px';
+  if (rect.bottom > window.innerHeight) ctxMenu.style.top = (window.innerHeight - rect.height - 4) + 'px';
 }
 
 function highlightFileInTree(key) {
@@ -929,6 +979,15 @@ function buildExDropdown() {
 
   let tree = document.getElementById('fbTree');
   if (!tree) return;
+  // Save open folder state before rebuild
+  let openFolders = new Set();
+  tree.querySelectorAll('.fb-folder').forEach(f => {
+    let items = f.querySelector('.fb-folder-items');
+    let nameEl = f.querySelector('.fb-folder-hd span:last-child');
+    if (items && !items.classList.contains('collapsed') && nameEl) {
+      openFolders.add(nameEl.textContent);
+    }
+  });
   tree.innerHTML = '';
 
   function makeFileEl(key, label, clickFn) {
@@ -965,6 +1024,13 @@ function buildExDropdown() {
 
     let items = document.createElement('div');
     items.className = 'fb-folder-items collapsed';
+    div.setAttribute('data-folder', folder.name);
+
+    // Restore open state
+    if (openFolders.has(folder.name)) {
+      items.classList.remove('collapsed');
+      arrow.classList.add('open');
+    }
 
     hd.addEventListener('click', function() {
       arrow.classList.toggle('open');
@@ -1020,6 +1086,49 @@ function buildExDropdown() {
   if (activeTabKey) highlightFileInTree(activeTabKey);
 }
 
+// === INLINE EDITING ===
+function startInlineEdit(el, currentName, callback) {
+  let input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentName;
+  input.className = 'fb-inline-input';
+  input.style.cssText = 'font-family:var(--mono);font-size:11px;padding:1px 4px;border:1px solid var(--blu);border-radius:2px;background:var(--bg);color:var(--text);width:100%;outline:none;box-sizing:border-box';
+  el.innerHTML = '';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+  function commit() {
+    let val = input.value.trim();
+    if (val && val !== currentName) callback(val);
+    else buildExDropdown();
+  }
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); buildExDropdown(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
+function startNewFileInline(tree, callback) {
+  let input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'filename.asm';
+  input.className = 'fb-inline-input';
+  input.style.cssText = 'font-family:var(--mono);font-size:11px;padding:2px 6px;margin:2px 8px;border:1px solid var(--blu);border-radius:2px;background:var(--bg);color:var(--text);width:calc(100% - 16px);outline:none;box-sizing:border-box';
+  tree.insertBefore(input, tree.firstChild);
+  input.focus();
+  function commit() {
+    let val = input.value.trim();
+    input.remove();
+    if (val) callback(val);
+  }
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); input.remove(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
 // === FILE BROWSER CONTEXT MENU ===
 let ctxMenu = null;
 function hideCtxMenu() { if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; } }
@@ -1070,16 +1179,17 @@ document.addEventListener('contextmenu', function(e) {
     });
     addSep();
     addItem('Rename', function() {
-      let newName = prompt('New name:', key);
-      if (!newName || newName === key) return;
-      if (isDynamic) {
-        let df = dynamicFiles.find(f => f.name === key);
-        if (df) df.name = newName;
-      }
-      let tab = openTabs.find(t => t.key === key);
-      if (tab) tab.key = newName;
-      if (activeTabKey === key) activeTabKey = newName;
-      buildExDropdown(); renderTabs();
+      startInlineEdit(fileEl, key, function(newName) {
+        if (!newName || newName === key) return;
+        if (isDynamic) {
+          let df = dynamicFiles.find(f => f.name === key);
+          if (df) df.name = newName;
+        }
+        let tab = openTabs.find(t => t.key === key);
+        if (tab) tab.key = newName;
+        if (activeTabKey === key) activeTabKey = newName;
+        buildExDropdown(); renderTabs();
+      });
     }, isEX);
     addItem('Duplicate', function() {
       let content = '';
@@ -1124,10 +1234,11 @@ document.addEventListener('contextmenu', function(e) {
   } else {
     // Right-click on folder or empty area
     addItem('New File', function() {
-      let name = prompt('File name (e.g. test.asm):');
-      if (!name) return;
-      addDynamicFile(name, '; ' + name + '\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n\n', 'local');
-      openFileInTab(name, dynamicFiles.find(f => f.name === name).content);
+      startNewFileInline(tree, function(name) {
+        if (!name) return;
+        addDynamicFile(name, '; ' + name + '\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n\n', 'local');
+        openFileInTab(name, dynamicFiles.find(f => f.name === name).content);
+      });
     });
     addItem('New Folder', function() {
       sLog('Folders are auto-created from file extensions', 0);
