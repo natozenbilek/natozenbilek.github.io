@@ -786,6 +786,7 @@ function closeTab(key, e) {
 }
 
 function fileLabel(key) {
+  if (key.includes('.')) return key;
   let short = key.replace(/^PA(\d+):\s*/, 'pa$1_').replace(/^HW:\s*/, 'hw_');
   short = short.replace(/\s+/g, '_').toLowerCase();
   return short + '.asm';
@@ -824,8 +825,8 @@ function loadEx() {
 }
 
 const EXTRA_FILES = [
-  { folder: 'scripts', name: 'serial_monitor.py', content: '# Serial port monitor for PAT-286\nimport serial\n\nport = serial.Serial("COM3", 9600)\nwhile True:\n    data = port.readline()\n    print(data.decode().strip())' },
-  { folder: 'scripts', name: 'hex_upload.py', content: '# Upload HEX file to PAT-286 via serial\nimport serial, sys\n\ndef upload(port, hexfile):\n    with open(hexfile) as f:\n        for line in f:\n            port.write(line.encode())\n    print("Upload complete")' }
+  { folder: 'scripts', name: 'led_blink.c', content: '/* LED blink — compiles to 8086 ASM */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
+  { folder: 'scripts', name: 'counter.c', content: '/* Binary counter on D0-D7 LEDs */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    for (unsigned char i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
 ];
 
 function buildExDropdown() {
@@ -898,7 +899,7 @@ function buildExDropdown() {
         file.setAttribute('data-key', ef.name);
         let icon = document.createElement('span');
         icon.className = 'fb-file-icon';
-        icon.textContent = ef.name.endsWith('.py') ? '\uD83D\uDC0D' : '\uD83D\uDCC4';
+        icon.textContent = ef.name.endsWith('.c') ? '\u{1F1E8}' : '\uD83D\uDCC4';
         let label = document.createElement('span');
         label.textContent = ef.name;
         file.appendChild(icon);

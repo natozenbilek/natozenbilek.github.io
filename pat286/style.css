@@ -88,7 +88,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ed-wrap{position:relative;flex:1;overflow:hidden;background:var(--bg);min-height:0}
 #edHL{position:absolute;top:0;left:0;right:0;bottom:0;padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:19px;white-space:pre;overflow:hidden;pointer-events:none;z-index:0;tab-size:8}
 #ed.hl-active{color:transparent;caret-color:var(--cyn)}
-.hl-k{color:#c678dd}.hl-r{color:#e06c75}.hl-n{color:#d19a66}.hl-s{color:#98c379}.hl-c{color:#5c6370;font-style:italic}.hl-d{color:#61afef}.hl-l{color:#e5c07b}.hl-p{color:#56b6c2}
+.hl-k{color:#CC7832}.hl-r{color:#9876AA}.hl-n{color:#6897BB}.hl-s{color:#6A8759}.hl-c{color:#808080;font-style:italic}.hl-d{color:#BBB529}.hl-l{color:#FFC66D}.hl-p{color:#56b6c2}
+.lb{font-family:var(--mono);font-size:10px;padding:4px 10px;border-top:1px solid var(--brd);color:var(--text3);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb.ls{color:#6A8759}.lb.le{color:var(--red)}
 /* === TERMINAL / CONSOLE === */
 .term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:24px;overflow:hidden}
 .term.open{height:150px}

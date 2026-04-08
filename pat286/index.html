@@ -60,14 +60,10 @@
     <!-- Terminal -->
     <div class="term" id="termPanel">
       <div class="term-tabs">
-        <span class="term-tab active" id="termTabPorts" onclick="showTermTab('ports')">Ports</span>
-        <span class="term-tab" id="termTabSerial" onclick="showTermTab('serial')">Terminal <span class="serial-dot-sm" id="serialDot2"></span></span>
+        <span class="term-tab active" id="termTabSerial" onclick="showTermTab('serial')">Terminal <span class="serial-dot-sm" id="serialDot2"></span></span>
       </div>
       <div class="term-body">
-        <div class="term-pane" id="termPorts">
-          <div class="port-mon" id="portMon"></div>
-        </div>
-        <div class="term-pane" id="termSerial" style="display:none">
+        <div class="term-pane" id="termSerial">
           <div class="term-serial-ctrls">
             <button class="b" onclick="sendGo()">G</button>
             <button class="b" onclick="sendTrace()">T</button>
@@ -78,6 +74,7 @@
           <div class="term-input-row">
             <span class="term-prompt">&gt;</span>
             <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
+            <button class="b" onclick="serialTermSend()" style="font-size:9px;padding:2px 6px">Send</button>
           </div>
         </div>
       </div>
