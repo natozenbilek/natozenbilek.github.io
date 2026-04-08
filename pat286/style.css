@@ -90,8 +90,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 #ed.hl-active{color:transparent;caret-color:var(--cyn)}
 .hl-k{color:#c678dd}.hl-r{color:#e06c75}.hl-n{color:#d19a66}.hl-s{color:#98c379}.hl-c{color:#5c6370;font-style:italic}.hl-d{color:#61afef}.hl-l{color:#e5c07b}.hl-p{color:#56b6c2}
 /* === TERMINAL / CONSOLE === */
-.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);min-height:120px;max-height:200px}
-.term-tabs{display:flex;gap:0;background:var(--bg3);border-bottom:1px solid var(--brd);flex-shrink:0}
+.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:26px;overflow:hidden}
+.term.open{height:130px}
+.term-tabs{display:flex;gap:0;background:var(--bg3);border-bottom:1px solid var(--brd);flex-shrink:0;cursor:pointer}
 .term-tab{font-family:var(--sans);font-size:10px;padding:4px 12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .1s}
 .term-tab:hover{color:var(--text2)}
 .term-tab.active{color:var(--text);border-bottom-color:var(--blu)}

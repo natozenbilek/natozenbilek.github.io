@@ -90,10 +90,18 @@ function sLog(m,err) {
   line.textContent=String(m||'');
   e.appendChild(line);
   e.scrollTop=e.scrollHeight;
-  // Keep max 50 lines
   while(e.children.length>50) e.removeChild(e.firstChild);
+  let panel=document.getElementById('termPanel');
+  if(panel && !panel.classList.contains('open')) showTermTab('log');
 }
 function showTermTab(tab) {
+  let panel = document.getElementById('termPanel');
+  if (!panel) return;
+  let wasOpen = panel.classList.contains('open');
+  let curTab = panel.dataset.tab || 'log';
+  if (wasOpen && curTab === tab) { panel.classList.remove('open'); return; }
+  panel.classList.add('open');
+  panel.dataset.tab = tab;
   document.getElementById('termLog').style.display = tab==='log' ? '' : 'none';
   document.getElementById('termSerial').style.display = tab==='serial' ? '' : 'none';
   document.getElementById('termTabLog').className = 'term-tab'+(tab==='log'?' active':'');
@@ -351,9 +359,38 @@ const edHL = document.getElementById('edHL');
 const HL_KEYWORDS = new Set(['MOV','ADD','SUB','MUL','DIV','IMUL','IDIV','INC','DEC','NEG','NOT','AND','OR','XOR','TEST','CMP','SHL','SHR','SAR','SAL','ROL','ROR','RCL','RCR','PUSH','POP','PUSHF','POPF','CALL','RET','JMP','JE','JNE','JZ','JNZ','JG','JGE','JL','JLE','JA','JAE','JB','JBE','JC','JNC','JS','JNS','JO','JNO','JP','JNP','JCXZ','LOOP','LOOPE','LOOPNE','INT','IRET','HLT','NOP','CLC','STC','CMC','CLD','STD','CLI','STI','XCHG','LEA','CBW','CWD','IN','OUT','MOVS','MOVSB','MOVSW','STOS','STOSB','STOSW','LODS','LODSB','LODSW','CMPS','CMPSB','CMPSW','SCAS','SCASB','SCASW','REP','REPE','REPZ','REPNE','REPNZ','DAA','DAS','AAA','AAS','AAM','AAD','XLAT']);
 const HL_REGS = new Set(['AX','BX','CX','DX','AH','AL','BH','BL','CH','CL','DH','DL','SI','DI','SP','BP','CS','DS','SS','ES','IP']);
 const HL_DIRS = new Set(['ORG','DB','DW','EQU','END','INCLUDE','BYTE','WORD','PTR','OFFSET','SEG']);
+const PY_KEYWORDS = new Set(['import','from','def','class','return','if','elif','else','for','while','in','not','and','or','is','with','as','try','except','finally','raise','pass','break','continue','True','False','None','print','open','self','lambda','yield','global','nonlocal','assert','del']);
+const PY_BUILTINS = new Set(['serial','sys','os','int','str','float','list','dict','tuple','set','len','range','enumerate','zip','map','filter','type','isinstance','hasattr','getattr','setattr','super','property','staticmethod','classmethod','input','format']);
+
+function currentFileType() {
+  return (activeTabKey && activeTabKey.endsWith('.py')) ? 'py' : 'asm';
+}
+
+function highlightLinePy(line) {
+  let ci = line.indexOf('#');
+  let code = ci >= 0 ? line.substring(0, ci) : line;
+  let comment = ci >= 0 ? line.substring(ci) : '';
+
+  let result = code.replace(/('[^']*'|"[^"]*")|(\b[0-9]+\.?[0-9]*\b)|(\b[A-Za-z_]\w*\b)/g,
+    function(m, str, num, word) {
+      if (str) return `<span class="hl-s">${esc(str)}</span>`;
+      if (num) return `<span class="hl-n">${esc(num)}</span>`;
+      if (word) {
+        if (PY_KEYWORDS.has(word)) return `<span class="hl-k">${esc(word)}</span>`;
+        if (PY_BUILTINS.has(word)) return `<span class="hl-d">${esc(word)}</span>`;
+        return esc(word);
+      }
+      return esc(m);
+    }
+  );
+  if (comment) result += `<span class="hl-c">${esc(comment)}</span>`;
+  return result;
+}
 
 function highlightLine(line) {
-  // Find comment start, but skip semicolons inside string literals
+  if (currentFileType() === 'py') return highlightLinePy(line);
+
+  // Find comment start, skip semicolons inside string literals
   let ci = -1;
   let inStr = false, strCh = '';
   for (let i = 0; i < line.length; i++) {
