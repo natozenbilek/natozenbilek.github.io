@@ -729,16 +729,161 @@ D2:     NOP
         INT     28H`,
 };
 
+let activeFileEl = null;
+let openTabs = []; // [{key, content}]
+let activeTabKey = null;
+
+function loadExByKey(key, fileEl) {
+  if (!EX[key]) return;
+  // Save current tab content before switching
+  if (activeTabKey) {
+    let cur = openTabs.find(t => t.key === activeTabKey);
+    if (cur) cur.content = document.getElementById('ed').value;
+  }
+  // Open tab if not already open
+  let existing = openTabs.find(t => t.key === key);
+  if (!existing) {
+    openTabs.push({key, content: EX[key]});
+  }
+  activeTabKey = key;
+  let tab = openTabs.find(t => t.key === key);
+  document.getElementById('ed').value = tab.content;
+  updLn(); updateHighlight(); doReset();
+  // Update file browser highlight
+  if (activeFileEl) activeFileEl.classList.remove('active');
+  if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
+  else highlightFileInTree(key);
+  renderTabs();
+}
+
+function switchTab(key) {
+  let fileEl = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
+  loadExByKey(key, fileEl);
+}
+
+function closeTab(key, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  let idx = openTabs.findIndex(t => t.key === key);
+  if (idx < 0) return;
+  openTabs.splice(idx, 1);
+  if (activeTabKey === key) {
+    if (openTabs.length > 0) {
+      let newIdx = Math.min(idx, openTabs.length - 1);
+      switchTab(openTabs[newIdx].key);
+    } else {
+      activeTabKey = null;
+      document.getElementById('ed').value = '';
+      updLn(); updateHighlight();
+      if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
+    }
+  }
+  renderTabs();
+}
+
+function renderTabs() {
+  let bar = document.getElementById('tabBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  openTabs.forEach(t => {
+    let tab = document.createElement('div');
+    tab.className = 'tab' + (t.key === activeTabKey ? ' active' : '');
+    // Short label
+    let short = t.key.replace(/^PA(\d+):\s*/, 'PA$1 ').replace(/^HW:\s*/, '');
+    let label = document.createElement('span');
+    label.textContent = short;
+    label.title = t.key;
+    let close = document.createElement('span');
+    close.className = 'tab-close';
+    close.textContent = '\u00D7';
+    close.addEventListener('click', function(e) { closeTab(t.key, e); });
+    tab.appendChild(label);
+    tab.appendChild(close);
+    tab.addEventListener('click', function() { switchTab(t.key); });
+    bar.appendChild(tab);
+  });
+}
+
+function highlightFileInTree(key) {
+  if (activeFileEl) activeFileEl.classList.remove('active');
+  let el = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
+  if (el) { el.classList.add('active'); activeFileEl = el; }
+}
+
 function loadEx() {
   let s = document.getElementById('ex').value;
-  if (EX[s]) { ed.value = EX[s]; updLn(); updateHighlight(); doReset(); }
+  if (EX[s]) loadExByKey(s, null);
 }
 
 function buildExDropdown() {
-  let sel = document.getElementById('ex');
+  // Group examples into folders
+  let folders = [
+    { name: 'Pratikler', keys: [] },
+    { name: 'Demos', keys: [] },
+    { name: 'Hardware', keys: [] }
+  ];
   for (let k of Object.keys(EX)) {
-    let opt = document.createElement('option');
-    opt.value = k; opt.textContent = k;
-    sel.appendChild(opt);
+    if (k.startsWith('PA')) folders[0].keys.push(k);
+    else if (k.startsWith('HW:')) folders[2].keys.push(k);
+    else folders[1].keys.push(k);
+  }
+
+  let tree = document.getElementById('fbTree');
+  if (!tree) return;
+  tree.innerHTML = '';
+
+  folders.forEach((folder, fi) => {
+    let div = document.createElement('div');
+    div.className = 'fb-folder';
+
+    let hd = document.createElement('div');
+    hd.className = 'fb-folder-hd';
+    let arrow = document.createElement('span');
+    arrow.className = 'fb-arrow open';
+    arrow.textContent = '\u25B6';
+    let name = document.createElement('span');
+    name.textContent = folder.name;
+    hd.appendChild(arrow);
+    hd.appendChild(name);
+
+    let items = document.createElement('div');
+    items.className = 'fb-folder-items';
+
+    hd.addEventListener('click', function() {
+      arrow.classList.toggle('open');
+      items.classList.toggle('collapsed');
+    });
+
+    folder.keys.forEach(k => {
+      let file = document.createElement('div');
+      file.className = 'fb-file';
+      file.setAttribute('data-key', k);
+      let icon = document.createElement('span');
+      icon.className = 'fb-file-icon';
+      icon.textContent = '\u00B6';
+      let label = document.createElement('span');
+      // Short label: strip prefix
+      let short = k.replace(/^PA\d+:\s*/, '').replace(/^HW:\s*/, '');
+      let num = k.match(/^PA(\d+)/);
+      label.textContent = num ? num[0] + ' ' + short : short;
+      label.title = k;
+      file.appendChild(icon);
+      file.appendChild(label);
+      file.addEventListener('click', function() { loadExByKey(k, file); });
+      items.appendChild(file);
+    });
+
+    div.appendChild(hd);
+    div.appendChild(items);
+    tree.appendChild(div);
+  });
+
+  // Also populate hidden select for backward compat
+  let sel = document.getElementById('ex');
+  if (sel) {
+    for (let k of Object.keys(EX)) {
+      let opt = document.createElement('option');
+      opt.value = k; opt.textContent = k;
+      sel.appendChild(opt);
+    }
   }
 }

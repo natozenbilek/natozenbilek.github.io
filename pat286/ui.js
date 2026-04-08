@@ -524,10 +524,10 @@ function motorAnimLoop() {
 // === INIT ===
 applyTheme(currentTheme);
 buildExDropdown();
-ed.value = EX['PA02: Add bytes'];
-updLn();
-updateHighlight();
-doAssemble();
+// Select first file in tree
+let firstFile = document.querySelector('.fb-file');
+if (firstFile) { firstFile.click(); }
+else { ed.value = EX['PA02: Add bytes']; updLn(); updateHighlight(); doAssemble(); }
 renderAll();
 motorAnimLoop();
 document.body.addEventListener('click', initAudio, {once: true});

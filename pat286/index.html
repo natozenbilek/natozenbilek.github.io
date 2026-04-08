@@ -37,11 +37,16 @@
   </div>
 </div>
 <div class="mn">
+  <!-- FILE BROWSER -->
+  <div class="fb">
+    <div class="fb-hd">Programs</div>
+    <div class="fb-tree" id="fbTree"></div>
+  </div>
+
   <!-- EDITOR -->
   <div class="ep">
+    <div class="tab-bar" id="tabBar"></div>
     <div class="eh">
-      <span>Program:</span>
-      <select id="ex" onchange="loadEx()"></select>
       <div class="eh-r">
         <button class="b bp" onclick="doAssemble()" title="Ctrl+Enter">Assemble</button>
         <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Cihaza yukle ve calistir">Upload &amp; Run</button>
@@ -72,8 +77,8 @@
     </div></div>
   </div>
 
-  <!-- CPU STATE -->
-  <div class="cp"><div class="ci">
+  <!-- RIGHT PANEL: CPU STATE + APPLICATIONS MODULE -->
+  <div class="rp"><div class="ci">
     <div class="cyc">
       <span>Cycle: <b id="cyN">0</b></span>
       <span>Instr: <b id="inN">0</b></span>
@@ -116,10 +121,9 @@
     <div class="cd"><div class="ch">Execution Trace <span class="ch-sub" id="traceCount">0</span></div><div class="cb" style="padding:4px">
       <div class="trace" id="traceView"><span style="color:var(--text3);font-size:9px">Run program to see trace</span></div>
     </div></div>
-  </div></div>
 
-  <!-- APPLICATIONS MODULE -->
-  <div class="ap"><div class="ci">
+    <!-- APPLICATIONS MODULE -->
+    <div class="cd"><div class="ch">Applications Module <span class="ch-sub">Applications Module</span></div><div class="cb" style="padding:4px">
     <div class="cd"><div class="ch">Applications Module <span class="ch-sub">Applications Module</span></div><div class="cb" style="padding:4px">
 
       <!-- Applications Module SVG -->
@@ -245,6 +249,8 @@
 
   </div></div>
 </div>
+<!-- hidden select for backward compat -->
+<select id="ex" style="display:none"></select>
 
 <!-- Export Modal -->
 <div id="expOv" class="exp-ov" hidden>
@@ -279,6 +285,7 @@
 <script src="examples.js"></script>
 <script src="guide.js"></script>
 <script src="hw-serial.js"></script>
+<script src="io.js"></script>
 <script src="cpu.js"></script>
 <script src="assembler.js"></script>
 <script src="ui.js"></script>
