@@ -523,6 +523,7 @@ function motorAnimLoop() {
 
 // === INIT ===
 applyTheme(currentTheme);
+initAppModule();
 buildExDropdown();
 // Select first file in tree
 let firstFile = document.querySelector('.fb-file');
