@@ -19,7 +19,7 @@
     <button class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">Dark</button>
     <button class="b" onclick="openExport()" title="Export/Import hex">Export</button>
     <button class="b" onclick="openGuide()" title="ISA Reference (F1)">Guide</button>
-    <a href="../index.html" class="b" title="Ana siteye dön" style="text-decoration:none;display:inline-flex;align-items:center">&#127968; Home</a>
+    <a href="../index.html" class="b" title="Ana siteye dön" style="text-decoration:none;display:inline-flex;align-items:center">natozenbilek</a>
   </div>
 </div>
 <div class="mn">
@@ -33,12 +33,17 @@
 
   <!-- EDITOR -->
   <div class="ep">
-    <div class="tab-bar" id="tabBar"></div>
+    <div class="tab-bar-wrap">
+      <div class="tab-bar" id="tabBar"></div>
+      <button class="b tab-close-all" id="closeAllBtn" onclick="closeAllTabs()" title="Close all tabs">&times; All</button>
+    </div>
     <div class="eh">
-      <div class="eh-r" style="margin-left:0">
-        <button class="b bp" id="asmBtn" onclick="compileIfC()||doAssemble()" title="Ctrl+Enter">Assemble</button>
-        <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Cihaza yukle ve calistir">Upload &amp; Run</button>
-      </div>
+      <input type="file" id="openFile" accept=".asm,.c,.cpp,.py,.java,.go,.txt" style="display:none" onchange="openLocalFile(this)">
+      <button class="b" onclick="document.getElementById('openFile').click()" title="PC'den dosya ac">Open File</button>
+      <span style="flex:1"></span>
+      <button class="b bp" id="asmBtn" onclick="compileIfC()||doAssemble()" title="Ctrl+Enter — Simulator">&#9654; Assemble</button>
+      <div class="sep"></div>
+      <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Fiziksel cihaza yukle">&#128268; Upload to Device</button>
     </div>
     <div class="ew">
       <div class="ln" id="lns"></div>
@@ -48,25 +53,21 @@
       </div>
     </div>
     <div class="lb" id="log">Ready.</div>
-    <!-- Terminal -->
-    <div class="term" id="termPanel">
-      <div class="term-tabs">
-        <span class="term-tab active" id="termTabSerial" onclick="showTermTab('serial')">&#9654; <span class="serial-dot-sm" id="serialDot2"></span></span>
-      </div>
-      <div class="term-body">
-        <div class="term-pane" id="termSerial">
-          <div class="term-serial-ctrls">
-            <button class="b" onclick="sendGo()">G</button>
-            <button class="b" onclick="sendTrace()">T</button>
-            <span style="flex:1"></span>
-            <button class="b" onclick="copySerialLog()">Copy</button>
-          </div>
-          <div class="term-output" id="serialLog">Connect > PAT RESET > Assemble > Upload &amp; Run</div>
-          <div class="term-input-row">
-            <span class="term-prompt">&gt;</span>
-            <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
-            <button class="b" onclick="serialTermSend()" style="font-size:10px;padding:3px 8px">Send</button>
-          </div>
+    <!-- Terminal (always open) -->
+    <div class="term open" id="termPanel">
+      <div class="term-pane" id="termSerial">
+        <div class="term-serial-ctrls">
+          <span class="serial-dot-sm" id="serialDot2"></span>
+          <button class="b" onclick="sendGo()">G</button>
+          <button class="b" onclick="sendTrace()">T</button>
+          <span style="flex:1"></span>
+          <button class="b" onclick="copySerialLog()">Copy</button>
+        </div>
+        <div class="term-output" id="serialLog">Connect > PAT RESET > Assemble > Upload &amp; Run</div>
+        <div class="term-input-row">
+          <span class="term-prompt">&gt;</span>
+          <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
+          <button class="b" onclick="serialTermSend()">Send</button>
         </div>
       </div>
     </div>

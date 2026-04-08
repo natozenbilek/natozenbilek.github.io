@@ -794,7 +794,7 @@ function fileLabel(key) {
 
 function updateAsmBtnLabel() {
   let btn = document.getElementById('asmBtn');
-  if (btn) btn.textContent = isHighLevelFile() ? 'Translate to ASM' : 'Assemble';
+  if (btn) btn.innerHTML = isHighLevelFile() ? '&#9654; Translate to ASM' : '&#9654; Assemble';
 }
 
 function renderTabs() {
@@ -908,9 +908,7 @@ function buildExDropdown() {
         file.setAttribute('data-key', ef.name);
         let icon = document.createElement('span');
         icon.className = 'fb-file-icon';
-        let ext = ef.name.split('.').pop();
-        let icons = {c:'\u{1F1E8}',cpp:'\u2699',py:'\uD83D\uDC0D',java:'\u2615',go:'\uD83D\uDD35'};
-        icon.textContent = icons[ext] || '\uD83D\uDCC4';
+        icon.textContent = '\uD83D\uDCC4';
         let label = document.createElement('span');
         label.textContent = ef.name;
         file.appendChild(icon);

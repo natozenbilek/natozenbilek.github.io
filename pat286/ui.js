@@ -259,7 +259,7 @@ function compileIfC() {
   document.getElementById('ed').value = asmCode;
   updLn(); updateHighlight();
   renderTabs();
-  sLog('Compiled ' + baseName + '.c → ' + asmKey, 0);
+  sLog('Translated ' + baseName + ' → ' + asmKey, 0);
   // Now assemble
   doAssemble();
   return true;
@@ -355,12 +355,7 @@ function sLog(m,err) {
   e.className='lb'+(err?' le':' ls');
   e.textContent=String(m||'');
 }
-function showTermTab(tab) {
-  let panel = document.getElementById('termPanel');
-  if (!panel) return;
-  if (panel.classList.contains('open')) { panel.classList.remove('open'); return; }
-  panel.classList.add('open');
-}
+// Terminal is always open — no toggle needed
 
 function renderAll() {
   let gpHtml = '';
@@ -859,6 +854,43 @@ function loadHexFile(input) {
   input.value = '';
 }
 document.getElementById('expOv')?.addEventListener('click', function(e) { if (e.target === this) closeExport(); });
+
+// === OPEN LOCAL FILE ===
+function openLocalFile(input) {
+  let file = input.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let content = e.target.result;
+    let name = file.name;
+    // Save current tab
+    if (activeTabKey) {
+      let cur = openTabs.find(t => t.key === activeTabKey);
+      if (cur) cur.content = document.getElementById('ed').value;
+    }
+    // Add as new tab
+    let existing = openTabs.find(t => t.key === name);
+    if (existing) { existing.content = content; }
+    else { openTabs.push({key: name, content: content}); }
+    activeTabKey = name;
+    document.getElementById('ed').value = content;
+    updLn(); updateHighlight();
+    renderTabs();
+    sLog('Opened: ' + name, 0);
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// === CLOSE ALL TABS ===
+function closeAllTabs() {
+  openTabs = [];
+  activeTabKey = null;
+  document.getElementById('ed').value = '';
+  updLn(); updateHighlight();
+  if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
+  renderTabs();
+}
 
 // === KEYBOARD SHORTCUTS ===
 document.addEventListener('keydown', function(e) {
