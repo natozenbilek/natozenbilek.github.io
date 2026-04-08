@@ -56,7 +56,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .fb-folder-hd:hover{background:var(--bg3)}
 .fb-arrow{font-size:7px;width:12px;text-align:center;color:var(--text3);transition:transform .15s;flex-shrink:0}
 .fb-arrow.open{transform:rotate(90deg)}
-.fb-folder-icon{display:none}
+.fb-folder-icon{flex-shrink:0;font-size:11px}
 .fb-folder-items{overflow:hidden}
 .fb-folder-items.collapsed{display:none}
 .fb-file{display:flex;align-items:center;gap:5px;padding:1px 8px 1px 20px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text2);transition:all .08s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:22px}

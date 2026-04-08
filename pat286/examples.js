@@ -710,12 +710,12 @@ MSG     DB      "Hello PAT!",00H`,
 ; PZO = Port 1 bit 5 (20H)
         ORG     0100H
         INCLUDE PATCALLS.INC
-        ; MUART init
+        ; Port 1 bit 5 output (piezo)
         MOV     AL,0FFH
         OUT     UCRREG1,AL
         OUT     UCRREG2,AL
         OUT     UCRREG3,AL
-        OUT     UMODEREG,AL
+        MOV     AL,20H
         OUT     UPORT1CTL,AL
         MOV     DX,500
 BEEP:   MOV     AL,20H
@@ -884,7 +884,8 @@ function buildExDropdown() {
   let folders = [
     { name: 'pratikler', keys: [] },
     { name: 'demos', keys: [] },
-    { name: 'hardware', keys: [] }
+    { name: 'hardware', keys: [] },
+    { name: 'scripts', children: [] }
   ];
   for (let k of Object.keys(EX)) {
     if (k.startsWith('PA')) folders[0].keys.push(k);
@@ -892,9 +893,9 @@ function buildExDropdown() {
     else folders[1].keys.push(k);
   }
 
-  // Add language folders
+  // Add language folders as children of scripts
   for (let lang of Object.keys(langFolders)) {
-    folders.push({ name: lang, extras: langFolders[lang] });
+    folders[3].children.push({ name: lang, extras: langFolders[lang] });
   }
 
   // Add dynamic folders (generated, local)
@@ -918,18 +919,24 @@ function buildExDropdown() {
     return file;
   }
 
-  function makeFolder(folder) {
+  function makeFolder(folder, depth) {
+    depth = depth || 0;
     let div = document.createElement('div');
     div.className = 'fb-folder';
 
     let hd = document.createElement('div');
     hd.className = 'fb-folder-hd';
+    if (depth > 0) hd.style.paddingLeft = (6 + depth * 12) + 'px';
     let arrow = document.createElement('span');
     arrow.className = 'fb-arrow';
     arrow.textContent = '\u25B6';
+    let folderIcon = document.createElement('span');
+    folderIcon.className = 'fb-folder-icon';
+    folderIcon.textContent = '\uD83D\uDCC1';
     let name = document.createElement('span');
     name.textContent = folder.name;
     hd.appendChild(arrow);
+    hd.appendChild(folderIcon);
     hd.appendChild(name);
 
     let items = document.createElement('div');
@@ -944,6 +951,7 @@ function buildExDropdown() {
     if (folder.keys) {
       folder.keys.forEach(k => {
         let file = makeFileEl(k, fileLabel(k), function() { loadExByKey(k, file); });
+        if (depth > 0) file.style.paddingLeft = (20 + depth * 12) + 'px';
         items.appendChild(file);
       });
     }
@@ -954,6 +962,7 @@ function buildExDropdown() {
         let file = makeFileEl(ef.name, ef.name, function() {
           openFileInTab(ef.name, ef.content, file);
         });
+        if (depth > 0) file.style.paddingLeft = (20 + depth * 12) + 'px';
         items.appendChild(file);
       });
     }
@@ -964,16 +973,24 @@ function buildExDropdown() {
         let file = makeFileEl(df.name, df.name, function() {
           openFileInTab(df.name, df.content, file);
         });
+        if (depth > 0) file.style.paddingLeft = (20 + depth * 12) + 'px';
         items.appendChild(file);
+      });
+    }
+
+    // Nested child folders
+    if (folder.children) {
+      folder.children.forEach(child => {
+        items.appendChild(makeFolder(child, depth + 1).el);
       });
     }
 
     div.appendChild(hd);
     div.appendChild(items);
-    tree.appendChild(div);
+    return { el: div };
   }
 
-  folders.forEach(makeFolder);
+  folders.forEach(f => { let r = makeFolder(f, 0); tree.appendChild(r.el); });
 
   // Restore active file highlight
   if (activeTabKey) highlightFileInTree(activeTabKey);
