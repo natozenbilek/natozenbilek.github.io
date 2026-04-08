@@ -795,7 +795,10 @@ function fileLabel(key) {
 
 function updateAsmBtnLabel() {
   let btn = document.getElementById('asmBtn');
-  if (btn) btn.innerHTML = isHighLevelFile() ? '&#9654; Translate to ASM' : '&#9654; Assemble';
+  if (!btn) return;
+  let hl = isHighLevelFile();
+  btn.innerHTML = hl ? '&#9654; Translate to ASM' : '&#9654; Assemble';
+  btn.className = hl ? 'b b-blu' : 'b bp';
 }
 
 function renderTabs() {

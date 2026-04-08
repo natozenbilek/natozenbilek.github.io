@@ -22,7 +22,8 @@ const PAT_PROMPT = 'PAT:';
 async function serialConnect() {
   if (serialConnected) { await serialDisconnect(); return; }
   if (!('serial' in navigator)) {
-    sLog('WebSerial desteklenmiyor. Chrome/Edge kullanin.', 1);
+    sLog('WebSerial sadece Chrome ve Edge destekler. Firefox/Safari desteklemiyor.', 1);
+    alert('WebSerial API bu tarayicide desteklenmiyor.\n\nChrome veya Edge kullanin.');
     return;
   }
   try {
@@ -513,6 +514,14 @@ function copySerialLog() {
       let s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
+}
+
+// Disable hardware buttons if WebSerial not supported
+if (!('serial' in navigator)) {
+  let devBtn = document.getElementById('serialBtn');
+  let upBtn = document.getElementById('uploadBtn');
+  if (devBtn) { devBtn.disabled = true; devBtn.title = 'WebSerial: sadece Chrome/Edge'; }
+  if (upBtn) { upBtn.disabled = true; upBtn.title = 'WebSerial: sadece Chrome/Edge'; }
 }
 
 // Forwarding stubs
