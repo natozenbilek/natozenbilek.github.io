@@ -49,7 +49,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 /* === FILE BROWSER === */
 .file-browser{display:flex;flex-direction:column;background:var(--bg2);min-width:0;overflow:hidden;flex:1}
 .file-browser-hd{display:flex;align-items:center;justify-content:space-between;font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:4px 8px 4px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
-.fb-open-btn{font-size:9px!important;padding:2px 6px!important;min-height:20px!important;text-transform:none;letter-spacing:0}
+.fb-open-btn{font-size:14px!important;padding:0 5px!important;min-height:20px!important;line-height:20px!important;text-transform:none;letter-spacing:0;font-weight:400}
 .fb-tree{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--brd) transparent;padding:2px 0}
 .fb-folder{user-select:none}
 .fb-folder-hd{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--text2);transition:background .1s}

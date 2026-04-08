@@ -597,6 +597,205 @@ DONE:   MOV     AH,EXIT
 SRC     DB      "HELLO",00H
 DST     DB      00H,00H,00H,00H,00H,00H`,
 
+'Fibonacci': `; Calculate first 10 Fibonacci numbers, store at DS:3000H
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     SI,3000H
+        MOV     CX,10
+        MOV     AL,00H
+        MOV     BL,01H
+        MOV     [SI],AL
+        INC     SI
+        DEC     CX
+        MOV     [SI],BL
+        INC     SI
+        DEC     CX
+NXTFIB: MOV     DL,AL
+        ADD     DL,BL
+        MOV     [SI],DL
+        MOV     AL,BL
+        MOV     BL,DL
+        INC     SI
+        LOOP    NXTFIB
+        MOV     AH,EXIT
+        INT     28H`,
+
+'Factorial 6!': `; Calculate 6! = 720 (02D0H), store at DS:2000H
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     CX,6
+        MOV     AX,1
+MLOOP:  MUL     CX
+        LOOP    MLOOP
+        MOV     DS:2000H,AX
+        MOV     AH,EXIT
+        INT     28H`,
+
+'String reverse': `; Reverse a string in-place using the stack
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     SI,OFFSET STR1
+        XOR     CX,CX
+        ; Push all chars onto stack
+PUSH1:  MOV     AL,[SI]
+        TEST    AL,0FFH
+        JZ      DOPOP
+        PUSH    AX
+        INC     CX
+        INC     SI
+        JMP     PUSH1
+        ; Pop chars back in reverse order
+DOPOP:  MOV     SI,OFFSET STR1
+POP1:   POP     AX
+        MOV     [SI],AL
+        INC     SI
+        LOOP    POP1
+        ; Display reversed string
+        MOV     AH,CLRSCR
+        INT     28H
+        MOV     SI,OFFSET STR1
+SHOW:   MOV     AL,[SI]
+        TEST    AL,0FFH
+        JZ      DONE
+        MOV     AH,WRCHAR
+        INT     28H
+        INC     SI
+        JMP     SHOW
+DONE:   MOV     AH,EXIT
+        INT     28H
+STR1    DB      "ABCDEF",00H`,
+
+'Hex to ASCII display': `; Read byte from DS:1000H, display as two hex ASCII chars
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     AH,CLRSCR
+        INT     28H
+        MOV     AL,BYTE PTR DS:1000H
+        MOV     BL,AL
+        ; High nibble
+        SHR     AL,1
+        SHR     AL,1
+        SHR     AL,1
+        SHR     AL,1
+        CALL    NIB2ASC
+        MOV     AH,WRCHAR
+        INT     28H
+        ; Low nibble
+        MOV     AL,BL
+        AND     AL,0FH
+        CALL    NIB2ASC
+        MOV     AH,WRCHAR
+        INT     28H
+        MOV     AH,EXIT
+        INT     28H
+; Subroutine: convert nibble in AL to ASCII hex char
+NIB2ASC:
+        CMP     AL,0AH
+        JC      ISDIG
+        ADD     AL,37H
+        RET
+ISDIG:  ADD     AL,30H
+        RET`,
+
+'Countdown display': `; Count from 99 to 00 on PAT display with delay
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     AH,CLRSCR
+        INT     28H
+        MOV     BL,99
+CNTLP:  PUSH    BX
+        MOV     AH,CLRSCR
+        INT     28H
+        ; Display tens digit
+        MOV     AL,BL
+        XOR     AH,AH
+        MOV     DL,10
+        DIV     DL
+        ADD     AL,30H
+        MOV     AH,WRCHAR
+        INT     28H
+        ; Display ones digit
+        POP     BX
+        PUSH    BX
+        MOV     AL,BL
+        XOR     AH,AH
+        MOV     DL,10
+        DIV     DL
+        MOV     AL,AH
+        ADD     AL,30H
+        MOV     AH,WRCHAR
+        INT     28H
+        ; Delay
+        MOV     BX,500
+        MOV     AH,WTNMS
+        INT     28H
+        POP     BX
+        DEC     BL
+        CMP     BL,0FFH
+        JNZ     CNTLP
+        MOV     AH,EXIT
+        INT     28H`,
+
+'HW: LED Knight Rider': `; LED Knight Rider — bouncing pattern D0-D7-D0 on Port 2
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
+AGAIN:  ; Shift left D0 to D7
+        MOV     BL,01H
+        MOV     DL,8
+SLEFT:  MOV     AL,BL
+        OUT     UPORT2,AL
+        MOV     CX,0FFFFH
+DLY1:   NOP
+        LOOP    DLY1
+        SHL     BL,1
+        DEC     DL
+        JNZ     SLEFT
+        ; Shift right D7 to D0
+        MOV     BL,80H
+        MOV     DL,8
+SRIGHT: MOV     AL,BL
+        OUT     UPORT2,AL
+        MOV     CX,0FFFFH
+DLY2:   NOP
+        LOOP    DLY2
+        SHR     BL,1
+        DEC     DL
+        JNZ     SRIGHT
+        JMP     AGAIN`,
+
+'HW: LED Dice': `; LED Dice — random-ish dice pattern on Port 2
+; Rolls through patterns rapidly, press RESET to stop
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
+        ; Dice face patterns (LED bits):
+        ; 1=08H  2=24H  3=2CH  4=66H  5=6EH  6=77H
+ROLL:   MOV     SI,OFFSET FACES
+        MOV     DL,6
+NXTFC:  MOV     AL,[SI]
+        OUT     UPORT2,AL
+        MOV     CX,0FFFFH
+DLY1:   NOP
+        LOOP    DLY1
+        INC     SI
+        DEC     DL
+        JNZ     NXTFC
+        JMP     ROLL
+FACES   DB      08H,24H,2CH,66H,6EH,77H`,
+
 'HW: LED all on': `; Turn on all D0-D7 LEDs (press RESET to stop)
         ORG     0100H
         INCLUDE PATCALLS.INC
@@ -909,7 +1108,10 @@ const EXTRA_FILES = [
   { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — educational\n# Use "Translate to ASM" to convert to 8086 Assembly\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
   { folder: 'go', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
   { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
-  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
+  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' },
+  { folder: 'asm', name: 'led_blink.asm', content: '; LED blink — all D0-D7 LEDs on, delay, off, EXIT\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\n        ; LEDs on\n        MOV     AL,0FFH\n        OUT     UPORT2,AL\n        ; Delay\n        MOV     CX,0FFFFH\nWAIT1:  NOP\n        LOOP    WAIT1\n        ; LEDs off\n        MOV     AL,00H\n        OUT     UPORT2,AL\n        MOV     AH,EXIT\n        INT     28H' },
+  { folder: 'asm', name: 'knight_rider.asm', content: '; LED Knight Rider — bouncing pattern D0-D7-D0 on Port 2\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\nAGAIN:  ; Shift left D0 to D7\n        MOV     BL,01H\n        MOV     DL,8\nSLEFT:  MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY1:   NOP\n        LOOP    DLY1\n        SHL     BL,1\n        DEC     DL\n        JNZ     SLEFT\n        ; Shift right D7 to D0\n        MOV     BL,80H\n        MOV     DL,8\nSRIGHT: MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY2:   NOP\n        LOOP    DLY2\n        SHR     BL,1\n        DEC     DL\n        JNZ     SRIGHT\n        JMP     AGAIN' },
+  { folder: 'asm', name: 'fibonacci.asm', content: '; Calculate first 10 Fibonacci numbers, store at DS:3000H\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        MOV     SI,3000H\n        MOV     CX,10\n        MOV     AL,00H\n        MOV     BL,01H\n        MOV     [SI],AL\n        INC     SI\n        DEC     CX\n        MOV     [SI],BL\n        INC     SI\n        DEC     CX\nNXTFIB: MOV     DL,AL\n        ADD     DL,BL\n        MOV     [SI],DL\n        MOV     AL,BL\n        MOV     BL,DL\n        INC     SI\n        LOOP    NXTFIB\n        MOV     AH,EXIT\n        INT     28H' }
 ];
 
 // Dynamic files: generated .asm from translation, opened from PC
