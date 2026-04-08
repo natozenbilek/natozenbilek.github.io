@@ -144,9 +144,13 @@
     <div class="exp-body">
       <div class="exp-sub">Assembled hex dump:</div>
       <pre class="exp-out" id="expOut">No program assembled.</pre>
-      <div class="exp-sub">Import hex (paste below, then click Load):</div>
+      <div class="exp-sub">Import hex (paste or load file):</div>
       <textarea id="hexIn" class="exp-in" spellcheck="false" placeholder="0300: B0 80 2A 06 00 10 ..."></textarea>
-      <button class="b" onclick="loadHexImport()">Load Hex</button>
+      <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+        <button class="b" onclick="loadHexImport()">Load Hex</button>
+        <input type="file" id="hexFile" accept=".hex,.txt,.bin" style="display:none" onchange="loadHexFile(this)">
+        <button class="b" onclick="document.getElementById('hexFile').click()">Browse...</button>
+      </div>
     </div>
     <div class="exp-foot">
       <button class="b b-blu" onclick="copyExport()">Copy</button>

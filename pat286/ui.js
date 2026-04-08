@@ -341,21 +341,28 @@ const HL_REGS = new Set(['AX','BX','CX','DX','AH','AL','BH','BL','CH','CL','DH',
 const HL_DIRS = new Set(['ORG','DB','DW','EQU','END','INCLUDE','BYTE','WORD','PTR','OFFSET','SEG']);
 
 function highlightLine(line) {
-  // Comment
-  let ci = line.indexOf(';');
+  // Find comment start, but skip semicolons inside string literals
+  let ci = -1;
+  let inStr = false, strCh = '';
+  for (let i = 0; i < line.length; i++) {
+    let c = line[i];
+    if (inStr) { if (c === strCh) inStr = false; }
+    else if (c === "'" || c === '"') { inStr = true; strCh = c; }
+    else if (c === ';') { ci = i; break; }
+  }
   let code = ci >= 0 ? line.substring(0, ci) : line;
   let comment = ci >= 0 ? line.substring(ci) : '';
 
-  let result = code.replace(/('[^']*'|"[^"]*")|(\b[0-9][0-9A-Fa-f]*[Hh]\b|\b0[Xx][0-9A-Fa-f]+\b|\b[0-9]+[Bb]\b|\b[0-9]+\b)|(\b[A-Za-z_]\w*\b)/g,
-    function(m, str, num, word) {
+  let result = code.replace(/('[^']*'|"[^"]*")|(\$)|(\b[0-9][0-9A-Fa-f]*[Hh]\b|\b0[Xx][0-9A-Fa-f]+\b|\b[0-9]+[Bb]\b|\b[0-9]+\b)|(\b[A-Za-z_]\w*\b)/g,
+    function(m, str, dollar, num, word) {
       if (str) return `<span class="hl-s">${esc(str)}</span>`;
+      if (dollar) return `<span class="hl-n">$</span>`;
       if (num) return `<span class="hl-n">${esc(num)}</span>`;
       if (word) {
         let u = word.toUpperCase();
         if (HL_KEYWORDS.has(u)) return `<span class="hl-k">${esc(word)}</span>`;
         if (HL_REGS.has(u)) return `<span class="hl-r">${esc(word)}</span>`;
         if (HL_DIRS.has(u)) return `<span class="hl-d">${esc(word)}</span>`;
-        // Check if it looks like a label (first token followed by colon handled separately)
         return `<span class="hl-l">${esc(word)}</span>`;
       }
       return esc(m);
@@ -481,6 +488,18 @@ function loadHexImport() {
   setSt('READY');
   closeExport();
   renderAll();
+}
+function loadHexFile(input) {
+  let file = input.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let ta = document.getElementById('hexIn');
+    if (ta) ta.value = e.target.result;
+    loadHexImport();
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 document.getElementById('expOv')?.addEventListener('click', function(e) { if (e.target === this) closeExport(); });
 
