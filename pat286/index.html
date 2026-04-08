@@ -11,16 +11,16 @@
 <div class="hd">
   <h1><b>PAT-286</b> Virtual Lab <em>BBM436</em></h1>
   <div class="hd-r">
-    <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Fiziksel cihaza yukle ve calistir">Upload and Run</button>
+    <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Upload and run on physical device">Upload and Run</button>
     <span class="pill p-rdy" id="st">READY</span>
     <div class="sep"></div>
     <span class="serial-dot" id="serialDot"></span>
-    <button class="b b-serial" id="serialBtn" onclick="serialConnect()" title="USB seri port baglantisi">Device</button>
+    <button class="b b-serial" id="serialBtn" onclick="serialConnect()" title="USB serial connection">Device</button>
     <div class="sep"></div>
     <button class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">Dark</button>
     <button class="b" onclick="openExport()" title="Export/Import hex">Export</button>
     <button class="b" onclick="openGuide()" title="ISA Reference (F1)">Guide</button>
-    <a href="../index.html" class="b" title="Ana siteye dön" style="text-decoration:none;display:inline-flex;align-items:center">natozenbilek</a>
+    <a href="../index.html" class="b" title="Back to main site" style="text-decoration:none;display:inline-flex;align-items:center">natozenbilek</a>
   </div>
 </div>
 <div class="mn">
@@ -30,7 +30,7 @@
       <div class="file-browser-hd">
         <span>Explorer</span>
         <input type="file" id="openFile" accept=".asm,.c,.cpp,.py,.java,.go,.txt" style="display:none" onchange="openLocalFile(this)">
-        <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" title="PC'den dosya ac">Open</button>
+        <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" title="Open file from PC">Open</button>
       </div>
       <div class="fb-tree" id="fbTree"></div>
     </div>

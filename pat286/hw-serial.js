@@ -22,8 +22,8 @@ const PAT_PROMPT = 'PAT:';
 async function serialConnect() {
   if (serialConnected) { await serialDisconnect(); return; }
   if (!('serial' in navigator)) {
-    sLog('WebSerial sadece Chrome ve Edge destekler. Firefox/Safari desteklemiyor.', 1);
-    alert('WebSerial API bu tarayicide desteklenmiyor.\n\nChrome veya Edge kullanin.');
+    sLog('WebSerial requires Chrome or Edge. Not supported in this browser.', 1);
+    alert('WebSerial API is not supported in this browser.\n\nPlease use Chrome or Edge.');
     return;
   }
   try {
@@ -41,12 +41,12 @@ async function serialConnect() {
     serialWriter = serialPort.writable.getWriter();
     serialConnected = true;
     updateSerialUI();
-    sLog('PAT-286 baglandi (8N2)', 0);
-    serialRxLog = 'Baglandi. PAT RESET basin, "PAT:" gorunce test butonlarina basin.\n';
+    sLog('PAT-286 connected (8N2)', 0);
+    serialRxLog = 'Connected. Press PAT RESET, wait for "PAT:" prompt, then use buttons.\n';
     updateSerialTerminal();
     startSerialRead();
   } catch (e) {
-    if (e.name !== 'NotFoundError') sLog('Seri port hatasi: ' + e.message, 1);
+    if (e.name !== 'NotFoundError') sLog('Serial port error: ' + e.message, 1);
     serialConnected = false;
     updateSerialUI();
   }
@@ -55,12 +55,25 @@ async function serialConnect() {
 async function serialDisconnect() {
   serialConnected = false;
   try {
-    if (serialReader) { await serialReader.cancel(); serialReader.releaseLock(); serialReader = null; }
-    if (serialWriter) { serialWriter.releaseLock(); serialWriter = null; }
-    if (serialPort) { await serialPort.close(); serialPort = null; }
+    if (serialReader) {
+      try { await serialReader.cancel(); } catch(e) {}
+      try { serialReader.releaseLock(); } catch(e) {}
+      serialReader = null;
+    }
+    if (serialWriter) {
+      try { await serialWriter.close(); } catch(e) {}
+      try { serialWriter.releaseLock(); } catch(e) {}
+      serialWriter = null;
+    }
+    if (serialPort) {
+      try { await serialPort.close(); } catch(e) {}
+      serialPort = null;
+    }
   } catch (e) {}
   updateSerialUI();
-  sLog('Baglanti kesildi.', 0);
+  sLog('Disconnected.', 0);
+  serialRxLog += '\n--- Disconnected ---\n';
+  updateSerialTerminal();
 }
 
 // --- Serial read loop ---
@@ -89,7 +102,7 @@ async function startSerialRead() {
       }
     }
   } catch (e) {
-    if (serialConnected) sLog('Seri okuma hatasi: ' + e.message, 1);
+    if (serialConnected) sLog('Serial read error: ' + e.message, 1);
   } finally {
     if (serialReader) { try { serialReader.releaseLock(); } catch(e){} serialReader = null; }
   }
@@ -101,7 +114,7 @@ async function serialSendRaw(text) {
   try {
     await serialWriter.write(new TextEncoder().encode(text));
   } catch (e) {
-    sLog('Seri yazma hatasi: ' + e.message, 1);
+    sLog('Serial write error: ' + e.message, 1);
   }
 }
 
@@ -111,7 +124,7 @@ async function serialSendBytes(bytes) {
   try {
     await serialWriter.write(new Uint8Array(bytes));
   } catch (e) {
-    sLog('Seri yazma hatasi: ' + e.message, 1);
+    sLog('Serial write error: ' + e.message, 1);
   }
 }
 
@@ -127,7 +140,7 @@ async function serialSendSlow(text) {
       await sleep(2);
     }
   } catch (e) {
-    sLog('Seri yazma hatasi: ' + e.message, 1);
+    sLog('Serial write error: ' + e.message, 1);
   }
 }
 
@@ -140,7 +153,7 @@ async function serialSendBytesSlow(bytes) {
       await sleep(2);
     }
   } catch (e) {
-    sLog('Seri yazma hatasi: ' + e.message, 1);
+    sLog('Serial write error: ' + e.message, 1);
   }
 }
 
@@ -183,7 +196,7 @@ function ihexLine(addr, data) {
 // We replicate exact same timing.
 // ===================================================================
 async function uploadHexAndRun(machineCode, label) {
-  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+  if (!serialConnected) { sLog('Connect to device first!', 1); return; }
 
   let hexData = ihexLine(0x0100, machineCode);
   let hexEnd = ':00000001FF';
@@ -193,7 +206,7 @@ async function uploadHexAndRun(machineCode, label) {
 
   // 1. Send Enter to check prompt
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok, devam ediliyor...\n';
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] No PAT: prompt, continuing...\n';
   updateSerialTerminal();
 
   // 2. L — send FAST (not slow), wait 700ms like IDE
@@ -224,7 +237,7 @@ async function uploadHexAndRun(machineCode, label) {
   serialRxLog += 'TX: G 0100\n';
   updateSerialTerminal();
   let gotG = await sendAndWait('G 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT (LED\'leri kontrol edin) ---\n';
+  serialRxLog += gotG ? '=== SUCCESS ===\n' : '--- G TIMEOUT (check LEDs) ---\n';
   updateSerialTerminal();
 }
 
@@ -233,7 +246,7 @@ async function uploadHexAndRun(machineCode, label) {
 // then G 0100 to execute. RAM is preserved (no reset needed).
 // ===================================================================
 async function uploadCmdAndRun(machineCode, label, startAddr) {
-  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+  if (!serialConnected) { sLog('Connect to device first!', 1); return; }
   let addr = (startAddr || 0x0100);
   let addrStr = addr.toString(16).toUpperCase().padStart(4, '0');
 
@@ -242,7 +255,7 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
 
   // 1. Check prompt
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] No PAT: prompt\n';
   updateSerialTerminal();
   if (!gotP) return;
 
@@ -251,7 +264,7 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
   updateSerialTerminal();
   let gotC = await sendAndWait('C ' + addrStr + '\r\n', addrStr, 3000);
   if (!gotC) {
-    serialRxLog += '[WARN] C komutu cevap yok\n';
+    serialRxLog += '[WARN] No response to C command\n';
     updateSerialTerminal();
     return;
   }
@@ -270,11 +283,11 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
     await sleep(50);
   }
 
-  serialRxLog += '\n[OK] ' + machineCode.length + ' byte yazildi.\n';
+  serialRxLog += '\n[OK] ' + machineCode.length + ' bytes written.\n';
   updateSerialTerminal();
 
   // 4. ESC + CR to exit C interactive mode (RAM preserved)
-  serialRxLog += '[...] ESC+CR ile C modundan cikiliyor...\n';
+  serialRxLog += '[...] Exiting C mode (ESC+CR)...\n';
   updateSerialTerminal();
   await serialSendBytes([0x1B, 0x0D]);  // ESC + CR
 
@@ -284,7 +297,7 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
     // Try Enter to nudge
     gotExit = await sendAndWait('\r\n', PAT_PROMPT, 2000);
   }
-  serialRxLog += gotExit ? '[OK] PAT: prompt alindi\n' : '[WARN] PAT: prompt gelmedi\n';
+  serialRxLog += gotExit ? '[OK] PAT: prompt received\n' : '[WARN] No PAT: prompt received\n';
   updateSerialTerminal();
   if (!gotExit) return;
 
@@ -293,7 +306,7 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
   serialRxLog += 'TX: G ' + addrStr + '\n';
   updateSerialTerminal();
   let gotG = await sendAndWait('G ' + addrStr + '\r\n', PAT_PROMPT, 8000);
-  serialRxLog += gotG ? '=== BASARILI ===\n' : '--- G TIMEOUT ---\n';
+  serialRxLog += gotG ? '=== SUCCESS ===\n' : '--- G TIMEOUT ---\n';
   updateSerialTerminal();
 }
 
@@ -343,7 +356,7 @@ async function testLedOff() { await uploadCmdAndRunNoWait(MC_OFF, 'LED OFF'); }
 
 // Upload + G without waiting for PAT prompt (for infinite-loop programs)
 async function uploadCmdAndRunNoWait(machineCode, label) {
-  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+  if (!serialConnected) { sLog('Connect to device first!', 1); return; }
   let addr = 0x0100;
   let addrStr = addr.toString(16).toUpperCase().padStart(4, '0');
 
@@ -351,7 +364,7 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
   updateSerialTerminal();
 
   let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
-  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] No PAT: prompt\n';
   updateSerialTerminal();
   if (!gotP) return;
 
@@ -359,7 +372,7 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
   updateSerialTerminal();
   let gotC = await sendAndWait('C ' + addrStr + '\r\n', addrStr, 3000);
   if (!gotC) {
-    serialRxLog += '[WARN] C komutu cevap yok\n';
+    serialRxLog += '[WARN] No response to C command\n';
     updateSerialTerminal();
     return;
   }
@@ -377,10 +390,10 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
     await sleep(50);
   }
 
-  serialRxLog += '\n[OK] ' + machineCode.length + ' byte yazildi.\n';
+  serialRxLog += '\n[OK] ' + machineCode.length + ' bytes written.\n';
   updateSerialTerminal();
 
-  serialRxLog += '[...] ESC+CR ile C modundan cikiliyor...\n';
+  serialRxLog += '[...] Exiting C mode (ESC+CR)...\n';
   updateSerialTerminal();
   await serialSendBytes([0x1B, 0x0D]);
 
@@ -388,7 +401,7 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
   if (!gotExit) {
     gotExit = await sendAndWait('\r\n', PAT_PROMPT, 2000);
   }
-  serialRxLog += gotExit ? '[OK] PAT:\n' : '[WARN] PAT: prompt gelmedi\n';
+  serialRxLog += gotExit ? '[OK] PAT:\n' : '[WARN] No PAT: prompt received\n';
   updateSerialTerminal();
   if (!gotExit) return;
 
@@ -397,7 +410,7 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
   updateSerialTerminal();
   await serialSendRaw('G ' + addrStr + '\r\n');
   // Don't wait for PAT prompt — program runs forever (JMP $)
-  serialRxLog += '=== CALISIYOR (RESET ile durdurun) ===\n';
+  serialRxLog += '=== RUNNING (press RESET to stop) ===\n';
   updateSerialTerminal();
 }
 
@@ -406,8 +419,8 @@ async function uploadCmdAndRunNoWait(machineCode, label) {
 // Reads bytes from mem[] (set by doAssemble), sends via C method
 // ===================================================================
 async function uploadProgram() {
-  if (!serialConnected) { sLog('Once Device ile baglanin!', 1); return; }
-  if (!pLen) { sLog('Once Assemble basin!', 1); return; }
+  if (!serialConnected) { sLog('Connect to device first!', 1); return; }
+  if (!pLen) { sLog('Assemble a program first!', 1); return; }
 
   // Find program byte range from assembled output in mem[]
   let org = progOrg; // stable ORG from last assembly (not mutable IP)
@@ -423,7 +436,7 @@ async function uploadProgram() {
   let progBytes = [];
   for (let a = startPhys; a < endPhys; a++) progBytes.push(mem[a]);
 
-  if (!progBytes.length) { sLog('Program bos!', 1); return; }
+  if (!progBytes.length) { sLog('Program is empty!', 1); return; }
 
   sLog(`Uploading ${progBytes.length} bytes to device...`, 0);
   await uploadCmdAndRun(progBytes, 'UPLOAD: ' + progBytes.length + 'B @ ' + org.toString(16).toUpperCase() + 'H');
@@ -435,20 +448,20 @@ async function sendGo() {
   serialRxLog += '\nTX: G ' + addr + '\n';
   updateSerialTerminal();
   let got = await sendAndWait('G ' + addr + '\r\n', PAT_PROMPT, 8000);
-  serialRxLog += got ? '=== BASARILI ===\n' : '--- G TIMEOUT ---\n';
+  serialRxLog += got ? '=== SUCCESS ===\n' : '--- G TIMEOUT ---\n';
   updateSerialTerminal();
 }
 async function sendTrace() {
   serialRxLog += '\nTX: T 0100\n';
   updateSerialTerminal();
   let got = await sendAndWait('T 0100\r\n', PAT_PROMPT, 5000);
-  serialRxLog += got ? '[OK] Trace tamamlandi\n' : '--- TIMEOUT ---\n';
+  serialRxLog += got ? '[OK] Trace complete\n' : '--- TIMEOUT ---\n';
   updateSerialTerminal();
 }
 
 // --- DTR Reset (manual button) ---
 async function sendDtrReset() {
-  if (!serialConnected || !serialPort) { sLog('Once Connect basin!', 1); return; }
+  if (!serialConnected || !serialPort) { sLog('Connect to device first!', 1); return; }
   serialRxLog += '\n[...] DTR reset...\n';
   updateSerialTerminal();
   try {
@@ -457,9 +470,9 @@ async function sendDtrReset() {
     await serialPort.setSignals({ dataTerminalReady: true });
     await sleep(100);
     await serialPort.setSignals({ dataTerminalReady: false });
-    serialRxLog += '[OK] DTR toggle yapildi. PAT: bekleniyor...\n';
+    serialRxLog += '[OK] DTR toggled. Waiting for PAT:...\n';
   } catch (e) {
-    serialRxLog += '[WARN] DTR hatasi: ' + e.message + '\n';
+    serialRxLog += '[WARN] DTR error: ' + e.message + '\n';
   }
   updateSerialTerminal();
 }
@@ -506,7 +519,7 @@ function updateSerialTerminal() {
 
 function copySerialLog() {
   navigator.clipboard.writeText(serialRxLog).then(() => {
-    sLog('Log kopyalandi', 0);
+    sLog('Log copied', 0);
   }).catch(() => {
     let el = document.getElementById('serialLog');
     if (el) {
@@ -520,8 +533,8 @@ function copySerialLog() {
 if (!('serial' in navigator)) {
   let devBtn = document.getElementById('serialBtn');
   let upBtn = document.getElementById('uploadBtn');
-  if (devBtn) { devBtn.disabled = true; devBtn.title = 'WebSerial: sadece Chrome/Edge'; }
-  if (upBtn) { upBtn.disabled = true; upBtn.title = 'WebSerial: sadece Chrome/Edge'; }
+  if (devBtn) { devBtn.disabled = true; devBtn.title = 'WebSerial: Chrome/Edge only'; }
+  if (upBtn) { upBtn.disabled = true; upBtn.title = 'WebSerial: Chrome/Edge only'; }
 }
 
 // Forwarding stubs

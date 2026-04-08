@@ -597,7 +597,7 @@ DONE:   MOV     AH,EXIT
 SRC     DB      "HELLO",00H
 DST     DB      00H,00H,00H,00H,00H,00H`,
 
-'HW: LED all on': `; Tum D0-D7 LED'lerini yakar (RESET ile durdurun)
+'HW: LED all on': `; Turn on all D0-D7 LEDs (press RESET to stop)
         ORG     0100H
         INCLUDE PATCALLS.INC
         ; MUART init
@@ -607,12 +607,12 @@ DST     DB      00H,00H,00H,00H,00H,00H`,
         OUT     UCRREG3,AL
         OUT     UMODEREG,AL
         OUT     UPORT1CTL,AL
-        ; D0-D7 yak (Port 2)
+        ; Light D0-D7 (Port 2)
         MOV     AL,0FFH
         OUT     UPORT2,AL
 HERE:   JMP     HERE`,
 
-'HW: LED all off': `; Tum D0-D7 LED'lerini sondurur
+'HW: LED all off': `; Turn off all D0-D7 LEDs
         ORG     0100H
         INCLUDE PATCALLS.INC
         MOV     AL,0FFH
@@ -626,7 +626,7 @@ HERE:   JMP     HERE`,
         MOV     AH,EXIT
         INT     28H`,
 
-'HW: LED blink': `; D0-D7 LED'leri yakar, bekler, sondurur, EXIT
+'HW: LED blink': `; Blink D0-D7 LEDs on, delay, off, EXIT
         ORG     0100H
         INCLUDE PATCALLS.INC
         ; MUART init
@@ -636,20 +636,20 @@ HERE:   JMP     HERE`,
         OUT     UCRREG3,AL
         OUT     UMODEREG,AL
         OUT     UPORT1CTL,AL
-        ; Yak
+        ; LEDs on
         MOV     AL,0FFH
         OUT     UPORT2,AL
-        ; Gecikme
+        ; Delay
         MOV     CX,0FFFFH
 WAIT1:  NOP
         LOOP    WAIT1
-        ; Sondur
+        ; LEDs off
         MOV     AL,00H
         OUT     UPORT2,AL
         MOV     AH,EXIT
         INT     28H`,
 
-'HW: LED chase': `; LED kayan isik — D0'dan D7'ye sirayla yakar
+'HW: LED chase': `; LED chase — shift light from D0 to D7
         ORG     0100H
         INCLUDE PATCALLS.INC
         ; MUART init
@@ -671,7 +671,7 @@ DELAY:  NOP
         JNZ     SHIFT
         JMP     AGAIN`,
 
-'HW: Binary counter': `; LED'lerde 0-FF binary sayici
+'HW: Binary counter': `; Binary counter 0-FF on D0-D7 LEDs
         ORG     0100H
         INCLUDE PATCALLS.INC
         ; MUART init
@@ -690,7 +690,7 @@ DELAY:  NOP
         INC     BL
         JMP     COUNT`,
 
-'HW: Hello serial': `; Seri porta "Hello PAT!" yazar
+'HW: Hello serial': `; Write "Hello PAT!" to serial port
         ORG     0100H
         INCLUDE PATCALLS.INC
         MOV     AH,CLRSCR
@@ -707,7 +707,7 @@ DONE:   MOV     AH,EXIT
         INT     28H
 MSG     DB      "Hello PAT!",00H`,
 
-'HW: Piezo beep': `; Piezo buzzer kisa bip sesi
+'HW: Piezo beep': `; Piezo buzzer short beep
 ; PZO = Port 1 bit 5 (20H)
         ORG     0100H
         INCLUDE PATCALLS.INC
@@ -855,11 +855,11 @@ function loadEx() {
 }
 
 const EXTRA_FILES = [
-  { folder: 'c', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * Bu dosya egitim amacli pseudo-koddur.\n * "Translate to ASM" ile 8086 Assembly\'e cevrilir.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
-  { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — egitim amacli\n# "Translate to ASM" ile 8086 Assembly\'e cevrilir\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
-  { folder: 'go', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
-  { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
-  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — egitim amacli\n// "Translate to ASM" ile 8086 Assembly\'e cevrilir\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
+  { folder: 'c', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * This is educational pseudo-code.\n * Use "Translate to ASM" to convert to 8086 Assembly.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
+  { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — educational\n# Use "Translate to ASM" to convert to 8086 Assembly\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
+  { folder: 'go', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
+  { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
+  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
 ];
 
 // Dynamic files: generated .asm from translation, opened from PC
