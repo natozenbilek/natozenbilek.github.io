@@ -792,10 +792,16 @@ function fileLabel(key) {
   return short + '.asm';
 }
 
+function updateAsmBtnLabel() {
+  let btn = document.getElementById('asmBtn');
+  if (btn) btn.textContent = isHighLevelFile() ? 'Compile' : 'Assemble';
+}
+
 function renderTabs() {
   let bar = document.getElementById('tabBar');
   if (!bar) return;
   bar.innerHTML = '';
+  updateAsmBtnLabel();
   openTabs.forEach(t => {
     let tab = document.createElement('div');
     tab.className = 'tab' + (t.key === activeTabKey ? ' active' : '');
@@ -826,7 +832,10 @@ function loadEx() {
 
 const EXTRA_FILES = [
   { folder: 'scripts', name: 'led_blink.c', content: '/* LED blink — compiles to 8086 ASM */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
-  { folder: 'scripts', name: 'counter.c', content: '/* Binary counter on D0-D7 LEDs */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    for (unsigned char i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
+  { folder: 'scripts', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
+  { folder: 'scripts', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
+  { folder: 'scripts', name: 'blink.java', content: '// LED blink on/off cycle\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
+  { folder: 'scripts', name: 'counter.cpp', content: '// Binary counter with C++\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' }
 ];
 
 function buildExDropdown() {
@@ -853,7 +862,7 @@ function buildExDropdown() {
     let hd = document.createElement('div');
     hd.className = 'fb-folder-hd';
     let arrow = document.createElement('span');
-    arrow.className = 'fb-arrow open';
+    arrow.className = 'fb-arrow';
     arrow.textContent = '\u25B6';
     let folderIcon = document.createElement('span');
     folderIcon.className = 'fb-folder-icon';
@@ -865,7 +874,7 @@ function buildExDropdown() {
     hd.appendChild(name);
 
     let items = document.createElement('div');
-    items.className = 'fb-folder-items';
+    items.className = 'fb-folder-items collapsed';
 
     hd.addEventListener('click', function() {
       arrow.classList.toggle('open');
@@ -899,7 +908,9 @@ function buildExDropdown() {
         file.setAttribute('data-key', ef.name);
         let icon = document.createElement('span');
         icon.className = 'fb-file-icon';
-        icon.textContent = ef.name.endsWith('.c') ? '\u{1F1E8}' : '\uD83D\uDCC4';
+        let ext = ef.name.split('.').pop();
+        let icons = {c:'\u{1F1E8}',cpp:'\u2699',py:'\uD83D\uDC0D',java:'\u2615',go:'\uD83D\uDD35'};
+        icon.textContent = icons[ext] || '\uD83D\uDCC4';
         let label = document.createElement('span');
         label.textContent = ef.name;
         file.appendChild(icon);
