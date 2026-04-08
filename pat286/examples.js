@@ -591,27 +591,55 @@ DONE:   MOV     AH,EXIT
 SRC     DB      "HELLO",00H
 DST     DB      00H,00H,00H,00H,00H,00H`,
 
-'HW: LED all on/off': `; MUART init + LED all on, wait, off, EXIT
-; Upload & Run ile gercek donanim testi
+'HW: LED all on': `; Tum D0-D7 LED'lerini yakar (RESET ile durdurun)
         ORG     0100H
         INCLUDE PATCALLS.INC
-        ; MUART init (gerekli)
+        ; MUART init
         MOV     AL,0FFH
-        OUT     80H,AL
-        OUT     82H,AL
-        OUT     84H,AL
-        OUT     86H,AL
-        OUT     88H,AL
-        ; LED'leri yak (D0-D7 = Port 2, 92H)
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
+        ; D0-D7 yak (Port 2)
         MOV     AL,0FFH
-        OUT     92H,AL
+        OUT     UPORT2,AL
+HERE:   JMP     HERE`,
+
+'HW: LED all off': `; Tum D0-D7 LED'lerini sondurur
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        MOV     AL,0FFH
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
+        MOV     AL,00H
+        OUT     UPORT2,AL
+        MOV     AH,EXIT
+        INT     28H`,
+
+'HW: LED blink': `; D0-D7 LED'leri yakar, bekler, sondurur, EXIT
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+        ; MUART init
+        MOV     AL,0FFH
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
+        ; Yak
+        MOV     AL,0FFH
+        OUT     UPORT2,AL
         ; Gecikme
         MOV     CX,0FFFFH
 WAIT1:  NOP
         LOOP    WAIT1
-        ; LED'leri sondur
+        ; Sondur
         MOV     AL,00H
-        OUT     92H,AL
+        OUT     UPORT2,AL
         MOV     AH,EXIT
         INT     28H`,
 
@@ -620,15 +648,15 @@ WAIT1:  NOP
         INCLUDE PATCALLS.INC
         ; MUART init
         MOV     AL,0FFH
-        OUT     80H,AL
-        OUT     82H,AL
-        OUT     84H,AL
-        OUT     86H,AL
-        OUT     88H,AL
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
 AGAIN:  MOV     BL,01H
         MOV     DL,8
 SHIFT:  MOV     AL,BL
-        OUT     92H,AL
+        OUT     UPORT2,AL
         MOV     CX,0FFFFH
 DELAY:  NOP
         LOOP    DELAY
@@ -642,14 +670,14 @@ DELAY:  NOP
         INCLUDE PATCALLS.INC
         ; MUART init
         MOV     AL,0FFH
-        OUT     80H,AL
-        OUT     82H,AL
-        OUT     84H,AL
-        OUT     86H,AL
-        OUT     88H,AL
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
         MOV     BL,00H
 COUNT:  MOV     AL,BL
-        OUT     92H,AL
+        OUT     UPORT2,AL
         MOV     CX,0FFFFH
 DELAY:  NOP
         LOOP    DELAY
@@ -674,24 +702,24 @@ DONE:   MOV     AH,EXIT
 MSG     DB      "Hello PAT!",00H`,
 
 'HW: Piezo beep': `; Piezo buzzer kisa bip sesi
-; PB5 (bit 5 of port 90H) piezo kontrolu
+; PZO = Port 1 bit 5 (20H)
         ORG     0100H
         INCLUDE PATCALLS.INC
         ; MUART init
         MOV     AL,0FFH
-        OUT     80H,AL
-        OUT     82H,AL
-        OUT     84H,AL
-        OUT     86H,AL
-        OUT     88H,AL
+        OUT     UCRREG1,AL
+        OUT     UCRREG2,AL
+        OUT     UCRREG3,AL
+        OUT     UMODEREG,AL
+        OUT     UPORT1CTL,AL
         MOV     DX,500
 BEEP:   MOV     AL,20H
-        OUT     90H,AL
+        OUT     UPORT1,AL
         MOV     CX,200
 D1:     NOP
         LOOP    D1
         MOV     AL,00H
-        OUT     90H,AL
+        OUT     UPORT1,AL
         MOV     CX,200
 D2:     NOP
         LOOP    D2
