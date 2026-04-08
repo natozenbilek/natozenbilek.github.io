@@ -602,16 +602,16 @@ DST     DB      00H,00H,00H,00H,00H,00H`,
         OUT     84H,AL
         OUT     86H,AL
         OUT     88H,AL
-        ; LED'leri yak
+        ; LED'leri yak (D0-D7 = Port 2, 92H)
         MOV     AL,0FFH
-        OUT     90H,AL
+        OUT     92H,AL
         ; Gecikme
         MOV     CX,0FFFFH
 WAIT1:  NOP
         LOOP    WAIT1
         ; LED'leri sondur
         MOV     AL,00H
-        OUT     90H,AL
+        OUT     92H,AL
         MOV     AH,EXIT
         INT     28H`,
 
@@ -628,7 +628,7 @@ WAIT1:  NOP
 AGAIN:  MOV     BL,01H
         MOV     DL,8
 SHIFT:  MOV     AL,BL
-        OUT     90H,AL
+        OUT     92H,AL
         MOV     CX,0FFFFH
 DELAY:  NOP
         LOOP    DELAY
@@ -649,7 +649,7 @@ DELAY:  NOP
         OUT     88H,AL
         MOV     BL,00H
 COUNT:  MOV     AL,BL
-        OUT     90H,AL
+        OUT     92H,AL
         MOV     CX,0FFFFH
 DELAY:  NOP
         LOOP    DELAY

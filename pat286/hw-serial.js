@@ -4,7 +4,7 @@
 // Prompt is "PAT: " (not ">")
 // Monitor commands: M, C, G, T, L, H+
 // C mode exit: ESC (0x1B) + CR (0x0D)
-// MUART 8256: init regs 80-86H before using UPORT1=90H (direction: 88H)
+// MUART 8256: init regs 80-88H. D0-D7 LEDs = UPORT2 (92H), not UPORT1 (90H)
 // ============================================================
 
 let serialPort = null;
@@ -301,7 +301,7 @@ async function uploadCmdAndRun(machineCode, label, startAddr) {
 // ===================================================================
 async function directLedTest(portVal, label) {
   let mc = makeLedProgram(portVal);
-  await uploadCmdAndRun(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
+  await uploadCmdAndRunNoWait(mc, label || ('LED ' + portVal.toString(16).toUpperCase()));
 }
 
 // ===================================================================
@@ -309,18 +309,20 @@ async function directLedTest(portVal, label) {
 // ===================================================================
 
 // MUART init: configure command regs + direction, then write LED value
+// D0-D7 LEDs are on PORT 2 (92H), not PORT 1 (90H).
+// PORT 1 (90H) controls status signals (EN,WR,BSY,RD,DSC,PZO,UTX,URX).
+// UMODEREG (86H) must be 03H+ for Port 2 output mode.
 // LED programs use JMP $ (infinite loop) to keep port values active.
-// EXIT returns to PAT monitor which resets ports — LEDs would turn off.
 function makeLedProgram(ledVal) {
   return [
     0xB0, 0xFF,       // MOV AL, FFh
     0xE6, 0x80,       // OUT 80h, AL  (UCRREG1)
     0xE6, 0x82,       // OUT 82h, AL  (UCRREG2)
     0xE6, 0x84,       // OUT 84h, AL  (UCRREG3)
-    0xE6, 0x86,       // OUT 86h, AL  (UMODEREG)
-    0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL - all output)
+    0xE6, 0x86,       // OUT 86h, AL  (UMODEREG — FFh sets Port 2 output)
+    0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL — all output)
     0xB0, ledVal & 0xFF, // MOV AL, ledVal
-    0xE6, 0x90,       // OUT 90h, AL  (UPORT1 - LEDs)
+    0xE6, 0x92,       // OUT 92h, AL  (UPORT2 — D0-D7 LEDs)
     0xEB, 0xFE,       // JMP $ (infinite loop — LEDs stay on)
   ];
 }
