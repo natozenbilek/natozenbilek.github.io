@@ -29,7 +29,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .b:hover{background:var(--bg4);color:var(--text);border-color:var(--brd2)}
 .b:active{transform:scale(.97)}
 .b:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.bp{background:var(--acc);color:#fff;border-color:var(--acc)}.bp:hover{opacity:.9;background:var(--acc)}
+.bp{background:var(--bg4);color:var(--grn);border-color:var(--grn);font-weight:600}.bp:hover{background:var(--grn);color:#111}
 .bg{background:var(--grn);color:#111;border-color:var(--grn)}.bg:hover{opacity:.9}
 .b-blu{background:var(--blu);color:#111;border-color:var(--blu)}.b-blu:hover{opacity:.9}
 .pill{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;display:inline-flex;align-items:center}
@@ -56,7 +56,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .fb-folder-hd:hover{background:var(--bg3)}
 .fb-arrow{font-size:7px;width:12px;text-align:center;color:var(--text3);transition:transform .15s;flex-shrink:0}
 .fb-arrow.open{transform:rotate(90deg)}
-.fb-folder-icon{flex-shrink:0;font-size:11px}
+.fb-folder-icon{display:none}
 .fb-folder-items{overflow:hidden}
 .fb-folder-items.collapsed{display:none}
 .fb-file{display:flex;align-items:center;gap:5px;padding:1px 8px 1px 20px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text2);transition:all .08s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:22px}
@@ -314,3 +314,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .b-upload{border-color:var(--brd);color:var(--text3);font-weight:600;opacity:.5;pointer-events:none}
 .b-upload.active{border-color:var(--grn);color:var(--grn);opacity:1;pointer-events:auto}
 .b-upload.active:hover{background:var(--grn);color:#111}
+
+/* === CONTEXT MENU === */
+.ctx-menu{position:fixed;z-index:999;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.4);padding:4px 0;min-width:160px;font-family:var(--sans);font-size:11px}
+.ctx-item{padding:5px 14px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .08s}
+.ctx-item:hover{background:var(--bg4);color:var(--text)}
+.ctx-sep{height:1px;background:var(--brd);margin:3px 0}
+.ctx-item.disabled{color:var(--text3);pointer-events:none;opacity:.5}

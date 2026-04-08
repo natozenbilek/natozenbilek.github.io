@@ -763,8 +763,26 @@ function loadExByKey(key, fileEl) {
 }
 
 function switchTab(key) {
-  let fileEl = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
-  loadExByKey(key, fileEl);
+  // Save current tab content
+  if (activeTabKey) {
+    let cur = openTabs.find(t => t.key === activeTabKey);
+    if (cur) cur.content = document.getElementById('ed').value;
+  }
+  let tab = openTabs.find(t => t.key === key);
+  if (!tab) return;
+  // For EX files, try loading via loadExByKey
+  if (EX[key]) {
+    let fileEl = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
+    loadExByKey(key, fileEl);
+    return;
+  }
+  // For non-EX files (extras, dynamic, local)
+  activeTabKey = key;
+  document.getElementById('ed').value = tab.content;
+  updLn(); updateHighlight();
+  if (activeFileEl) activeFileEl.classList.remove('active');
+  highlightFileInTree(key);
+  renderTabs();
 }
 
 function closeTab(key, e) {
@@ -1001,3 +1019,133 @@ function buildExDropdown() {
   // Restore active file highlight
   if (activeTabKey) highlightFileInTree(activeTabKey);
 }
+
+// === FILE BROWSER CONTEXT MENU ===
+let ctxMenu = null;
+function hideCtxMenu() { if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; } }
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('contextmenu', function(e) {
+  // Only handle right-click inside file browser
+  let tree = document.getElementById('fbTree');
+  if (!tree || !tree.contains(e.target)) return;
+  e.preventDefault();
+  hideCtxMenu();
+
+  let fileEl = e.target.closest('.fb-file');
+  let folderEl = e.target.closest('.fb-folder-hd');
+  let folderDiv = e.target.closest('.fb-folder');
+
+  ctxMenu = document.createElement('div');
+  ctxMenu.className = 'ctx-menu';
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top = e.clientY + 'px';
+
+  function addItem(label, fn, disabled) {
+    let item = document.createElement('div');
+    item.className = 'ctx-item' + (disabled ? ' disabled' : '');
+    item.textContent = label;
+    if (!disabled) item.addEventListener('click', function() { hideCtxMenu(); fn(); });
+    ctxMenu.appendChild(item);
+  }
+  function addSep() { let s = document.createElement('div'); s.className = 'ctx-sep'; ctxMenu.appendChild(s); }
+
+  if (fileEl) {
+    let key = fileEl.getAttribute('data-key');
+    let isDynamic = dynamicFiles.some(f => f.name === key);
+    let isExtra = EXTRA_FILES.some(f => f.name === key);
+    let isEX = !!EX[key];
+
+    addItem('Open', function() { fileEl.click(); });
+    addItem('Open in New Tab', function() {
+      let tab = openTabs.find(t => t.key === key);
+      if (!tab) {
+        let content = EX[key] || '';
+        let ef = EXTRA_FILES.find(f => f.name === key);
+        let df = dynamicFiles.find(f => f.name === key);
+        if (ef) content = ef.content;
+        if (df) content = df.content;
+        openTabs.push({key, content});
+        renderTabs();
+      }
+    });
+    addSep();
+    addItem('Rename', function() {
+      let newName = prompt('New name:', key);
+      if (!newName || newName === key) return;
+      if (isDynamic) {
+        let df = dynamicFiles.find(f => f.name === key);
+        if (df) df.name = newName;
+      }
+      let tab = openTabs.find(t => t.key === key);
+      if (tab) tab.key = newName;
+      if (activeTabKey === key) activeTabKey = newName;
+      buildExDropdown(); renderTabs();
+    }, isEX);
+    addItem('Duplicate', function() {
+      let content = '';
+      let ef = EXTRA_FILES.find(f => f.name === key);
+      let df = dynamicFiles.find(f => f.name === key);
+      if (EX[key]) content = EX[key];
+      else if (ef) content = ef.content;
+      else if (df) content = df.content;
+      let tab = openTabs.find(t => t.key === key);
+      if (tab) content = tab.content;
+      let copyName = 'copy_' + (key.includes('.') ? key : key + '.asm');
+      addDynamicFile(copyName, content, 'local');
+      openFileInTab(copyName, content);
+    });
+    addItem('Delete', function() {
+      if (!confirm('Delete "' + key + '"?')) return;
+      dynamicFiles = dynamicFiles.filter(f => f.name !== key);
+      closeTab(key);
+      buildExDropdown();
+    }, isEX || isExtra);
+    addSep();
+    addItem('Copy Content', function() {
+      let content = '';
+      let tab = openTabs.find(t => t.key === key);
+      if (tab) content = tab.content;
+      else if (EX[key]) content = EX[key];
+      else { let ef = EXTRA_FILES.find(f => f.name === key); if (ef) content = ef.content; }
+      navigator.clipboard.writeText(content).then(() => sLog('Copied: ' + key, 0));
+    });
+    addItem('Download', function() {
+      let content = '';
+      let tab = openTabs.find(t => t.key === key);
+      if (tab) content = tab.content;
+      else if (EX[key]) content = EX[key];
+      else { let ef = EXTRA_FILES.find(f => f.name === key); if (ef) content = ef.content; }
+      let blob = new Blob([content], {type: 'text/plain'});
+      let a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = key.includes('.') ? key : key + '.asm';
+      a.click();
+    });
+  } else {
+    // Right-click on folder or empty area
+    addItem('New File', function() {
+      let name = prompt('File name (e.g. test.asm):');
+      if (!name) return;
+      addDynamicFile(name, '; ' + name + '\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n\n', 'local');
+      openFileInTab(name, dynamicFiles.find(f => f.name === name).content);
+    });
+    addItem('New Folder', function() {
+      sLog('Folders are auto-created from file extensions', 0);
+    }, true);
+    addSep();
+    addItem('Collapse All', function() {
+      document.querySelectorAll('.fb-folder-items').forEach(el => el.classList.add('collapsed'));
+      document.querySelectorAll('.fb-arrow').forEach(el => el.classList.remove('open'));
+    });
+    addItem('Expand All', function() {
+      document.querySelectorAll('.fb-folder-items').forEach(el => el.classList.remove('collapsed'));
+      document.querySelectorAll('.fb-arrow').forEach(el => el.classList.add('open'));
+    });
+  }
+
+  document.body.appendChild(ctxMenu);
+  // Keep menu in viewport
+  let rect = ctxMenu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) ctxMenu.style.left = (window.innerWidth - rect.width - 4) + 'px';
+  if (rect.bottom > window.innerHeight) ctxMenu.style.top = (window.innerHeight - rect.height - 4) + 'px';
+});
