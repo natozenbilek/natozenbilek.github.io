@@ -309,7 +309,8 @@ async function directLedTest(portVal, label) {
 // ===================================================================
 
 // MUART init: configure command regs + direction, then write LED value
-// Writes FFh to 80-88 (control), then a separate value to 90 (data)
+// LED programs use JMP $ (infinite loop) to keep port values active.
+// EXIT returns to PAT monitor which resets ports — LEDs would turn off.
 function makeLedProgram(ledVal) {
   return [
     0xB0, 0xFF,       // MOV AL, FFh
@@ -320,22 +321,80 @@ function makeLedProgram(ledVal) {
     0xE6, 0x88,       // OUT 88h, AL  (UPORT1CTL - all output)
     0xB0, ledVal & 0xFF, // MOV AL, ledVal
     0xE6, 0x90,       // OUT 90h, AL  (UPORT1 - LEDs)
-    0xBB, 0x00, 0x00, // MOV BX, 0
-    0xB4, 0x04,       // MOV AH, 04h
-    0xCD, 0x28,       // INT 28h (EXIT)
+    0xEB, 0xFE,       // JMP $ (infinite loop — LEDs stay on)
   ];
 }
 
 // EXIT: INT 28H AH=04H
 const MC_EXIT = [0xBB, 0x00, 0x00, 0xB4, 0x04, 0xCD, 0x28];
-// LED programs
+// LED programs (loop — press RESET on PAT to stop)
 const MC_ALLON = makeLedProgram(0xFF);
 const MC_OFF = makeLedProgram(0x00);
 
 // C command method (confirmed working: C + ESC exit + G)
 async function testExit()   { await uploadCmdAndRun(MC_EXIT, 'EXIT TEST'); }
-async function testLedAll() { await uploadCmdAndRun(MC_ALLON, 'ALL ON'); }
-async function testLedOff() { await uploadCmdAndRun(MC_OFF, 'LED OFF'); }
+async function testLedAll() { await uploadCmdAndRunNoWait(MC_ALLON, 'ALL ON'); }
+async function testLedOff() { await uploadCmdAndRunNoWait(MC_OFF, 'LED OFF'); }
+
+// Upload + G without waiting for PAT prompt (for infinite-loop programs)
+async function uploadCmdAndRunNoWait(machineCode, label) {
+  if (!serialConnected) { sLog('Once Connect basin!', 1); return; }
+  let addr = 0x0100;
+  let addrStr = addr.toString(16).toUpperCase().padStart(4, '0');
+
+  serialRxLog += '\n=== ' + (label || 'C CMD') + ' (C + ESC exit) ===\n';
+  updateSerialTerminal();
+
+  let gotP = await sendAndWait('\r\n', PAT_PROMPT, 2000);
+  serialRxLog += gotP ? '[OK] PAT:\n' : '[WARN] PAT: yok\n';
+  updateSerialTerminal();
+  if (!gotP) return;
+
+  serialRxLog += 'TX: C ' + addrStr + '\n';
+  updateSerialTerminal();
+  let gotC = await sendAndWait('C ' + addrStr + '\r\n', addrStr, 3000);
+  if (!gotC) {
+    serialRxLog += '[WARN] C komutu cevap yok\n';
+    updateSerialTerminal();
+    return;
+  }
+  await sleep(200);
+
+  for (let i = 0; i < machineCode.length; i++) {
+    let val = machineCode[i].toString(16).toUpperCase().padStart(2, '0');
+    serialRxLog += val + ' ';
+    updateSerialTerminal();
+    let gotNext = await sendAndWait(val + '\r\n', ':', 2000);
+    if (!gotNext && i < machineCode.length - 1) {
+      serialRxLog += '[!] ';
+      updateSerialTerminal();
+    }
+    await sleep(50);
+  }
+
+  serialRxLog += '\n[OK] ' + machineCode.length + ' byte yazildi.\n';
+  updateSerialTerminal();
+
+  serialRxLog += '[...] ESC+CR ile C modundan cikiliyor...\n';
+  updateSerialTerminal();
+  await serialSendBytes([0x1B, 0x0D]);
+
+  let gotExit = await sendAndWait('', PAT_PROMPT, 3000);
+  if (!gotExit) {
+    gotExit = await sendAndWait('\r\n', PAT_PROMPT, 2000);
+  }
+  serialRxLog += gotExit ? '[OK] PAT:\n' : '[WARN] PAT: prompt gelmedi\n';
+  updateSerialTerminal();
+  if (!gotExit) return;
+
+  await sleep(200);
+  serialRxLog += 'TX: G ' + addrStr + '\n';
+  updateSerialTerminal();
+  await serialSendRaw('G ' + addrStr + '\r\n');
+  // Don't wait for PAT prompt — program runs forever (JMP $)
+  serialRxLog += '=== CALISIYOR (RESET ile durdurun) ===\n';
+  updateSerialTerminal();
+}
 
 // ===================================================================
 // Upload assembled program from editor to real hardware
