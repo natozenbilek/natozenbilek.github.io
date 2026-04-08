@@ -277,7 +277,8 @@ DELY:   LOOP    DELY
         MOV     DS:1000H,AX
         POPA
         POPF
-        RET`,
+        MOV     AH,EXIT
+        INT     28H`,
 
 'PA21: Hex counter display': `; PA21 — Hex count on PAT display
         ORG     0600H
@@ -522,7 +523,7 @@ WTHIGH: IN      AL,UPORT1
         ORG     USRBSE
 START:  XOR     BL,BL
         MOV     SI,OFFSET TABLE
-        MOV     CX,SZTABLE
+        MOV     CX,SZTABLE-1
 AGAIN:  MOV     AL,[SI]
         CMP     AL,[SI+1]
         JC      NOSWAP

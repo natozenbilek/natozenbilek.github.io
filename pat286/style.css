@@ -44,7 +44,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .lp{display:flex;flex-direction:column;border-right:1px solid var(--brd);min-width:0;overflow:hidden;background:var(--bg2)}
 /* === SIM BAR (right panel top) === */
 .sim-bar{display:flex;align-items:center;gap:4px;padding:5px 8px;border-bottom:1px solid var(--brd);background:var(--bg3);flex-shrink:0}
-.sim-bar .sim-ctrls{display:flex;gap:3px}
+.sim-bar .sim-ctrls{display:flex;gap:3px;align-items:center}
 .sim-bar select{font-family:var(--mono);font-size:11px;padding:2px 4px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text);min-height:26px}
 /* === FILE BROWSER === */
 .file-browser{display:flex;flex-direction:column;background:var(--bg2);min-width:0;overflow:hidden;flex:1}
@@ -101,7 +101,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .lb{font-family:var(--mono);font-size:11px;padding:4px 10px;border-top:1px solid var(--brd);color:var(--text3);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lb.ls{color:#6A8759}.lb.le{color:var(--red)}
 /* === TERMINAL / CONSOLE === */
-.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:160px;overflow:hidden}
+.term{flex-shrink:0;display:flex;flex-direction:column;border-top:1px solid var(--brd);height:200px;overflow:hidden}
 .term-pane{height:100%;display:flex;flex-direction:column;overflow:hidden}
 .term-serial-ctrls{display:flex;gap:4px;padding:4px 8px;align-items:center;background:var(--bg3);border-bottom:1px solid var(--brd);flex-shrink:0}
 .term-serial-ctrls .b{font-size:10px;padding:3px 8px;min-height:22px}

@@ -11,6 +11,7 @@
 <div class="hd">
   <h1><b>PAT-286</b> Virtual Lab <em>BBM436</em></h1>
   <div class="hd-r">
+    <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Fiziksel cihaza yukle ve calistir">Upload and Run</button>
     <span class="pill p-rdy" id="st">READY</span>
     <div class="sep"></div>
     <span class="serial-dot" id="serialDot"></span>
@@ -40,11 +41,6 @@
     <div class="tab-bar-wrap">
       <div class="tab-bar" id="tabBar"></div>
       <button class="b tab-close-all" id="closeAllBtn" onclick="closeAllTabs()" title="Close all tabs">&times; All</button>
-    </div>
-    <div class="eh">
-      <button class="b bp" id="asmBtn" onclick="compileIfC()||doAssemble()" title="Ctrl+Enter — Simulator icin">&#9654; Assemble</button>
-      <div class="sep"></div>
-      <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Fiziksel cihaza yukle">&#128268; Upload to Device</button>
     </div>
     <div class="ew">
       <div class="ln" id="lns"></div>
@@ -78,6 +74,8 @@
   <div class="rp">
     <div class="sim-bar">
       <div class="sim-ctrls">
+        <button class="b bp" id="asmBtn" onclick="compileIfC()||doAssemble()" title="Ctrl+Enter">&#9654; Assemble</button>
+        <div class="sep"></div>
         <button class="b" id="stepBackBtn" onclick="doStepBack()">&#8592;</button>
         <button class="b" onclick="doStep()">Step</button>
         <button class="b" id="stepFwdBtn" onclick="doStepForward()">&#8594;</button>

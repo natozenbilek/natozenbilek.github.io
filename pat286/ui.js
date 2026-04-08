@@ -890,9 +890,11 @@ function closeAllTabs() {
   openTabs = [];
   activeTabKey = null;
   document.getElementById('ed').value = '';
-  updLn(); updateHighlight();
+  document.getElementById('edHL').innerHTML = '';
+  document.getElementById('lns').innerHTML = '';
   if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
   renderTabs();
+  sLog('Ready.', 0);
 }
 
 // === KEYBOARD SHORTCUTS ===
