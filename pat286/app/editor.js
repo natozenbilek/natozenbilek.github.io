@@ -566,4 +566,7 @@ function hideWelcome() {
   if (portsOv) {
     portsOv.addEventListener('click', function(e) { if (e.target === this) closePorts(); });
   }
+
+  // Show welcome on startup if no tabs open
+  if (openTabs.length === 0) showWelcome();
 })();

@@ -5,7 +5,7 @@ const IO_LOG_MAX = 200;
 
 // Applications module state
 let motorAngle=0, motorSpeed=0, motorDacVal=0;
-let piezoOn=false, piezoLastToggle=0;
+let piezoOn=false, piezoLastToggle=0, piezoFreq=0, piezoToggleCount=0;
 let potValue=128;
 let objectNear=false, opticalBlocked=false;
 let diskPulses=0, diskPhase=0;
@@ -136,6 +136,14 @@ function handlePort1Write(val) {
   if (pzo !== (piezoOn ? 1 : 0)) {
     piezoOn = !!pzo;
     if (piezoOn) startPiezo(); else stopPiezo();
+    // Track frequency from toggle rate
+    let now = performance.now();
+    if (piezoLastToggle > 0) {
+      let dt = now - piezoLastToggle;
+      if (dt > 0 && dt < 500) piezoFreq = Math.round(500 / dt); // half-period → freq
+      piezoToggleCount++;
+    }
+    piezoLastToggle = now;
   }
   let wrPrev = (prev >> 1) & 1, wrNow = (val >> 1) & 1;
   if (wrPrev && !wrNow) {

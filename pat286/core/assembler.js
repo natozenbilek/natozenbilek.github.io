@@ -4,6 +4,11 @@
 // ============================================================
 
 function doAssemble() {
+  // Check if current file is assembly
+  if (typeof currentFileType === 'function' && currentFileType() !== 'asm') {
+    sLog('Cannot assemble: current file is not .asm — use "Translate to ASM" first.', 1);
+    return;
+  }
   let src = document.getElementById('ed').value;
   let lines = src.split('\n');
   let errs = [], errLines = new Set();

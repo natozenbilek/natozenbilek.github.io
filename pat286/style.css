@@ -132,6 +132,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .port-addr{color:var(--text3);min-width:30px}
 .port-val{width:36px;font-family:var(--mono);font-size:11px;padding:3px 5px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--grn);text-align:center;text-transform:uppercase}
 .port-val:focus{border-color:var(--blu);outline:none}
+/* 7-segment display */
+.seg7-wrap{display:flex;gap:4px;justify-content:center;padding:6px 0;background:var(--bg);border-radius:var(--r)}
+.seg7-wrap svg{flex-shrink:0}
+/* Memory view layout */
+.mem-input{font-family:var(--mono);font-size:11px;padding:3px 5px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text);width:85px}
+.mem-view-wrap{display:flex;gap:8px;align-items:flex-start}
+.mem-view-wrap .mg{flex:1}
+.mg-ascii{font-family:var(--mono);font-size:10px;color:var(--cyn);border-left:1px solid var(--brd);padding-left:6px;flex-shrink:0}
+.ma-ascii{display:block;line-height:18px;letter-spacing:2px}
+.ma-dot{color:var(--text3);opacity:.4}
 .lb{font-family:var(--mono);font-size:11px;padding:4px 10px;border-top:1px solid var(--brd);color:var(--text3);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lb.ls{color:#6A8759}.lb.le{color:var(--red)}
 /* === TERMINAL / CONSOLE === */
@@ -171,6 +181,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .rg-ctl{grid-template-columns:repeat(3,1fr)}
 .rc{display:flex;flex-direction:column;align-items:center;padding:3px;border-radius:var(--r);transition:background .2s}
 .rc.chg{background:var(--blu-l)}
+.rc-flash{animation:regflash .5s ease-out}
+@keyframes regflash{0%{background:var(--amb);box-shadow:inset 0 0 8px rgba(229,192,123,.3)}40%{background:var(--amb-l)}100%{background:transparent}}
 .rn{font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:600}
 .rv{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)}
 .rv-split{font-size:10px;color:var(--text2)}
@@ -198,10 +210,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .pat-disp-lbl{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;margin-top:2px}
 
 /* Stack view */
-.stk{font-family:var(--mono);font-size:10px;max-height:100px;overflow-y:auto;scrollbar-width:thin}
-.stk-row{display:flex;gap:6px;padding:1px 0}
-.stk-addr{color:var(--text3)}.stk-val{color:var(--text);font-weight:500}
-.stk-cur{color:var(--amb);font-weight:700}
+.stk{font-family:var(--mono);font-size:10px;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.stk-row{display:flex;gap:6px;padding:1px 4px;border-bottom:1px solid rgba(255,255,255,.02);transition:background .1s}
+.stk-row:hover{background:rgba(255,255,255,.04)}
+.stk-addr{color:var(--text3);min-width:36px}.stk-val{color:var(--text);font-weight:500}
+.stk-cur{color:var(--amb);font-weight:700;background:var(--amb-l);padding:0 4px;border-radius:2px}
+.stk-nz{color:var(--text)}
 
 /* Instruction info */
 .ir-box{font-family:var(--mono);font-size:11px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);color:var(--acc);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -248,8 +262,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13
 .ultra-btn{font-family:var(--mono);font-size:10px;padding:2px 6px;border:1px solid var(--brd);border-radius:var(--r);background:var(--bg3);color:var(--text2);cursor:pointer}
 .ultra-btn.on{background:var(--pur-l);border-color:var(--pur);color:var(--pur)}
 
+/* I/O timeline */
+.io-timeline{border-bottom:1px solid var(--brd);padding:4px 6px;min-height:0}
+.io-tl-bars{display:flex;gap:1px;align-items:flex-end;height:20px}
+.io-tl-bar{width:3px;min-height:4px;height:100%;border-radius:1px 1px 0 0;transition:opacity .15s}
+.io-tl-bar:hover{opacity:.7}
+.io-tl-out{background:var(--grn);height:100%}
+.io-tl-in{background:var(--blu);height:60%}
 /* I/O log */
-.io-log{font-family:var(--mono);font-size:10px;max-height:80px;overflow-y:auto;background:var(--bg3);border-radius:var(--r);padding:4px 6px;color:var(--text2);scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
+.io-log{font-family:var(--mono);font-size:10px;max-height:80px;overflow-y:auto;background:var(--bg3);border-radius:0;padding:4px 6px;color:var(--text2);scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .io-log .io-out{color:var(--grn)}.io-log .io-in{color:var(--blu)}
 
 /* Light theme */
