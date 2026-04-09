@@ -53,7 +53,10 @@ function startRun() {
   let batch = spd >= 9999 ? 500 : 1;
   let delay = spd >= 9999 ? 1 : Math.max(1, Math.floor(1000/spd));
   tmr = setInterval(()=>{
+    if(waitUntil>0&&performance.now()<waitUntil)return;
+    waitUntil=0;
     for(let i=0;i<batch&&!halt&&running;i++){
+      if(waitUntil>0)break;
       if(breakpoints.size>0&&asmLines.length){
         for(let al of asmLines){
           if(al.addr===IP&&breakpoints.has(al.ln)){
@@ -74,7 +77,7 @@ function stopRun() {
   if(!halt) setSt('READY');
 }
 function doReset() {
-  stopRun(); stopPiezo();
+  stopRun(); stopPiezo(); waitUntil = 0;
   keyQueue = [];
   timerValue = 0; timerReload = 0; timerCount = 0; timerEnabled = 0;
   irqPending = 0;
@@ -83,8 +86,8 @@ function doReset() {
 
 // === UI INTERACTIONS ===
 function potChanged() { potValue = +document.getElementById('potSlider').value; }
-function toggleObject() { objectNear = !objectNear; renderAppModule(); }
-function toggleOptical() { opticalBlocked = !opticalBlocked; renderAppModule(); }
+function toggleObject() { objectNear = !objectNear; }
+function toggleOptical() { opticalBlocked = !opticalBlocked; }
 
 // === EDITOR ===
 const ed = document.getElementById('ed'), lns = document.getElementById('lns');
@@ -294,9 +297,7 @@ function motorAnimLoop() {
 applyTheme(currentTheme);
 buildRightPanel();
 enhanceMemoryView();
-initAppModule();
 buildExDropdown();
 // Welcome screen shown by editor.js init (loaded after main.js)
 renderAll();
-motorAnimLoop();
 document.body.addEventListener('click', initAudio, {once: true});

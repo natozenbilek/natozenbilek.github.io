@@ -75,7 +75,6 @@ function renderAll() {
   document.getElementById('stkView').innerHTML=shtml;
 
   renderMem();
-  renderAppModule();
   renderIOLog();
   renderIOTimeline();
   renderTrace();
@@ -84,7 +83,6 @@ function renderAll() {
   if(bb){bb.disabled=running||!stepPast.length;bb.textContent='\u2190 Back'+(stepPast.length?' ('+stepPast.length+')':'');}
   if(bf){bf.disabled=running||!stepFuture.length;bf.textContent='Fwd'+(stepFuture.length?' ('+stepFuture.length+')':'')+' \u2192';}
 
-  updateMotor();
   updLn();
   if (typeof renderWatches === 'function') renderWatches();
   if (typeof updateCurLineBar === 'function') updateCurLineBar();

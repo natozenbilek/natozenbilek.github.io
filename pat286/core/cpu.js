@@ -19,7 +19,8 @@ const PATCALLS = {
   AHEXTO:6, ADECTO:7, TOAHEX:8, TOADEC:9,
   RDCHAR:10, RDBYTE:11, WRCHAR:12, WRBYTE:13,
   GETIN:14, WT1MS:15, WTNMS:16, CRLF:17, CLRSCR:18,
-  LEDON:19, LEDOFF:20
+  LEDON:19, LEDOFF:20,
+  TONE:21, NOTOFF:22
 };
 
 // === MEMORY ===
@@ -59,7 +60,7 @@ function getSeg(r){return[ES,CS,SS,DS][r]}
 function setSeg(r,v){v&=0xFFFF;switch(r){case 0:ES=v;break;case 1:CS=v;break;case 2:SS=v;break;case 3:DS=v;break}}
 
 // === EXECUTION STATE ===
-let halt=false, running=false, tmr=null;
+let halt=false, running=false, tmr=null, waitUntil=0;
 let cy=0, ic=0;
 let curInstr='—', curDesc='—', lastDiff='—';
 let stepPast=[], stepFuture=[];
@@ -151,10 +152,12 @@ function handleInt28() {
       }
       break;
     case PATCALLS.WT1MS:
-      curDesc = 'WT1MS: 1ms delay (skipped)';
+      waitUntil = performance.now() + 1;
+      curDesc = 'WT1MS: 1ms delay';
       break;
     case PATCALLS.WTNMS:
-      curDesc = `WTNMS: ${BX}ms delay (skipped)`;
+      waitUntil = performance.now() + BX;
+      curDesc = `WTNMS: ${BX}ms delay`;
       break;
     case PATCALLS.LEDON:
       curDesc = 'LEDON';
@@ -178,6 +181,22 @@ function handleInt28() {
       curDesc = `WRITE: "${s.slice(0,20)}"`;
       break;
     }
+    case PATCALLS.TONE: {
+      // AH=21: Play tone. BX=frequency(Hz), CX=duration(ms)
+      let freq = BX, dur = CX;
+      if (freq > 0) {
+        startPiezo(freq);
+        if (piezoOsc) try { piezoOsc.frequency.value = freq; } catch(e) {}
+      }
+      if (dur > 0) waitUntil = performance.now() + dur;
+      if (freq === 0) stopPiezo();
+      curDesc = `TONE: ${freq}Hz ${dur}ms`;
+      break;
+    }
+    case PATCALLS.NOTOFF:
+      stopPiezo();
+      curDesc = 'NOTOFF: piezo off';
+      break;
     default:
       curDesc = `INT 28H AH=${hex8(fn)} (unhandled)`;
   }

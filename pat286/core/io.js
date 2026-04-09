@@ -40,10 +40,11 @@ function initAudio(){
   if(audioCtx)return;
   try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
 }
-function startPiezo(){
+function startPiezo(freq){
   if(!audioCtx)initAudio();
-  if(!audioCtx||piezoOsc)return;
-  try{piezoOsc=audioCtx.createOscillator();piezoOsc.type='square';piezoOsc.frequency.value=1000;
+  if(!audioCtx)return;
+  if(piezoOsc){try{piezoOsc.frequency.value=freq||1000}catch(e){}return;}
+  try{piezoOsc=audioCtx.createOscillator();piezoOsc.type='square';piezoOsc.frequency.value=freq||1000;
   let g=audioCtx.createGain();g.gain.value=0.05;piezoOsc.connect(g);g.connect(audioCtx.destination);piezoOsc.start()}catch(e){}
 }
 function stopPiezo(){
@@ -135,15 +136,18 @@ function handlePort1Write(val) {
   let pzo = (val >> 5) & 1;
   if (pzo !== (piezoOn ? 1 : 0)) {
     piezoOn = !!pzo;
-    if (piezoOn) startPiezo(); else stopPiezo();
     // Track frequency from toggle rate
     let now = performance.now();
     if (piezoLastToggle > 0) {
       let dt = now - piezoLastToggle;
-      if (dt > 0 && dt < 500) piezoFreq = Math.round(500 / dt); // half-period → freq
+      if (dt > 0 && dt < 500) {
+        piezoFreq = Math.round(500 / dt);
+        if (piezoOsc) try{piezoOsc.frequency.value=piezoFreq}catch(e){}
+      }
       piezoToggleCount++;
     }
     piezoLastToggle = now;
+    if (piezoOn) startPiezo(piezoFreq||1000); else stopPiezo();
   }
   let wrPrev = (prev >> 1) & 1, wrNow = (val >> 1) & 1;
   if (wrPrev && !wrNow) {

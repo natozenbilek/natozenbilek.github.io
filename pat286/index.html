@@ -30,8 +30,11 @@
     <div class="file-browser">
       <div class="file-browser-hd">
         <span>Explorer</span>
-        <input type="file" id="openFile" accept=".asm,.c,.cpp,.py,.java,.go,.txt" style="display:none" onchange="openLocalFile(this)">
-        <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" title="Open file from PC">+</button>
+        <div class="fb-hd-btns">
+          <button class="b fb-new-btn" onclick="newEmptyFile()" title="New file">+</button>
+          <input type="file" id="openFile" accept=".asm,.c,.cpp,.py,.java,.go,.txt" style="display:none" onchange="openLocalFile(this)">
+          <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" title="Open file from PC">&#8593;</button>
+        </div>
       </div>
       <div class="fb-tree" id="fbTree"></div>
     </div>
@@ -145,20 +148,19 @@
 <div id="portsOv" class="exp-ov" hidden></div>
 
 <!-- Core: CPU, assembler, I/O -->
-<script src="core/cpu.js"></script>
-<script src="core/assembler.js"></script>
-<script src="core/io.js"></script>
-<script src="core/transpiler.js"></script>
-<!-- App: UI, editor, peripherals -->
-<script src="app/examples.js"></script>
-<script src="app/files.js"></script>
+<script src="core/cpu.js?v=3"></script>
+<script src="core/assembler.js?v=3"></script>
+<script src="core/io.js?v=3"></script>
+<script src="core/transpiler.js?v=3"></script>
+<!-- App: UI, editor -->
+<script src="app/examples.js?v=3"></script>
+<script src="app/files.js?v=3"></script>
 <script src="app/guide.js"></script>
 <script src="app/serial.js"></script>
-<script src="app/peripherals.js"></script>
 <script src="app/highlighter.js"></script>
-<script src="app/panels.js"></script>
-<script src="app/render.js"></script>
-<script src="app/main.js"></script>
+<script src="app/panels.js?v=3"></script>
+<script src="app/render.js?v=3"></script>
+<script src="app/main.js?v=3"></script>
 <script src="app/editor.js"></script>
 </body>
 </html>

@@ -60,10 +60,7 @@ function buildRightPanel() {
       </div>
       <div id="watchList" class="watch-list"><span class="watch-empty">Add expressions (registers, addresses, labels)</span></div>
     </div></div>
-    <div class="cd"><div class="ch">Applications Module</div><div class="cb" style="padding:4px">
-      <div id="appModuleContainer"></div>
-    </div></div>
-    <div class="cd"><div class="ch">I/O Log <span class="ch-sub">last 30</span></div><div class="cb" style="padding:0">
+<div class="cd"><div class="ch">I/O Log <span class="ch-sub">last 30</span></div><div class="cb" style="padding:0">
       <div class="io-timeline" id="ioTimeline"></div>
       <div class="io-log" id="ioLog">&mdash;</div>
     </div></div>`;
@@ -77,10 +74,14 @@ function render7Seg(char) {
     '8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1],
     'A':[1,1,1,0,1,1,1],'B':[0,0,1,1,1,1,1],'C':[1,0,0,1,1,1,0],'D':[0,1,1,1,1,0,1],
     'E':[1,0,0,1,1,1,1],'F':[1,0,0,0,1,1,1],
-    'H':[0,1,1,0,1,1,1],'L':[0,0,0,1,1,1,0],'P':[1,1,0,0,1,1,1],'U':[0,1,1,1,1,1,0],
-    '-':[0,0,0,0,0,0,1],' ':[0,0,0,0,0,0,0]
+    'G':[1,0,1,1,1,1,0],'H':[0,1,1,0,1,1,1],'I':[0,0,0,0,1,1,0],
+    'J':[0,1,1,1,0,0,0],'L':[0,0,0,1,1,1,0],'N':[0,0,1,0,1,0,1],
+    'O':[1,1,1,1,1,1,0],'P':[1,1,0,0,1,1,1],'R':[0,0,0,0,1,0,1],
+    'S':[1,0,1,1,0,1,1],'T':[0,0,0,1,1,1,1],'U':[0,1,1,1,1,1,0],
+    'Y':[0,1,1,1,0,1,1],'Z':[1,1,0,1,1,0,1],
+    '-':[0,0,0,0,0,0,1],'_':[0,0,0,1,0,0,0],' ':[0,0,0,0,0,0,0]
   };
-  let s = SEGS[char.toUpperCase()] || SEGS[' '];
+  let s = SEGS[char.toUpperCase()] || SEGS[char] || SEGS[' '];
   let on = 'var(--grn)', off = 'var(--bg4)';
   return `<svg viewBox="0 0 18 30" width="18" height="30">
     <rect x="3" y="1" width="12" height="2" rx="1" fill="${s[0]?on:off}"/>
@@ -102,10 +103,14 @@ function render7SegInline(char, x, y, scale) {
     '8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1],
     'A':[1,1,1,0,1,1,1],'B':[0,0,1,1,1,1,1],'C':[1,0,0,1,1,1,0],'D':[0,1,1,1,1,0,1],
     'E':[1,0,0,1,1,1,1],'F':[1,0,0,0,1,1,1],
-    'H':[0,1,1,0,1,1,1],'L':[0,0,0,1,1,1,0],'P':[1,1,0,0,1,1,1],'U':[0,1,1,1,1,1,0],
-    '-':[0,0,0,0,0,0,1],' ':[0,0,0,0,0,0,0]
+    'G':[1,0,1,1,1,1,0],'H':[0,1,1,0,1,1,1],'I':[0,0,0,0,1,1,0],
+    'J':[0,1,1,1,0,0,0],'L':[0,0,0,1,1,1,0],'N':[0,0,1,0,1,0,1],
+    'O':[1,1,1,1,1,1,0],'P':[1,1,0,0,1,1,1],'R':[0,0,0,0,1,0,1],
+    'S':[1,0,1,1,0,1,1],'T':[0,0,0,1,1,1,1],'U':[0,1,1,1,1,1,0],
+    'Y':[0,1,1,1,0,1,1],'Z':[1,1,0,1,1,0,1],
+    '-':[0,0,0,0,0,0,1],'_':[0,0,0,1,0,0,0],' ':[0,0,0,0,0,0,0]
   };
-  let s = SEGS[char.toUpperCase()] || SEGS[' '];
+  let s = SEGS[char.toUpperCase()] || SEGS[char] || SEGS[' '];
   let on = 'var(--grn)', off = '#1a1d24';
   let w = 18 * scale, h = 30 * scale;
   // Segment rectangles relative to x,y

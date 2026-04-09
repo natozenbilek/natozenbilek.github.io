@@ -935,4 +935,517 @@ D2:     NOP
         JNZ     BEEP
         MOV     AH,EXIT
         INT     28H`,
+
+'Keyboard Display: NEZIH': `; Keyboard Display — "NEZIH" yazisi
+; INT 28H ile 7-segment display'e yazar
+; Fiziksel DigiAC'ta keyboard display'de gorunur
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+
+        ; Ekrani temizle
+        MOV     AH,CLRSCR
+        INT     28H
+
+        ; N harfi
+        MOV     AL,'N'
+        MOV     AH,WRCHAR
+        INT     28H
+        ; E harfi
+        MOV     AL,'E'
+        MOV     AH,WRCHAR
+        INT     28H
+        ; Z harfi
+        MOV     AL,'Z'
+        MOV     AH,WRCHAR
+        INT     28H
+        ; I harfi
+        MOV     AL,'I'
+        MOV     AH,WRCHAR
+        INT     28H
+        ; H harfi
+        MOV     AL,'H'
+        MOV     AH,WRCHAR
+        INT     28H
+
+        ; Sonsuz dongude kal (display acik kalsin)
+STAY:   JMP     STAY`,
+
+'Display Test': `; Display Test — 7-segment display demo
+; Writes text and counts on the PAT Display
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+
+        ; Clear display
+        MOV     AH,CLRSCR
+        INT     28H
+
+        ; Write "HELLO" character by character
+        MOV     AL,'H'
+        MOV     AH,WRCHAR
+        INT     28H
+        MOV     AL,'E'
+        MOV     AH,WRCHAR
+        INT     28H
+        MOV     AL,'L'
+        MOV     AH,WRCHAR
+        INT     28H
+        MOV     AL,'L'
+        MOV     AH,WRCHAR
+        INT     28H
+        MOV     AL,'0'
+        MOV     AH,WRCHAR
+        INT     28H
+
+        ; Wait 2 seconds
+        MOV     BX,2000
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; Now count 00..FF on display
+        MOV     AH,CLRSCR
+        INT     28H
+        MOV     CL,00H
+COUNT:  MOV     AL,CL
+        MOV     AH,WRBYTE
+        INT     28H
+        MOV     BX,500
+        MOV     AH,WTNMS
+        INT     28H
+        MOV     AH,CLRSCR
+        INT     28H
+        INC     CL
+        JNZ     COUNT
+
+        MOV     AH,EXIT
+        INT     28H`,
+
+'Zamansızdık - Manifest': `; Zamansızdık — Manifest (Ates Atilla)
+; E minor, 100 BPM — kolaynota.com notasyonundan
+; TONE: AH=21, BX=freq(Hz), CX=sure(ms)
+; NOTOFF: AH=22
+;
+; Nota frekanslari:
+; Do4=262 Re4=294 Mi4=330 Fa#4=370 Sol4=392
+; La4=440 Si4=494 Do5=523 Re5=587
+        ORG     0100H
+        INCLUDE PATCALLS.INC
+
+        MOV     AH,CLRSCR
+        INT     28H
+
+        ; === VERSE 1: "Zamansızdık ilk başta" ===
+        ; Olcu 1: Fa# Mi Fa# Sol  Fa# Mi  Do
+N01:    MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,262
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        ; Olcu 2: Fa# Sol Fa# Sol Mi Si Mi Fa# Sol Fa#
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+
+        ; pause
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,150
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === "Sandım hep iyi kalıcaz" ===
+        ; Olcu 3: Fa# Mi Fa# Sol Fa# Mi
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        ; Olcu 4: Mi Si Mi Fa# Sol Fa# Mi La Si
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,200
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === "Yetmiyordu..." ===
+        ; Olcu 5: Do La Re Do Do Re Si La Si
+        MOV     BX,262
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,294
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,262
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,262
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,294
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,200
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === NAKARAT: "La Sol La Sol La Si" ===
+        MOV     BX,440
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,494
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,100
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; "Sol La Sol Fa# Sol La Sol Fa# Mi"
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,440
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,200
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === "Her te ma sin da..." (Fa# Sol Fa# Mi Fa# Mi) ===
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,100
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; "Her pey gi zel de..." (Fa# Fa# Mi Fa# Mi Fa# Mi)
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,200
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === BRIDGE: "Fa# Sol Fa# Mi Re Mi Fa# Sol" ===
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,294
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,400
+        MOV     AH,TONE
+        INT     28H
+
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     BX,150
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; "Fa# Sol Fa# Sol Fa# Sol Fa# Mi" (agla...)
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,392
+        MOV     CX,300
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,370
+        MOV     CX,200
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,330
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+        MOV     BX,262
+        MOV     CX,600
+        MOV     AH,TONE
+        INT     28H
+
+        ; === END ===
+        MOV     AH,NOTOFF
+        INT     28H
+        MOV     AH,EXIT
+        INT     28H`,
 };

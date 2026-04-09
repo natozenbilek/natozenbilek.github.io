@@ -202,6 +202,7 @@ function openFileInTab(key, content, fileEl) {
   let existing = openTabs.find(t => t.key === key);
   if (existing) { existing.content = content; }
   else { openTabs.push({key, content}); }
+  if (typeof hideWelcome === 'function') hideWelcome();
   activeTabKey = key;
   document.getElementById('ed').value = content;
   updLn(); updateHighlight();
@@ -270,11 +271,10 @@ function buildExDropdown() {
     span.title = key;
     file.appendChild(span);
     file.addEventListener('click', function() {
-      // Single click: highlight only
       if (activeFileEl) activeFileEl.classList.remove('active');
       file.classList.add('active'); activeFileEl = file;
+      clickFn();
     });
-    file.addEventListener('dblclick', clickFn);
     return file;
   }
 
@@ -536,3 +536,13 @@ document.addEventListener('contextmenu', function(e) {
   if (rect.right > window.innerWidth) ctxMenu.style.left = (window.innerWidth - rect.width - 4) + 'px';
   if (rect.bottom > window.innerHeight) ctxMenu.style.top = (window.innerHeight - rect.height - 4) + 'px';
 });
+
+function newEmptyFile() {
+  let tree = document.getElementById('fbTree');
+  startNewFileInline(tree, function(name) {
+    if (!name) return;
+    if (!name.includes('.')) name += '.asm';
+    addDynamicFile(name, '; ' + name + '\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n\n', 'local');
+    openFileInTab(name, dynamicFiles.find(f => f.name === name).content);
+  });
+}
