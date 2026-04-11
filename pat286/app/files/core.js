@@ -25,6 +25,8 @@ function loadExByKey(key, fileEl) {
   if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
   else highlightFileInTree(key);
   renderTabs();
+  if (typeof updateBreadcrumb === 'function') updateBreadcrumb(key);
+  if (typeof updateStatusBarFileType === 'function') updateStatusBarFileType();
 }
 
 function switchTab(key) {
@@ -64,6 +66,7 @@ function closeTab(key, e) {
       document.getElementById('lns').innerHTML = '';
       if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
       if (typeof showWelcome === 'function') showWelcome();
+      if (typeof updateBreadcrumb === 'function') updateBreadcrumb(null);
     }
   }
   renderTabs();
@@ -195,6 +198,8 @@ function openFileInTab(key, content, fileEl) {
   if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
   else highlightFileInTree(key);
   renderTabs();
+  if (typeof updateBreadcrumb === 'function') updateBreadcrumb(key);
+  if (typeof updateStatusBarFileType === 'function') updateStatusBarFileType();
 }
 
 // Dynamic files

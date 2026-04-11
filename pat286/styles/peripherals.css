@@ -1,0 +1,103 @@
+/* ============================================================
+   PAT-286 Peripherals — LED, motor, piezo, ultrasonic,
+   potentiometer, I/O log, timeline
+   ============================================================ */
+
+/* === I/O PORT VIEW === */
+.io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.io-port { background: var(--bg3); border-radius: var(--r); padding: var(--sp-2) var(--sp-3); }
+.io-port-name { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text3); font-weight: 600; text-transform: uppercase; margin-bottom: var(--sp-1); }
+.io-port-val { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 600; }
+.io-bits { display: flex; gap: 1px; margin-top: var(--sp-1); }
+.io-bit {
+  width: 14px; height: 14px;
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  border: 1px solid var(--brd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  transition: all .15s;
+}
+.io-bit.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+.io-bit.on-grn { background: var(--grn); border-color: var(--grn); color: #111; }
+
+/* === LED BAR === */
+.led-bar { display: flex; gap: 3px; justify-content: center; padding: var(--sp-2) 0; }
+.led {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--brd);
+  transition: all var(--tr-slow);
+}
+.led.on { background: var(--acc); border-color: var(--acc); box-shadow: 0 0 8px var(--acc); }
+.led-lbl { font-family: var(--mono); font-size: 8px; color: var(--text3); text-align: center; margin-top: 1px; }
+
+/* === MOTOR SVG === */
+.motor-wrap { text-align: center; padding: var(--sp-2); }
+.motor-wrap svg { width: 100%; max-width: 200px; height: auto; }
+
+/* === POTENTIOMETER / SLIDER === */
+.pot-wrap { padding: var(--sp-2) var(--sp-4); }
+.pot-wrap label { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text3); }
+.pot-wrap input[type=range] { width: 100%; accent-color: var(--blu); }
+.pot-val { font-family: var(--mono); font-size: var(--fs-md); color: var(--blu); font-weight: 600; text-align: center; }
+
+/* === PIEZO INDICATOR === */
+.piezo-ind { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); font-family: var(--mono); font-size: var(--fs-sm); color: var(--text3); }
+.piezo-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--brd);
+  transition: all .15s;
+}
+.piezo-dot.on { background: var(--amb); border-color: var(--amb); box-shadow: 0 0 6px var(--amb); }
+
+/* === ULTRASONIC === */
+.ultra-wrap { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-2) var(--sp-4); }
+.ultra-btn {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--brd);
+  border-radius: var(--r);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+}
+.ultra-btn.on { background: var(--pur-l); border-color: var(--pur); color: var(--pur); }
+
+/* === I/O TIMELINE === */
+.io-timeline { border-bottom: 1px solid var(--brd); padding: var(--sp-2) var(--sp-3); min-height: 0; }
+.io-tl-bars { display: flex; gap: 1px; align-items: flex-end; height: 20px; }
+.io-tl-bar {
+  width: 3px;
+  min-height: 4px;
+  height: 100%;
+  border-radius: 1px 1px 0 0;
+  transition: opacity .15s;
+}
+.io-tl-bar:hover { opacity: .7; }
+.io-tl-out { background: var(--grn); height: 100%; }
+.io-tl-in { background: var(--blu); height: 60%; }
+
+/* === I/O LOG === */
+.io-log {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  max-height: 80px;
+  overflow-y: auto;
+  background: var(--bg3);
+  border-radius: 0;
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--text2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--brd) transparent;
+}
+.io-log .io-out { color: var(--grn); }
+.io-log .io-in { color: var(--blu); }

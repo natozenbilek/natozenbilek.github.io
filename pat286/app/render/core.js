@@ -9,8 +9,16 @@ function setSt(s) {
 function sLog(m,err) {
   let e=document.getElementById('log');
   if(!e) return;
-  e.className='lb'+(err?' le':' ls');
+  e.className='sb-item sb-log'+(err?' sb-error':' sb-success');
   e.textContent=String(m||'');
+  // Show error banner for assembly errors
+  let banner = document.getElementById('errorBanner');
+  if (banner && err) {
+    document.getElementById('errorMsg').textContent = String(m||'');
+    banner.hidden = false;
+  } else if (banner && !err) {
+    banner.hidden = true;
+  }
 }
 
 let prevRegVals = {};
@@ -139,7 +147,7 @@ function renderTrace() {
   let el = document.getElementById('traceView');
   if (!el) return;
   document.getElementById('traceCount').textContent = execTrace.length;
-  if (!execTrace.length) { el.innerHTML = '<span style="color:var(--text3);font-size:9px">Run program to see trace</span>'; return; }
+  if (!execTrace.length) { el.innerHTML = '<div class="empty-state">No trace data yet.<br>Step or run a program to record execution.</div>'; return; }
   let last = execTrace.slice(-80);
   let html = last.map(t =>
     `<div class="trace-row"><span class="trace-addr">${hex16(t.ip)}</span><span class="trace-op">${t.op}</span>${t.diff?`<span class="trace-diff">${t.diff}</span>`:''}</div>`

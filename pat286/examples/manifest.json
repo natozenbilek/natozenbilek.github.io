@@ -1,0 +1,257 @@
+[
+  {
+    "name": "PA01: Subtract byte",
+    "file": "pratikler/pa01-subtract-byte.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA02: Add bytes",
+    "file": "pratikler/pa02-add-bytes.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA03: Copy registers",
+    "file": "pratikler/pa03-copy-registers.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA04: Add 4 bytes",
+    "file": "pratikler/pa04-add-4-bytes.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA05: MUL and DIV",
+    "file": "pratikler/pa05-mul-and-div.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA06: Zero check",
+    "file": "pratikler/pa06-zero-check.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA07: Fill memory",
+    "file": "pratikler/pa07-fill-memory.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA08: Sequential fill",
+    "file": "pratikler/pa08-sequential-fill.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA09: Copy string",
+    "file": "pratikler/pa09-copy-string.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA10: Compare with 7F",
+    "file": "pratikler/pa10-compare-with-7f.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA11: Find largest",
+    "file": "pratikler/pa11-find-largest.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA12: Bit inspection",
+    "file": "pratikler/pa12-bit-inspection.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA13: Rotate until bit clear",
+    "file": "pratikler/pa13-rotate-until-bit-clear.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA14: Add + Port output",
+    "file": "pratikler/pa14-add-port-output.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA15: Binary count + LED",
+    "file": "pratikler/pa15-binary-count-led.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA16: Count + motor disc",
+    "file": "pratikler/pa16-count-motor-disc.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA17: Ultrasonic proximity",
+    "file": "pratikler/pa17-ultrasonic-proximity.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA19: Pot controls motor",
+    "file": "pratikler/pa19-pot-controls-motor.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA20: PUSHA/POPA",
+    "file": "pratikler/pa20-pusha-popa.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA21: Hex counter display",
+    "file": "pratikler/pa21-hex-counter-display.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA22: Display addition",
+    "file": "pratikler/pa22-display-addition.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA23: Piezo on S key",
+    "file": "pratikler/pa23-piezo-on-s-key.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA25: NMI vector setup",
+    "file": "pratikler/pa25-nmi-vector-setup.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA26: IRQ2 counter",
+    "file": "pratikler/pa26-irq2-counter.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA27: Display + interrupts",
+    "file": "pratikler/pa27-display-interrupts.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA28: Timer piezo 1kHz",
+    "file": "pratikler/pa28-timer-piezo-1khz.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "PA29: Motor speed display",
+    "file": "pratikler/pa29-motor-speed-display.asm",
+    "category": "pratikler"
+  },
+  {
+    "name": "Bubble Sort",
+    "file": "demos/bubble-sort.asm",
+    "category": "demos"
+  },
+  {
+    "name": "Subroutine demo",
+    "file": "demos/subroutine-demo.asm",
+    "category": "demos"
+  },
+  {
+    "name": "REP STOSB demo",
+    "file": "demos/rep-stosb-demo.asm",
+    "category": "demos"
+  },
+  {
+    "name": "REP MOVSB demo",
+    "file": "demos/rep-movsb-demo.asm",
+    "category": "demos"
+  },
+  {
+    "name": "Fibonacci",
+    "file": "demos/fibonacci.asm",
+    "category": "demos"
+  },
+  {
+    "name": "Factorial 6!",
+    "file": "demos/factorial-6.asm",
+    "category": "demos"
+  },
+  {
+    "name": "String reverse",
+    "file": "demos/string-reverse.asm",
+    "category": "demos"
+  },
+  {
+    "name": "Hex to ASCII display",
+    "file": "demos/hex-to-ascii-display.asm",
+    "category": "demos"
+  },
+  {
+    "name": "Countdown display",
+    "file": "demos/countdown-display.asm",
+    "category": "demos"
+  },
+  {
+    "name": "HW: LED Knight Rider",
+    "file": "hardware/hw-led-knight-rider.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: LED Dice",
+    "file": "hardware/hw-led-dice.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: LED all on",
+    "file": "hardware/hw-led-all-on.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: LED all off",
+    "file": "hardware/hw-led-all-off.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: LED blink",
+    "file": "hardware/hw-led-blink.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: LED chase",
+    "file": "hardware/hw-led-chase.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: Binary counter",
+    "file": "hardware/hw-binary-counter.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: Hello serial",
+    "file": "hardware/hw-hello-serial.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "HW: Piezo beep",
+    "file": "hardware/hw-piezo-beep.asm",
+    "category": "hardware"
+  },
+  {
+    "name": "Keyboard Display: NEZIH",
+    "file": "scripts/keyboard-display-nezih.asm",
+    "category": "scripts"
+  },
+  {
+    "name": "Display Test",
+    "file": "scripts/display-test.asm",
+    "category": "scripts"
+  },
+  {
+    "name": "Zamansızdık - Manifest",
+    "file": "scripts/zamansizdik-manifest.asm",
+    "category": "scripts"
+  },
+  {
+    "name": "Amatör - Manifest",
+    "file": "scripts/amator-manifest.asm",
+    "category": "scripts"
+  },
+  {
+    "name": "Piezo Test",
+    "file": "scripts/piezo-test.asm",
+    "category": "scripts"
+  },
+  {
+    "name": "Port Bit Scanner",
+    "file": "scripts/port-bit-scanner.asm",
+    "category": "scripts"
+  }
+]

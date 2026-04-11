@@ -6,12 +6,78 @@
 const ed = document.getElementById('ed'), lns = document.getElementById('lns');
 const edHL = document.getElementById('edHL');
 
-// Syntax highlighting
-ed.addEventListener('input', () => { updLn(); updateHighlight(); });
+// === OVERFLOW MENU ===
+function toggleOverflowMenu() {
+  let menu = document.getElementById('overflowMenu');
+  if (menu) menu.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  let menu = document.getElementById('overflowMenu');
+  if (menu && menu.classList.contains('open') && !e.target.closest('.hd-overflow')) {
+    menu.classList.remove('open');
+  }
+});
+
+// === ASSEMBLE WITH LOADING ===
+function assembleWithLoading() {
+  let btn = document.getElementById('asmBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  setTimeout(function() {
+    compileIfC() || doAssemble();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }, 10);
+}
+
+// === BREADCRUMB ===
+function updateBreadcrumb(fileKey) {
+  let bc = document.getElementById('breadcrumb');
+  if (!bc) return;
+  if (!fileKey) { bc.hidden = true; return; }
+  bc.hidden = false;
+  let parts = fileKey.split('/');
+  if (parts.length === 1) {
+    // Check if file belongs to a folder
+    let folder = '';
+    if (EX && EX[fileKey]) {
+      if (fileKey.startsWith('PA')) folder = 'pratikler';
+      else if (fileKey.startsWith('HW:')) folder = 'hardware';
+      else folder = 'demos';
+    }
+    if (folder) parts = [folder, fileKey];
+  }
+  bc.innerHTML = parts.map((p, i) =>
+    (i > 0 ? '<span class="bc-sep">›</span>' : '') +
+    '<span class="bc-item">' + p + '</span>'
+  ).join('');
+}
+
+// === STATUS BAR POSITION ===
+function updateStatusBarPos() {
+  let sbPos = document.getElementById('sbPos');
+  if (!sbPos) return;
+  let pos = ed.selectionStart;
+  let text = ed.value.substring(0, pos);
+  let line = text.split('\n').length;
+  let col = pos - text.lastIndexOf('\n');
+  sbPos.textContent = 'Ln ' + line + ', Col ' + col;
+}
+function updateStatusBarFileType() {
+  let el = document.getElementById('sbFileType');
+  if (!el || !activeTabKey) return;
+  let ext = activeTabKey.includes('.') ? activeTabKey.split('.').pop().toUpperCase() : 'ASM';
+  el.textContent = ext;
+}
+
+// Syntax highlighting + status bar
+ed.addEventListener('input', () => { updLn(); updateHighlight(); updateStatusBarPos(); });
 ed.addEventListener('scroll', syncScroll);
+ed.addEventListener('click', updateStatusBarPos);
+ed.addEventListener('keyup', updateStatusBarPos);
 ed.addEventListener('keydown', function(e) {
   if (e.key === 'Tab') { e.preventDefault(); if (window._acceptGhost && window._acceptGhost()) { updLn(); updateHighlight(); return; } let s=this.selectionStart; this.value=this.value.substring(0,s)+'        '+this.value.substring(this.selectionEnd); this.selectionStart=this.selectionEnd=s+8; updLn(); updateHighlight(); }
-  else if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); compileIfC()||doAssemble(); }
+  else if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); assembleWithLoading(); }
 });
 
 function scrollToLine(lineNum) {
@@ -166,7 +232,7 @@ document.addEventListener('keydown', function(e) {
     let portsOv = document.getElementById('portsOv');
     if (portsOv && !portsOv.hidden) { closePorts(); return; }
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); compileIfC()||doAssemble(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); assembleWithLoading(); }
 });
 
 // === BREAKPOINT SUPPORT ===
@@ -193,7 +259,7 @@ function motorAnimLoop() {
 // === INIT ===
 applyTheme(currentTheme);
 buildRightPanel();
+initCollapsibleCards();
 enhanceMemoryView();
-buildExDropdown();
-renderAll();
+loadExamples().then(() => { buildExDropdown(); renderAll(); });
 document.body.addEventListener('click', initAudio, {once: true});

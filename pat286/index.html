@@ -3,70 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAT-286 Virtual Lab</title>
+<title>PAT-286 Workbench</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="styles/variables.css?v=11">
+<link rel="stylesheet" href="styles/base.css?v=11">
+<link rel="stylesheet" href="styles/editor.css?v=11">
+<link rel="stylesheet" href="styles/panels.css?v=11">
+<link rel="stylesheet" href="styles/peripherals.css?v=11">
+<link rel="stylesheet" href="styles/modals.css?v=11">
+<link rel="stylesheet" href="styles/terminal.css?v=11">
+<link rel="stylesheet" href="styles/utilities.css?v=11">
 </head>
 <body>
-<div class="hd">
-  <h1><b>PAT-286</b> Virtual Lab <em>BBM436</em></h1>
-  <div class="hd-r">
-    <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" title="Upload and run on physical device">Upload and Run</button>
-    <span class="pill p-rdy" id="st">READY</span>
+<header class="hd" role="banner">
+  <h1><b>PAT-286</b> Workbench</h1>
+  <nav class="hd-r" aria-label="Main actions">
+    <button class="b b-upload" id="uploadBtn" onclick="uploadProgram()" data-tip="Upload and run on physical device">Upload and Run</button>
+    <span class="pill p-rdy" id="st" role="status">READY</span>
     <div class="sep"></div>
     <span class="serial-dot" id="serialDot"></span>
-    <button class="b b-serial" id="serialBtn" onclick="serialConnect()" title="USB serial connection">Device</button>
+    <button class="b b-serial" id="serialBtn" onclick="serialConnect()" data-tip="USB serial connection">Device</button>
     <div class="sep"></div>
-    <button class="b" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">Dark</button>
-    <button class="b" onclick="openPorts()" title="MUART Port Settings">Ports</button>
-    <button class="b" onclick="openExport()" title="Export/Import hex">Export</button>
-    <button class="b" onclick="openGuide()" title="ISA Reference (F1)">Guide</button>
-    <a href="../index.html" class="b" title="Back to main site" style="text-decoration:none;display:inline-flex;align-items:center">natozenbilek</a>
-  </div>
-</div>
-<div class="mn">
+    <button class="b b-out" id="themeBtn" onclick="toggleTheme()" data-tip="Toggle light/dark theme">Dark</button>
+    <span class="hd-overflow-group">
+      <button class="b b-out" onclick="openPorts()" data-tip="MUART Port Settings">Ports</button>
+      <button class="b b-out" onclick="openExport()" data-tip="Export/Import hex">Export</button>
+      <button class="b b-out" onclick="openGuide()" data-tip="ISA Reference (F1)">Guide</button>
+    </span>
+    <span class="hd-overflow">
+      <button class="b b-out hd-overflow-btn" onclick="toggleOverflowMenu()" data-tip="More actions">&#8942;</button>
+      <div class="hd-overflow-menu" id="overflowMenu">
+        <button class="b" onclick="openPorts();toggleOverflowMenu()">Ports</button>
+        <button class="b" onclick="openExport();toggleOverflowMenu()">Export / Import</button>
+        <button class="b" onclick="openGuide();toggleOverflowMenu()">ISA Guide</button>
+      </div>
+    </span>
+    <a href="../index.html" class="b hd-home-link" data-tip="Back to main site">natozenbilek</a>
+  </nav>
+</header>
+<div class="mn" role="main">
   <!-- LEFT PANEL: FILE BROWSER -->
-  <div class="lp">
+  <aside class="lp" role="navigation" aria-label="File browser">
     <div class="file-browser">
       <div class="file-browser-hd">
         <span>Explorer</span>
         <div class="fb-hd-btns">
-          <button class="b fb-new-btn" onclick="newEmptyFile()" title="New file">+</button>
+          <button class="b fb-new-btn" onclick="newEmptyFile()" data-tip="New file">+</button>
           <input type="file" id="openFile" accept=".asm,.c,.cpp,.py,.java,.go,.txt" style="display:none" onchange="openLocalFile(this)">
-          <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" title="Open file from PC">&#8593;</button>
+          <button class="b fb-open-btn" onclick="document.getElementById('openFile').click()" data-tip="Open file from PC">&#8593;</button>
         </div>
       </div>
-      <div class="fb-tree" id="fbTree"></div>
+      <div class="fb-tree" id="fbTree" role="tree"></div>
     </div>
-  </div>
+  </aside>
 
   <!-- EDITOR -->
-  <div class="ep">
+  <section class="ep" aria-label="Editor">
     <div class="tab-bar-wrap">
-      <div class="tab-bar" id="tabBar"></div>
+      <div class="tab-bar" id="tabBar" role="tablist"></div>
+    </div>
+    <div class="breadcrumb" id="breadcrumb" hidden aria-label="File path"></div>
+    <div class="error-banner" id="errorBanner" hidden role="alert">
+      <span id="errorMsg"></span>
+      <span class="error-banner-close" onclick="document.getElementById('errorBanner').hidden=true" aria-label="Dismiss">&times;</span>
     </div>
     <div class="ew">
-      <div class="ln" id="lns"></div>
+      <div class="ln" id="lns" aria-hidden="true"></div>
       <div class="ed-wrap">
         <div id="edCurLine" hidden></div>
-        <div id="edHL"></div>
-        <div id="edGhost" hidden></div>
-        <textarea id="ed" class="hl-active" spellcheck="false" autocomplete="off" placeholder="; 8086 Assembly — PAT-286"></textarea>
+        <div id="edHL" aria-hidden="true"></div>
+        <div id="edGhost" hidden aria-hidden="true"></div>
+        <textarea id="ed" class="hl-active" spellcheck="false" autocomplete="off" placeholder="; 8086 Assembly — PAT-286" aria-label="Code editor"></textarea>
       </div>
       <div id="edWelcome" class="ed-welcome" hidden>
         <div class="ew-inner">
-          <h2><b>PAT-286</b> Virtual Lab</h2>
-          <p class="ew-sub">8086 Assembly Simulator</p>
+          <h2><b>PAT-286</b> Workbench</h2>
+          <p class="ew-sub">8086 Assembly Simulator &amp; Hardware Interface</p>
           <div class="ew-actions">
             <div class="ew-hint">Open a file from the Explorer panel</div>
             <div class="ew-hint">Ctrl+Enter to assemble &amp; load</div>
+            <div class="ew-hint">Ctrl+Shift+P for command palette</div>
             <div class="ew-hint">F1 for ISA reference guide</div>
-            <div class="ew-hint">Click line numbers to set breakpoints</div>
           </div>
         </div>
       </div>
     </div>
-    <div class="lb" id="log">Ready.</div>
     <!-- Terminal (always open) -->
     <div class="term open" id="termPanel">
       <div class="term-pane" id="termSerial">
@@ -74,58 +95,62 @@
           <span class="serial-dot-sm" id="serialDot2"></span>
           <button class="b" onclick="sendGo()">G</button>
           <button class="b" onclick="sendTrace()">T</button>
-          <span style="flex:1"></span>
+          <span class="flex-spacer"></span>
           <button class="b" onclick="copySerialLog()">Copy</button>
         </div>
         <div class="term-output" id="serialLog">Connect > PAT RESET > Assemble > Upload &amp; Run</div>
         <div class="term-input-row">
           <span class="term-prompt">&gt;</span>
-          <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()">
+          <input id="serialInput" type="text" class="term-input" placeholder="monitor command..." onkeydown="if(event.key==='Enter')serialTermSend()" aria-label="Serial terminal input">
           <button class="b" onclick="serialTermSend()">Send</button>
-        </div>
-        <div class="probe-btns" style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap">
-          <button class="b" onclick="probeDisplay()" title="Test KYDBUF 047D" style="font-size:9px;padding:2px 5px">Probe1:KYDBUF</button>
-          <button class="b" onclick="probeDisplay2()" title="Test 8279 @20H" style="font-size:9px;padding:2px 5px">Probe2:20H</button>
-          <button class="b" onclick="probeDisplay3()" title="Test 8279 @40H" style="font-size:9px;padding:2px 5px">Probe3:40H</button>
-          <button class="b" onclick="probeDisplay4()" title="Test 8279 @60H" style="font-size:9px;padding:2px 5px">Probe4:60H</button>
         </div>
       </div>
     </div>
-  </div>
+    <div class="status-bar" role="contentinfo">
+      <div class="sb-left">
+        <span class="sb-item sb-log" id="log">Ready.</span>
+      </div>
+      <div class="sb-right">
+        <span class="sb-item" id="sbPos">Ln 1, Col 1</span>
+        <span class="sb-item" id="sbFileType">ASM</span>
+        <span class="sb-item sb-clickable" onclick="openGuide()" data-tip="Ctrl+Shift+P">PAT-286</span>
+      </div>
+    </div>
+  </section>
 
-  <!-- RIGHT PANEL (generated by app/panels.js) -->
-  <div class="rp">
+  <!-- RIGHT PANEL -->
+  <aside class="rp" role="complementary" aria-label="Debug panel">
     <div class="sim-bar">
       <div class="sim-ctrls">
-        <button class="b bp" id="asmBtn" onclick="compileIfC()||doAssemble()" title="Ctrl+Enter">&#9654; Assemble</button>
+        <button class="b bp" id="asmBtn" onclick="assembleWithLoading()" data-tip="Assemble (Ctrl+Enter)">&#9654; Assemble</button>
         <div class="sep"></div>
-        <button class="b" id="stepBackBtn" onclick="doStepBack()">&#8592;</button>
-        <button class="b" onclick="doStep()">Step</button>
-        <button class="b" id="stepFwdBtn" onclick="doStepForward()">&#8594;</button>
-        <button class="b bg" id="runBtn" onclick="doToggleRun()">Run</button>
-        <button class="b" onclick="doReset()">Reset</button>
+        <button class="b b-out" id="stepBackBtn" onclick="doStepBack()" data-tip="Step back">&#8592;</button>
+        <button class="b b-out" onclick="doStep()" data-tip="Step forward">Step</button>
+        <button class="b b-out" id="stepFwdBtn" onclick="doStepForward()" data-tip="Step forward">&#8594;</button>
+        <button class="b bg" id="runBtn" onclick="doToggleRun()" data-tip="Run/Pause">Run</button>
+        <button class="b b-out" onclick="doReset()" data-tip="Reset CPU">Reset</button>
       </div>
-      <select id="spd" onchange="updSpd()" title="Execution speed (Hz)">
+      <select id="spd" onchange="updSpd()" aria-label="Execution speed">
         <option value="5">5 Hz</option><option value="20" selected>20 Hz</option>
         <option value="100">100 Hz</option><option value="500">500 Hz</option><option value="9999">Max</option>
       </select>
     </div>
     <div class="ci" id="rpContent"></div>
-  </div></div>
+  </aside>
 </div>
 <!-- hidden select for backward compat -->
 <select id="ex" style="display:none"></select>
 
 <!-- Export Modal -->
-<div id="expOv" class="exp-ov" hidden>
+<div id="expOv" class="exp-ov" hidden role="dialog" aria-label="Export/Import">
   <div class="exp-pan">
     <div class="exp-hd"><h3>Export / Import</h3><button class="b" onclick="closeExport()">Close</button></div>
     <div class="exp-body">
       <div class="exp-sub">Assembled hex dump:</div>
       <pre class="exp-out" id="expOut">No program assembled.</pre>
       <div class="exp-sub">Import hex (paste or load file):</div>
-      <textarea id="hexIn" class="exp-in" spellcheck="false" placeholder="0300: B0 80 2A 06 00 10 ..."></textarea>
-      <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+      <textarea id="hexIn" class="exp-in" spellcheck="false" placeholder="0300: B0 80 2A 06 00 10 ..." aria-label="Hex input"></textarea>
+      <div class="hex-import-actions">
         <button class="b" onclick="loadHexImport()">Load Hex</button>
         <input type="file" id="hexFile" accept=".hex,.txt,.bin" style="display:none" onchange="loadHexFile(this)">
         <button class="b" onclick="document.getElementById('hexFile').click()">Browse...</button>
@@ -139,11 +164,11 @@
 </div>
 
 <!-- Guide Modal -->
-<div id="guideOv" class="guide-ov" hidden>
+<div id="guideOv" class="guide-ov" hidden role="dialog" aria-label="ISA Reference Guide">
   <div class="guide-pan">
     <div class="guide-hd">
-      <h2>PAT-286 — ISA Reference &amp; Guide</h2>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">F1 · Esc closes</span>
+      <h2>PAT-286 Workbench — Reference Guide</h2>
+      <span class="sb-item" style="font-size:11px">F1 &middot; Esc closes</span>
       <button class="b" onclick="closeGuide()">Close</button>
     </div>
     <div class="guide-body" id="guideBody"></div>
@@ -151,35 +176,42 @@
 </div>
 
 <!-- Ports Modal (generated by app/editor.js) -->
-<div id="portsOv" class="exp-ov" hidden></div>
+<div id="portsOv" class="exp-ov" hidden role="dialog" aria-label="Port settings"></div>
 
 <!-- Core -->
-<script src="core/cpu/core.js?v=6"></script>
-<script src="core/cpu/int28.js?v=6"></script>
-<script src="core/cpu/exec.js?v=6"></script>
-<script src="core/assembler/parser.js?v=6"></script>
-<script src="core/assembler/encoder.js?v=6"></script>
-<script src="core/io/state.js?v=6"></script>
-<script src="core/io/ports.js?v=6"></script>
-<script src="core/transpiler/compiler.js?v=6"></script>
-<script src="core/transpiler/bridge.js?v=6"></script>
+<script src="core/cpu/core.js?v=11"></script>
+<script src="core/cpu/int28.js?v=11"></script>
+<script src="core/cpu/decode.js?v=11"></script>
+<script src="core/cpu/alu.js?v=11"></script>
+<script src="core/cpu/exec.js?v=11"></script>
+<script src="core/assembler/parser.js?v=11"></script>
+<script src="core/assembler/encoder.js?v=11"></script>
+<script src="core/io/state.js?v=11"></script>
+<script src="core/io/ports.js?v=11"></script>
+<script src="core/transpiler/compiler.js?v=11"></script>
+<script src="core/transpiler/bridge.js?v=11"></script>
 <!-- App -->
-<script src="app/examples.js?v=6"></script>
-<script src="app/files/core.js?v=6"></script>
-<script src="app/files/tree.js?v=6"></script>
-<script src="app/guide/data.js?v=6"></script>
-<script src="app/guide/ui.js?v=6"></script>
-<script src="app/serial/core.js?v=6"></script>
-<script src="app/serial/upload.js?v=6"></script>
-<script src="app/highlighter/constants.js?v=6"></script>
-<script src="app/highlighter/render.js?v=6"></script>
-<script src="app/panels/layout.js?v=6"></script>
-<script src="app/panels/display.js?v=6"></script>
-<script src="app/render/core.js?v=6"></script>
-<script src="app/render/io.js?v=6"></script>
-<script src="app/main/sim.js?v=6"></script>
-<script src="app/main/editor.js?v=6"></script>
-<script src="app/editor/tooltips.js?v=6"></script>
-<script src="app/editor/features.js?v=6"></script>
+<script src="app/examples.js?v=11"></script>
+<script src="app/files/core.js?v=11"></script>
+<script src="app/files/tree.js?v=11"></script>
+<script src="app/guide/data.js?v=11"></script>
+<script src="app/guide/ui.js?v=11"></script>
+<script src="app/serial/core.js?v=11"></script>
+<script src="app/serial/upload.js?v=11"></script>
+<script src="app/highlighter/constants.js?v=11"></script>
+<script src="app/highlighter/render.js?v=11"></script>
+<script src="app/panels/layout.js?v=11"></script>
+<script src="app/panels/display.js?v=11"></script>
+<script src="app/render/core.js?v=11"></script>
+<script src="app/render/io.js?v=11"></script>
+<script src="app/main/sim.js?v=11"></script>
+<script src="app/main/editor.js?v=11"></script>
+<script src="app/editor/tooltips.js?v=11"></script>
+<script src="app/editor/features.js?v=11"></script>
+<!-- UI enhancements -->
+<script src="app/ui/resize-handles.js?v=11"></script>
+<script src="app/ui/keyboard-nav.js?v=11"></script>
+<script src="app/ui/command-palette.js?v=11"></script>
+<script src="app/ui/search-replace.js?v=11"></script>
 </body>
 </html>

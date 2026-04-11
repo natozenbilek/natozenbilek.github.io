@@ -59,10 +59,23 @@ function buildExDropdown() {
   });
   tree.innerHTML = '';
 
+  function getFileIcon(name) {
+    let ext = name.includes('.') ? name.split('.').pop().toLowerCase() : 'asm';
+    let icons = {asm:'A',c:'C',cpp:'C+',py:'Py',go:'Go',java:'J',txt:'T'};
+    let classes = {asm:'fb-icon-asm',c:'fb-icon-c',cpp:'fb-icon-cpp',py:'fb-icon-py',go:'fb-icon-go',java:'fb-icon-java',txt:'fb-icon-file'};
+    return {icon: icons[ext] || '◇', cls: classes[ext] || 'fb-icon-file'};
+  }
+
   function makeFileEl(key, label, clickFn) {
     let file = document.createElement('div');
     file.className = 'fb-file';
     file.setAttribute('data-key', key);
+    file.setAttribute('role', 'treeitem');
+    let fi = getFileIcon(label);
+    let icon = document.createElement('span');
+    icon.className = 'fb-icon ' + fi.cls;
+    icon.textContent = fi.icon;
+    file.appendChild(icon);
     let span = document.createElement('span');
     span.textContent = label;
     span.title = key;
@@ -85,10 +98,10 @@ function buildExDropdown() {
     if (depth > 0) hd.style.paddingLeft = (6 + depth * 12) + 'px';
     let arrow = document.createElement('span');
     arrow.className = 'fb-arrow';
-    arrow.textContent = '\u25B6';
+    arrow.textContent = '\u203A';
     let folderIcon = document.createElement('span');
-    folderIcon.className = 'fb-folder-icon';
-    folderIcon.textContent = '\uD83D\uDCC1';
+    folderIcon.className = 'fb-icon fb-icon-folder';
+    folderIcon.textContent = '\u25CF';
     let name = document.createElement('span');
     name.textContent = folder.name;
     hd.appendChild(arrow);
@@ -159,7 +172,7 @@ function startInlineEdit(el, currentName, callback) {
   input.type = 'text';
   input.value = currentName;
   input.className = 'fb-inline-input';
-  input.style.cssText = 'font-family:var(--mono);font-size:11px;padding:1px 4px;border:1px solid var(--blu);border-radius:2px;background:var(--bg);color:var(--text);width:100%;outline:none;box-sizing:border-box';
+  input.style.cssText = 'font:var(--fs-md) var(--mono);padding:1px 4px;border:1px solid var(--blu);border-radius:var(--r);background:var(--bg);color:var(--text);width:100%;outline:none;box-sizing:border-box';
   el.innerHTML = '';
   el.appendChild(input);
   input.focus();
