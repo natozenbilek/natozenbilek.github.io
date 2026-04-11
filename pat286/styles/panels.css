@@ -14,7 +14,7 @@
   scrollbar-width: thin;
   scrollbar-color: var(--brd) transparent;
 }
-.ci { padding: var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-5); }
+.ci { padding: var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-4); }
 
 /* === CARD SYSTEM === */
 .cd {
@@ -51,7 +51,7 @@
 }
 .cd.collapsed .ch { border-bottom-color: transparent; }
 .cd.collapsed .ch::after { transform: rotate(-90deg); }
-.cd.collapsed .cb { display: none; }
+.cd.collapsed .cb { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; overflow: hidden; }
 .ch .ch-sub {
   font-weight: 400;
   letter-spacing: 0;
@@ -60,8 +60,7 @@
   margin-left: var(--sp-2);
   font-family: var(--mono);
 }
-.cb { padding: var(--sp-6) var(--sp-6); animation: cardExpand .15s ease-out; }
-@keyframes cardExpand { from { opacity: 0; } to { opacity: 1; } }
+.cb { padding: var(--sp-6); max-height: 600px; opacity: 1; overflow: hidden; transition: max-height .25s ease, padding .2s ease, opacity .2s ease; }
 
 /* === HERO CARD (Current Instruction) === */
 .cd-hero {
@@ -69,11 +68,13 @@
   box-shadow: var(--shadow-md);
 }
 .cd-hero .ch {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
+  font-weight: 700;
   color: var(--text);
-  padding: var(--sp-5) var(--sp-6);
-  background: var(--bg2);
+  padding: var(--sp-5) var(--sp-8);
+  background: linear-gradient(to bottom, var(--bg3), var(--bg2));
   border-bottom-color: var(--brd);
+  letter-spacing: -.02em;
 }
 .cd-hero .ch::after { display: none; }
 .cd-hero .cb { padding: var(--sp-6) var(--sp-8); }
@@ -87,21 +88,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--sp-3) var(--sp-2);
+  padding: var(--sp-4) var(--sp-3);
   border-radius: var(--r-md);
   transition: all var(--tr-slow);
   background: var(--bg);
   border: 1px solid transparent;
+  gap: 1px;
 }
-.rc:hover { border-color: var(--brd); }
+.rc:hover { border-color: var(--brd); background: var(--bg3); }
 .rc.chg { background: var(--blu-l); border-color: rgba(138,180,248,.15); }
 .rc-flash { animation: regflash .8s ease-out; }
 @keyframes regflash {
   0% { background: rgba(138,180,248,.2); }
   100% { background: transparent; }
 }
-.rn { font-family: var(--sans); font-size: var(--fs-xs); color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1px; }
-.rv { font-family: var(--mono); font-size: var(--fs-base); font-weight: 600; color: var(--text); letter-spacing: .03em; }
+.rn { font-family: var(--sans); font-size: 8px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.rv { font-family: var(--mono); font-size: var(--fs-lg); font-weight: 700; color: var(--text); letter-spacing: .03em; }
 .rv-split { font-size: var(--fs-sm); color: var(--text2); }
 .rd { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text3); }
 
@@ -215,13 +217,13 @@
 /* === INSTRUCTION INFO === */
 .ir-box {
   font-family: var(--mono);
-  font-size: var(--fs-lg);
-  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-xl);
+  padding: var(--sp-5) var(--sp-6);
   background: var(--bg);
   border-radius: var(--r-md);
   border-left: 3px solid var(--acc);
   color: var(--acc);
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -244,8 +246,8 @@
   background: var(--bg);
   border-radius: var(--r);
 }
-.cyc { display: flex; gap: var(--sp-6); font-family: var(--mono); font-size: var(--fs-sm); color: var(--text3); padding: var(--sp-3) 0; }
-.cyc b { color: var(--text); font-weight: 600; letter-spacing: .02em; }
+.cyc { display: flex; gap: var(--sp-8); font-family: var(--mono); font-size: var(--fs-md); color: var(--text3); padding: var(--sp-4) var(--sp-2); }
+.cyc b { color: var(--text); font-weight: 700; letter-spacing: .02em; margin-left: var(--sp-1); }
 
 /* === EXECUTION TRACE === */
 .trace {
@@ -285,3 +287,5 @@
 :root[data-theme='light'] .mem-input { background: var(--bg3); border-color: var(--brd); }
 :root[data-theme='light'] .diff-box { background: var(--bg3); }
 :root[data-theme='light'] .desc-box { background: var(--bg3); }
+:root[data-theme='light'] .cd-hero .ch { background: linear-gradient(to bottom, var(--bg3), var(--bg2)); }
+:root[data-theme='light'] .rc:hover { background: var(--bg4); }

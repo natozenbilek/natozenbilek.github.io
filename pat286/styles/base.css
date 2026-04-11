@@ -30,8 +30,8 @@ body {
   z-index: 10;
   position: relative;
 }
-.hd h1 { font-family: var(--sans); font-size: var(--fs-lg); font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
-.hd h1 b { color: var(--blu); font-weight: 700; }
+.hd h1 { font-family: var(--sans); font-size: var(--fs-xl); font-weight: 500; letter-spacing: -.02em; white-space: nowrap; color: var(--text2); }
+.hd h1 b { color: var(--blu); font-weight: 700; letter-spacing: -.01em; }
 .hd h1 em { display: none; }
 .sep { width: 1px; height: 20px; background: var(--brd); flex-shrink: 0; }
 .hd-r { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
@@ -306,19 +306,7 @@ body {
   color: var(--text);
 }
 
-/* === RESPONSIVE === */
-@media (max-width: 1024px) {
-  .mn { grid-template-columns: 180px 1fr; }
-  .rp { grid-column: 1/3; border-top: 1px solid var(--brd); max-height: 50vh; }
-}
-@media (max-width: 640px) {
-  .mn { grid-template-columns: 1fr; grid-template-rows: auto; }
-  .lp { max-height: 25vh; }
-  .ep { max-height: 35vh; }
-  .rp { grid-column: 1; max-height: none; }
-  .hd { flex-wrap: wrap; gap: var(--sp-3); }
-  .hd h1 { font-size: var(--fs-lg); }
-}
+/* === RESPONSIVE — see utilities.css for full breakpoints === */
 
 /* Light theme specifics */
 :root[data-theme='light'] .lb.ls { color: #27ae60; }
