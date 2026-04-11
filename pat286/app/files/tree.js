@@ -1,226 +1,26 @@
 // ============================================================
-// PAT-286 File Browser — tabs, tree, context menu
+// PAT-286 Files Tree — File browser tree, context menus,
+// extra files, inline editing
 // ============================================================
-let activeFileEl = null;
-let openTabs = []; // [{key, content}]
-let activeTabKey = null;
-
-function loadExByKey(key, fileEl) {
-  if (!EX[key]) return;
-  // Save current tab content before switching
-  if (activeTabKey) {
-    let cur = openTabs.find(t => t.key === activeTabKey);
-    if (cur) cur.content = document.getElementById('ed').value;
-  }
-  // Open tab if not already open
-  let existing = openTabs.find(t => t.key === key);
-  if (!existing) {
-    openTabs.push({key, content: EX[key]});
-  }
-  if (typeof hideWelcome === 'function') hideWelcome();
-  activeTabKey = key;
-  let tab = openTabs.find(t => t.key === key);
-  document.getElementById('ed').value = tab.content;
-  updLn(); updateHighlight(); doReset();
-  // Update file browser highlight
-  if (activeFileEl) activeFileEl.classList.remove('active');
-  if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
-  else highlightFileInTree(key);
-  renderTabs();
-}
-
-function switchTab(key) {
-  // Save current tab content
-  if (activeTabKey) {
-    let cur = openTabs.find(t => t.key === activeTabKey);
-    if (cur) cur.content = document.getElementById('ed').value;
-  }
-  let tab = openTabs.find(t => t.key === key);
-  if (!tab) return;
-  // For EX files, try loading via loadExByKey
-  if (EX[key]) {
-    let fileEl = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
-    loadExByKey(key, fileEl);
-    return;
-  }
-  // For non-EX files (extras, dynamic, local)
-  if (typeof hideWelcome === 'function') hideWelcome();
-  activeTabKey = key;
-  document.getElementById('ed').value = tab.content;
-  updLn(); updateHighlight();
-  if (activeFileEl) activeFileEl.classList.remove('active');
-  highlightFileInTree(key);
-  renderTabs();
-}
-
-function closeTab(key, e) {
-  if (e) { e.stopPropagation(); e.preventDefault(); }
-  let idx = openTabs.findIndex(t => t.key === key);
-  if (idx < 0) return;
-  openTabs.splice(idx, 1);
-  if (activeTabKey === key) {
-    if (openTabs.length > 0) {
-      let newIdx = Math.min(idx, openTabs.length - 1);
-      switchTab(openTabs[newIdx].key);
-    } else {
-      activeTabKey = null;
-      document.getElementById('ed').value = '';
-      document.getElementById('edHL').innerHTML = '';
-      document.getElementById('lns').innerHTML = '';
-      if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
-      if (typeof showWelcome === 'function') showWelcome();
-    }
-  }
-  renderTabs();
-}
-
-function fileLabel(key) {
-  if (key.includes('.')) return key;
-  let short = key.replace(/^PA(\d+):\s*/, 'pa$1_').replace(/^HW:\s*/, 'hw_');
-  short = short.replace(/\s+/g, '_').toLowerCase();
-  return short + '.asm';
-}
-
-function updateAsmBtnLabel() {
-  let btn = document.getElementById('asmBtn');
-  if (!btn) return;
-  let hl = isHighLevelFile();
-  btn.innerHTML = hl ? '&#9654; Translate to ASM' : '&#9654; Assemble';
-  btn.className = hl ? 'b b-blu' : 'b bp';
-}
-
-function renderTabs() {
-  let bar = document.getElementById('tabBar');
-  if (!bar) return;
-  bar.innerHTML = '';
-  updateAsmBtnLabel();
-  openTabs.forEach(t => {
-    let tab = document.createElement('div');
-    tab.className = 'tab' + (t.key === activeTabKey ? ' active' : '');
-    let label = document.createElement('span');
-    label.textContent = fileLabel(t.key);
-    label.title = t.key;
-    let close = document.createElement('span');
-    close.className = 'tab-close';
-    close.textContent = '\u00D7';
-    close.addEventListener('click', function(e) { closeTab(t.key, e); });
-    tab.appendChild(label);
-    tab.appendChild(close);
-    tab.addEventListener('click', function() { switchTab(t.key); });
-    tab.addEventListener('contextmenu', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      showTabContextMenu(e, t.key);
-    });
-    bar.appendChild(tab);
-  });
-}
-
-function showTabContextMenu(e, key) {
-  hideCtxMenu();
-  ctxMenu = document.createElement('div');
-  ctxMenu.className = 'ctx-menu';
-  ctxMenu.style.left = e.clientX + 'px';
-  ctxMenu.style.top = e.clientY + 'px';
-
-  function addItem(label, fn) {
-    let item = document.createElement('div');
-    item.className = 'ctx-item';
-    item.textContent = label;
-    item.addEventListener('click', function() { hideCtxMenu(); fn(); });
-    ctxMenu.appendChild(item);
-  }
-  function addSep() { let s = document.createElement('div'); s.className = 'ctx-sep'; ctxMenu.appendChild(s); }
-
-  addItem('Close', function() { closeTab(key); });
-  addItem('Close Others', function() {
-    let keep = openTabs.find(t => t.key === key);
-    openTabs = keep ? [keep] : [];
-    activeTabKey = key;
-    if (keep) {
-      document.getElementById('ed').value = keep.content;
-      updLn(); updateHighlight();
-    }
-    renderTabs();
-  });
-  addItem('Close All', function() { closeAllTabs(); });
-  addSep();
-  addItem('Copy Path', function() {
-    navigator.clipboard.writeText(key).then(() => sLog('Copied: ' + key, 0));
-  });
-  addItem('Duplicate', function() {
-    let tab = openTabs.find(t => t.key === key);
-    if (!tab) return;
-    let copyName = 'copy_' + key;
-    addDynamicFile(copyName, tab.content, 'local');
-    openFileInTab(copyName, tab.content);
-  });
-
-  document.body.appendChild(ctxMenu);
-  let rect = ctxMenu.getBoundingClientRect();
-  if (rect.right > window.innerWidth) ctxMenu.style.left = (window.innerWidth - rect.width - 4) + 'px';
-  if (rect.bottom > window.innerHeight) ctxMenu.style.top = (window.innerHeight - rect.height - 4) + 'px';
-}
-
-function highlightFileInTree(key) {
-  if (activeFileEl) activeFileEl.classList.remove('active');
-  let el = document.querySelector('.fb-file[data-key="' + CSS.escape(key) + '"]');
-  if (el) { el.classList.add('active'); activeFileEl = el; }
-}
-
-function loadEx() {
-  let s = document.getElementById('ex').value;
-  if (EX[s]) loadExByKey(s, null);
-}
 
 const EXTRA_FILES = [
-  { folder: 'c', name: 'led_blink.c', content: '/* LED blink — PAT-286 pseudo-C\n * This is educational pseudo-code.\n * Use "Translate to ASM" to convert to 8086 Assembly.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
-  { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python — educational\n# Use "Translate to ASM" to convert to 8086 Assembly\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
-  { folder: 'go', name: 'chase.go', content: '// LED chase — rotating light on D0-D7\n// PAT-286 pseudo-Go — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
-  { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
-  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ — educational\n// Use "Translate to ASM" to convert to 8086 Assembly\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' },
-  { folder: 'asm', name: 'led_blink.asm', content: '; LED blink — all D0-D7 LEDs on, delay, off, EXIT\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\n        ; LEDs on\n        MOV     AL,0FFH\n        OUT     UPORT2,AL\n        ; Delay\n        MOV     CX,0FFFFH\nWAIT1:  NOP\n        LOOP    WAIT1\n        ; LEDs off\n        MOV     AL,00H\n        OUT     UPORT2,AL\n        MOV     AH,EXIT\n        INT     28H' },
-  { folder: 'asm', name: 'knight_rider.asm', content: '; LED Knight Rider — bouncing pattern D0-D7-D0 on Port 2\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\nAGAIN:  ; Shift left D0 to D7\n        MOV     BL,01H\n        MOV     DL,8\nSLEFT:  MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY1:   NOP\n        LOOP    DLY1\n        SHL     BL,1\n        DEC     DL\n        JNZ     SLEFT\n        ; Shift right D7 to D0\n        MOV     BL,80H\n        MOV     DL,8\nSRIGHT: MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY2:   NOP\n        LOOP    DLY2\n        SHR     BL,1\n        DEC     DL\n        JNZ     SRIGHT\n        JMP     AGAIN' },
+  { folder: 'c', name: 'led_blink.c', content: '/* LED blink \u2014 PAT-286 pseudo-C\n * This is educational pseudo-code.\n * Use "Translate to ASM" to convert to 8086 Assembly.\n */\n#include <pat286.h>\n\nvoid main() {\n    port_init(PORT2, OUTPUT);\n    unsigned char val = 0x01;\n    while (1) {\n        outport(PORT2, val);\n        delay_ms(500);\n        val = (val << 1) | (val >> 7);\n    }\n}' },
+  { folder: 'python', name: 'counter.py', content: '# Binary counter on D0-D7 LEDs\n# PAT-286 pseudo-Python \u2014 educational\n# Use "Translate to ASM" to convert to 8086 Assembly\nfrom pat286 import *\n\ndef main():\n    port_init(PORT2, OUTPUT)\n    i = 0\n    while True:\n        outport(PORT2, i)\n        delay_ms(200)\n        i = i + 1' },
+  { folder: 'go', name: 'chase.go', content: '// LED chase \u2014 rotating light on D0-D7\n// PAT-286 pseudo-Go \u2014 educational\n// Use "Translate to ASM" to convert to 8086 Assembly\npackage main\n\nimport "pat286"\n\nfunc main() {\n    portInit(PORT2, OUTPUT)\n    val := 0x01\n    for {\n        outport(PORT2, val)\n        delayMs(300)\n        val = (val << 1) | (val >> 7)\n    }\n}' },
+  { folder: 'java', name: 'blink.java', content: '// LED blink on/off cycle\n// PAT-286 pseudo-Java \u2014 educational\n// Use "Translate to ASM" to convert to 8086 Assembly\nimport pat286.*;\n\npublic class Blink {\n    public static void main(String[] args) {\n        portInit(PORT2, OUTPUT);\n        while (true) {\n            outport(PORT2, 0xFF);\n            delayMs(500);\n            outport(PORT2, 0x00);\n            delayMs(500);\n        }\n    }\n}' },
+  { folder: 'cpp', name: 'counter.cpp', content: '// Binary counter with C++\n// PAT-286 pseudo-C++ \u2014 educational\n// Use "Translate to ASM" to convert to 8086 Assembly\n#include <pat286.h>\n\nint main() {\n    port_init(PORT2, OUTPUT);\n    for (uint8_t i = 0; ; i++) {\n        outport(PORT2, i);\n        delay_ms(200);\n    }\n}' },
+  { folder: 'asm', name: 'led_blink.asm', content: '; LED blink \u2014 all D0-D7 LEDs on, delay, off, EXIT\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\n        ; LEDs on\n        MOV     AL,0FFH\n        OUT     UPORT2,AL\n        ; Delay\n        MOV     CX,0FFFFH\nWAIT1:  NOP\n        LOOP    WAIT1\n        ; LEDs off\n        MOV     AL,00H\n        OUT     UPORT2,AL\n        MOV     AH,EXIT\n        INT     28H' },
+  { folder: 'asm', name: 'knight_rider.asm', content: '; LED Knight Rider \u2014 bouncing pattern D0-D7-D0 on Port 2\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        ; MUART init\n        MOV     AL,0FFH\n        OUT     UCRREG1,AL\n        OUT     UCRREG2,AL\n        OUT     UCRREG3,AL\n        OUT     UMODEREG,AL\n        OUT     UPORT1CTL,AL\nAGAIN:  ; Shift left D0 to D7\n        MOV     BL,01H\n        MOV     DL,8\nSLEFT:  MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY1:   NOP\n        LOOP    DLY1\n        SHL     BL,1\n        DEC     DL\n        JNZ     SLEFT\n        ; Shift right D7 to D0\n        MOV     BL,80H\n        MOV     DL,8\nSRIGHT: MOV     AL,BL\n        OUT     UPORT2,AL\n        MOV     CX,0FFFFH\nDLY2:   NOP\n        LOOP    DLY2\n        SHR     BL,1\n        DEC     DL\n        JNZ     SRIGHT\n        JMP     AGAIN' },
   { folder: 'asm', name: 'fibonacci.asm', content: '; Calculate first 10 Fibonacci numbers, store at DS:3000H\n        ORG     0100H\n        INCLUDE PATCALLS.INC\n        MOV     SI,3000H\n        MOV     CX,10\n        MOV     AL,00H\n        MOV     BL,01H\n        MOV     [SI],AL\n        INC     SI\n        DEC     CX\n        MOV     [SI],BL\n        INC     SI\n        DEC     CX\nNXTFIB: MOV     DL,AL\n        ADD     DL,BL\n        MOV     [SI],DL\n        MOV     AL,BL\n        MOV     BL,DL\n        INC     SI\n        LOOP    NXTFIB\n        MOV     AH,EXIT\n        INT     28H' }
 ];
 
-// Dynamic files: generated .asm from translation, opened from PC
-let dynamicFiles = []; // [{name, content, folder}]
-
-function addDynamicFile(name, content, folder) {
-  let existing = dynamicFiles.find(f => f.name === name);
-  if (existing) { existing.content = content; }
-  else { dynamicFiles.push({name, content, folder: folder || 'generated'}); }
-  buildExDropdown();
-}
-
-function openFileInTab(key, content, fileEl) {
-  // Save current tab
-  if (activeTabKey) {
-    let cur = openTabs.find(t => t.key === activeTabKey);
-    if (cur) cur.content = document.getElementById('ed').value;
-  }
-  let existing = openTabs.find(t => t.key === key);
-  if (existing) { existing.content = content; }
-  else { openTabs.push({key, content}); }
-  if (typeof hideWelcome === 'function') hideWelcome();
-  activeTabKey = key;
-  document.getElementById('ed').value = content;
-  updLn(); updateHighlight();
-  if (activeFileEl) activeFileEl.classList.remove('active');
-  if (fileEl) { fileEl.classList.add('active'); activeFileEl = fileEl; }
-  else highlightFileInTree(key);
-  renderTabs();
-}
-
 function buildExDropdown() {
-  // Collect language folders from EXTRA_FILES
   let langFolders = {};
   for (let ef of EXTRA_FILES) {
     if (!langFolders[ef.folder]) langFolders[ef.folder] = [];
     langFolders[ef.folder].push(ef);
   }
 
-  // Collect dynamic file folders
   let dynFolders = {};
   for (let df of dynamicFiles) {
     if (!dynFolders[df.folder]) dynFolders[df.folder] = [];
@@ -239,19 +39,16 @@ function buildExDropdown() {
     else folders[1].keys.push(k);
   }
 
-  // Add language folders as children of scripts
   for (let lang of Object.keys(langFolders)) {
     folders[3].children.push({ name: lang, extras: langFolders[lang] });
   }
 
-  // Add dynamic folders (generated, local)
   for (let fn of Object.keys(dynFolders)) {
     folders.push({ name: fn, dynamics: dynFolders[fn] });
   }
 
   let tree = document.getElementById('fbTree');
   if (!tree) return;
-  // Save open folder state before rebuild
   let openFolders = new Set();
   tree.querySelectorAll('.fb-folder').forEach(f => {
     let items = f.querySelector('.fb-folder-items');
@@ -302,7 +99,6 @@ function buildExDropdown() {
     items.className = 'fb-folder-items collapsed';
     div.setAttribute('data-folder', folder.name);
 
-    // Restore open state
     if (openFolders.has(folder.name)) {
       items.classList.remove('collapsed');
       arrow.classList.add('open');
@@ -313,7 +109,6 @@ function buildExDropdown() {
       items.classList.toggle('collapsed');
     });
 
-    // ASM files from EX
     if (folder.keys) {
       folder.keys.forEach(k => {
         let file = makeFileEl(k, fileLabel(k), function() { loadExByKey(k, file); });
@@ -322,7 +117,6 @@ function buildExDropdown() {
       });
     }
 
-    // Extra files (language scripts)
     if (folder.extras) {
       folder.extras.forEach(ef => {
         let file = makeFileEl(ef.name, ef.name, function() {
@@ -333,7 +127,6 @@ function buildExDropdown() {
       });
     }
 
-    // Dynamic files (generated/opened)
     if (folder.dynamics) {
       folder.dynamics.forEach(df => {
         let file = makeFileEl(df.name, df.name, function() {
@@ -344,7 +137,6 @@ function buildExDropdown() {
       });
     }
 
-    // Nested child folders
     if (folder.children) {
       folder.children.forEach(child => {
         items.appendChild(makeFolder(child, depth + 1).el);
@@ -358,7 +150,6 @@ function buildExDropdown() {
 
   folders.forEach(f => { let r = makeFolder(f, 0); tree.appendChild(r.el); });
 
-  // Restore active file highlight
   if (activeTabKey) highlightFileInTree(activeTabKey);
 }
 
@@ -410,15 +201,12 @@ let ctxMenu = null;
 function hideCtxMenu() { if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; } }
 document.addEventListener('click', hideCtxMenu);
 document.addEventListener('contextmenu', function(e) {
-  // Only handle right-click inside file browser
   let tree = document.getElementById('fbTree');
   if (!tree || !tree.contains(e.target)) return;
   e.preventDefault();
   hideCtxMenu();
 
   let fileEl = e.target.closest('.fb-file');
-  let folderEl = e.target.closest('.fb-folder-hd');
-  let folderDiv = e.target.closest('.fb-folder');
 
   ctxMenu = document.createElement('div');
   ctxMenu.className = 'ctx-menu';
@@ -508,7 +296,6 @@ document.addEventListener('contextmenu', function(e) {
       a.click();
     });
   } else {
-    // Right-click on folder or empty area
     addItem('New File', function() {
       startNewFileInline(tree, function(name) {
         if (!name) return;
@@ -531,7 +318,6 @@ document.addEventListener('contextmenu', function(e) {
   }
 
   document.body.appendChild(ctxMenu);
-  // Keep menu in viewport
   let rect = ctxMenu.getBoundingClientRect();
   if (rect.right > window.innerWidth) ctxMenu.style.left = (window.innerWidth - rect.width - 4) + 'px';
   if (rect.bottom > window.innerHeight) ctxMenu.style.top = (window.innerHeight - rect.height - 4) + 'px';

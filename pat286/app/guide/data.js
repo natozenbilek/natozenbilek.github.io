@@ -1,4 +1,7 @@
-// === GUIDE MODAL ===
+// ============================================================
+// PAT-286 Guide Data — HTML content for ISA reference tabs
+// ============================================================
+
 const GUIDE_HTML = {
 overview: `<h3>Overview</h3>
 <p>PAT-286 Virtual Lab is a pedagogical 8086/286 real-mode simulator with an Applications Module peripheral panel, designed for microprocessor education.</p>
@@ -133,19 +136,3 @@ io_ports: `<h3>I/O Ports (Applications Module)</h3>
 <tr><td>18</td><td><code>CLRSCR</code></td><td>Clear display</td></tr></table>
 <p class="guide-note"><code>INCLUDE PATCALLS.INC</code> defines all port addresses and function numbers as EQU constants.</p>`
 };
-
-let guideTab = 'overview';
-function openGuide() { document.getElementById('guideOv').hidden = false; renderGuide(); }
-function closeGuide() { document.getElementById('guideOv').hidden = true; }
-function setGuideTab(t) { guideTab = t; renderGuide(); }
-function renderGuide() {
-  let tabs = ['overview','registers','instructions','io_ports'];
-  let labels = ['Overview','Registers','Instructions','I/O Ports'];
-  let html = '<div class="guide-tabs">';
-  for (let i = 0; i < tabs.length; i++) {
-    html += `<button class="guide-tab${guideTab===tabs[i]?' on':''}" onclick="setGuideTab('${tabs[i]}')">${labels[i]}</button>`;
-  }
-  html += '</div>';
-  html += GUIDE_HTML[guideTab] || '';
-  document.getElementById('guideBody').innerHTML = html;
-}

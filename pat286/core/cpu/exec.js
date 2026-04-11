@@ -1,206 +1,6 @@
 // ============================================================
-// PAT-286 Virtual Lab — CPU Core (8086 Real Mode Subset)
-// v2.0 — Dead code cleanup + REP prefix + CMPSB/SCASB + CBW/CWD
-// v3.0 — Syntax highlighting, memory follow/change highlight, execution trace, scroll-to-error
+// PAT-286 CPU — Instruction Fetch, Decode, Execute
 // ============================================================
-
-// === PATCALLS.INC (built-in) ===
-const PATCALLS = {
-  USER:40, USRBSE:0x100, USRSEG:0x80, SYSSEG:0,
-  KYDBUF:0x47D,
-  DT1:0, DT2:1, DP:2, DKD:3, DCAS:4,
-  PIC0:0x40, PIC1:0x42,
-  UCRREG1:0x80, UCRREG2:0x82, UCRREG3:0x84,
-  UMODEREG:0x86, UPORT1CTL:0x88, UIRQEN:0x8A, UIRQADR:0x8C,
-  URCVBUF:0x8E, UPORT1:0x90, UPORT2:0x92,
-  UTIMER1:0x94, UTIMER2:0x96, UTIMER3:0x98, UTIMER4:0x9A, UTIMER5:0x9C,
-  USTATUS:0x9E,
-  READ:0, READLN:1, WRITE:2, WRITLN:3, EXIT:4, PERR:5,
-  AHEXTO:6, ADECTO:7, TOAHEX:8, TOADEC:9,
-  RDCHAR:10, RDBYTE:11, WRCHAR:12, WRBYTE:13,
-  GETIN:14, WT1MS:15, WTNMS:16, CRLF:17, CLRSCR:18,
-  LEDON:19, LEDOFF:20,
-  TONE:21, NOTOFF:22
-};
-
-// === MEMORY ===
-const MEM_SIZE = 1048576; // 1MB
-let mem = new Uint8Array(MEM_SIZE);
-
-function rb(addr) { return mem[addr & 0xFFFFF]; }
-function rw(addr) { addr &= 0xFFFFF; return mem[addr] | (mem[(addr+1) & 0xFFFFF] << 8); }
-function wb(addr, v) { mem[addr & 0xFFFFF] = v & 0xFF; }
-function ww(addr, v) { addr &= 0xFFFFF; mem[addr] = v & 0xFF; mem[(addr+1) & 0xFFFFF] = (v >> 8) & 0xFF; }
-function pa(seg, off) { return ((seg << 4) + off) & 0xFFFFF; }
-
-// === REGISTERS ===
-let AX=0,BX=0,CX=0,DX=0,SI=0,DI=0,SP=0,BP=0;
-let CS=0,DS=0x80,SS=0x80,ES=0;
-let IP=0x100;
-let FLAGS=0x0002;
-
-const CF=0,PF=2,AF=4,ZF=6,SF=7,TF=8,IF_=9,DF=10,OF=11;
-function gf(b){return(FLAGS>>b)&1}
-function sf(b,v){if(v)FLAGS|=(1<<b);else FLAGS&=~(1<<b)}
-
-function getAH(){return(AX>>8)&0xFF} function getAL(){return AX&0xFF}
-function getBH(){return(BX>>8)&0xFF} function getBL(){return BX&0xFF}
-function getCH(){return(CX>>8)&0xFF} function getCL(){return CX&0xFF}
-function getDH(){return(DX>>8)&0xFF} function getDL(){return DX&0xFF}
-function setAH(v){AX=(AX&0xFF)|((v&0xFF)<<8)} function setAL(v){AX=(AX&0xFF00)|(v&0xFF)}
-function setBH(v){BX=(BX&0xFF)|((v&0xFF)<<8)} function setBL(v){BX=(BX&0xFF00)|(v&0xFF)}
-function setCH(v){CX=(CX&0xFF)|((v&0xFF)<<8)} function setCL(v){CX=(CX&0xFF00)|(v&0xFF)}
-function setDH(v){DX=(DX&0xFF)|((v&0xFF)<<8)} function setDL(v){DX=(DX&0xFF00)|(v&0xFF)}
-
-function getReg16(r){return[AX,CX,DX,BX,SP,BP,SI,DI][r]}
-function setReg16(r,v){v&=0xFFFF;switch(r){case 0:AX=v;break;case 1:CX=v;break;case 2:DX=v;break;case 3:BX=v;break;case 4:SP=v;break;case 5:BP=v;break;case 6:SI=v;break;case 7:DI=v;break}}
-function getReg8(r){return[getAL,getCL,getDL,getBL,getAH,getCH,getDH,getBH][r]()}
-function setReg8(r,v){[setAL,setCL,setDL,setBL,setAH,setCH,setDH,setBH][r](v)}
-function getSeg(r){return[ES,CS,SS,DS][r]}
-function setSeg(r,v){v&=0xFFFF;switch(r){case 0:ES=v;break;case 1:CS=v;break;case 2:SS=v;break;case 3:DS=v;break}}
-
-// === EXECUTION STATE ===
-let halt=false, running=false, tmr=null, waitUntil=0;
-let cy=0, ic=0;
-let curInstr='—', curDesc='—', lastDiff='—';
-let stepPast=[], stepFuture=[];
-let pLen=0, labels={}, asmLines=[], asmOutput=[], instrLines=new Set();
-let progOrg=0x100; // original ORG from last assembly (stable, unlike IP)
-let breakpoints=new Set(), asmErrLines=new Set();
-let patDisplay='', patDisplayBuf='';
-let memFollowMode = null; // null, 'IP', or 'SP'
-let prevMemSnapshot = new Uint8Array(64); // for change detection in 8x8 grid
-let prevMemBase = 0, prevMemSeg = 0;
-let execTrace = []; // execution trace log
-const TRACE_MAX = 500;
-
-// REP prefix state — tracked across prefix parse and instruction execute
-let repPrefix = 0; // 0=none, 0xF3=REP/REPE, 0xF2=REPNE
-
-// === FLAG HELPERS ===
-function parity8(v) { v &= 0xFF; let p = 0; for (let i = 0; i < 8; i++) p ^= (v >> i) & 1; return p === 0 ? 1 : 0; }
-function setFlagsArith8(res, a, b, isSub) {
-  let r = res & 0xFF;
-  sf(ZF, r === 0); sf(SF, (r >> 7) & 1); sf(PF, parity8(r));
-  if (isSub) {
-    sf(CF, a < (b & 0xFF) ? 1 : 0);
-    sf(AF, (a & 0xF) < (b & 0xF) ? 1 : 0);
-    sf(OF, ((a ^ b) & (a ^ r) & 0x80) ? 1 : 0);
-  } else {
-    sf(CF, res > 0xFF ? 1 : 0);
-    sf(AF, ((a & 0xF) + (b & 0xF)) > 0xF ? 1 : 0);
-    sf(OF, ((~(a ^ b)) & (a ^ r) & 0x80) ? 1 : 0);
-  }
-}
-function setFlagsArith16(res, a, b, isSub) {
-  let r = res & 0xFFFF;
-  sf(ZF, r === 0); sf(SF, (r >> 15) & 1); sf(PF, parity8(r));
-  if (isSub) {
-    sf(CF, a < (b & 0xFFFF) ? 1 : 0);
-    sf(AF, (a & 0xF) < (b & 0xF) ? 1 : 0);
-    sf(OF, ((a ^ b) & (a ^ r) & 0x8000) ? 1 : 0);
-  } else {
-    sf(CF, res > 0xFFFF ? 1 : 0);
-    sf(AF, ((a & 0xF) + (b & 0xF)) > 0xF ? 1 : 0);
-    sf(OF, ((~(a ^ b)) & (a ^ r) & 0x8000) ? 1 : 0);
-  }
-}
-function setFlagsLogic8(r) {
-  r &= 0xFF; sf(ZF, r === 0); sf(SF, (r >> 7) & 1); sf(PF, parity8(r)); sf(CF, 0); sf(OF, 0);
-}
-function setFlagsLogic16(r) {
-  r &= 0xFFFF; sf(ZF, r === 0); sf(SF, (r >> 15) & 1); sf(PF, parity8(r)); sf(CF, 0); sf(OF, 0);
-}
-
-// === INT 28H HANDLER (PAT Monitor) ===
-function handleInt28() {
-  let fn = getAH();
-  switch(fn) {
-    case PATCALLS.EXIT:
-      halt = true;
-      curDesc = 'EXIT — returned to PAT monitor';
-      setSt('HALTED');
-      break;
-    case PATCALLS.WRCHAR: {
-      let ch = getAL();
-      if (ch >= 32 && ch <= 126) patDisplay += String.fromCharCode(ch);
-      else if (ch === 13 || ch === 10) patDisplay += '\n';
-      curDesc = `WRCHAR: '${String.fromCharCode(ch >= 32 ? ch : 46)}'`;
-      break;
-    }
-    case PATCALLS.WRBYTE: {
-      let bv = getAL();
-      patDisplay += bv.toString(16).toUpperCase().padStart(2, '0');
-      curDesc = `WRBYTE: ${hex8(bv)}`;
-      break;
-    }
-    case PATCALLS.CLRSCR:
-      patDisplay = '';
-      curDesc = 'CLRSCR';
-      break;
-    case PATCALLS.CRLF:
-      patDisplay += '\n';
-      curDesc = 'CRLF';
-      break;
-    case PATCALLS.GETIN:
-      if (keyQueue.length > 0) {
-        setAL(keyQueue.shift());
-        curDesc = 'GETIN: key=' + hex8(getAL());
-      } else {
-        setAL(0xFF);
-        curDesc = 'GETIN: no key (0xFF)';
-      }
-      break;
-    case PATCALLS.WT1MS:
-      waitUntil = performance.now() + 1;
-      curDesc = 'WT1MS: 1ms delay';
-      break;
-    case PATCALLS.WTNMS:
-      waitUntil = performance.now() + BX;
-      curDesc = `WTNMS: ${BX}ms delay`;
-      break;
-    case PATCALLS.LEDON:
-      curDesc = 'LEDON';
-      break;
-    case PATCALLS.LEDOFF:
-      curDesc = 'LEDOFF';
-      break;
-    case PATCALLS.READ:
-    case PATCALLS.READLN:
-      curDesc = `READ/READLN (stub)`;
-      break;
-    case PATCALLS.WRITE:
-    case PATCALLS.WRITLN: {
-      let cnt = CX, addr = pa(DS, DI);
-      let s = '';
-      for (let i = 0; i < cnt && i < 256; i++) {
-        let c = rb(addr + i);
-        s += (c >= 32 && c <= 126) ? String.fromCharCode(c) : '.';
-      }
-      patDisplay += s;
-      curDesc = `WRITE: "${s.slice(0,20)}"`;
-      break;
-    }
-    case PATCALLS.TONE: {
-      // AH=21: Play tone. BX=frequency(Hz), CX=duration(ms)
-      let freq = BX, dur = CX;
-      if (freq > 0) {
-        startPiezo(freq);
-        if (piezoOsc) try { piezoOsc.frequency.value = freq; } catch(e) {}
-      }
-      if (dur > 0) waitUntil = performance.now() + dur;
-      if (freq === 0) stopPiezo();
-      curDesc = `TONE: ${freq}Hz ${dur}ms`;
-      break;
-    }
-    case PATCALLS.NOTOFF:
-      stopPiezo();
-      curDesc = 'NOTOFF: piezo off';
-      break;
-    default:
-      curDesc = `INT 28H AH=${hex8(fn)} (unhandled)`;
-  }
-}
 
 // === INSTRUCTION FETCH & DECODE ===
 function fetchByte() { let v = rb(pa(CS, IP)); IP = (IP + 1) & 0xFFFF; return v; }
@@ -258,7 +58,7 @@ function writeRM(mrm, val, segOvr) {
   mrm.wide ? ww(mrm._ea, val) : wb(mrm._ea, val);
 }
 
-// === STRING OPERATIONS (used by REP prefix and standalone) ===
+// === STRING OPERATIONS ===
 function execStringOp(op, wide, segOvr) {
   let srcSeg = segOvr !== undefined ? segOvr : DS;
   let inc = wide ? 2 : 1;
@@ -314,31 +114,29 @@ function execOne() {
   let startIP = IP, startCS = CS;
   let segOvr = undefined;
   let prefix = true;
-  repPrefix = 0; // reset REP state
+  repPrefix = 0;
 
-  // Handle prefixes
   while (prefix) {
     let pb = rb(pa(CS, IP));
     if (pb === 0x26) { segOvr = ES; IP = (IP+1) & 0xFFFF; }
     else if (pb === 0x2E) { segOvr = CS; IP = (IP+1) & 0xFFFF; }
     else if (pb === 0x36) { segOvr = SS; IP = (IP+1) & 0xFFFF; }
     else if (pb === 0x3E) { segOvr = DS; IP = (IP+1) & 0xFFFF; }
-    else if (pb === 0xF3) { repPrefix = 0xF3; IP = (IP+1) & 0xFFFF; } // REP/REPE/REPZ
-    else if (pb === 0xF2) { repPrefix = 0xF2; IP = (IP+1) & 0xFFFF; } // REPNE/REPNZ
+    else if (pb === 0xF3) { repPrefix = 0xF3; IP = (IP+1) & 0xFFFF; }
+    else if (pb === 0xF2) { repPrefix = 0xF2; IP = (IP+1) & 0xFFFF; }
     else prefix = false;
   }
 
   let op = fetchByte();
   let wide = op & 1;
 
-  // === STRING OPS with REP support (A4-AF, AE) ===
-  // Check if this is a string operation that can use REP
+  // === STRING OPS with REP support ===
   let stringOps = {
-    0xA4: 'MOVS', 0xA5: 'MOVS',  // MOVSB/MOVSW
-    0xAA: 'STOS', 0xAB: 'STOS',  // STOSB/STOSW
-    0xAC: 'LODS', 0xAD: 'LODS',  // LODSB/LODSW
-    0xA6: 'CMPS', 0xA7: 'CMPS',  // CMPSB/CMPSW
-    0xAE: 'SCAS', 0xAF: 'SCAS',  // SCASB/SCASW
+    0xA4: 'MOVS', 0xA5: 'MOVS',
+    0xAA: 'STOS', 0xAB: 'STOS',
+    0xAC: 'LODS', 0xAD: 'LODS',
+    0xA6: 'CMPS', 0xA7: 'CMPS',
+    0xAE: 'SCAS', 0xAF: 'SCAS',
   };
 
   if (stringOps[op] !== undefined) {
@@ -348,8 +146,6 @@ function execOne() {
 
     if (repPrefix) {
       let repName = repPrefix === 0xF3 ? 'REP' : 'REPNE';
-      // For CMPS/SCAS with REPE (F3): repeat while ZF=1 and CX!=0
-      // For CMPS/SCAS with REPNE (F2): repeat while ZF=0 and CX!=0
       let isConditional = (sop === 'CMPS' || sop === 'SCAS');
       if (repPrefix === 0xF3 && isConditional) repName = 'REPE';
 
@@ -359,20 +155,18 @@ function execOne() {
         CX = (CX - 1) & 0xFFFF;
         count++;
         if (isConditional) {
-          if (repPrefix === 0xF3 && gf(ZF) === 0) break; // REPE: stop when ZF=0 (not equal)
-          if (repPrefix === 0xF2 && gf(ZF) === 1) break; // REPNE: stop when ZF=1 (equal)
+          if (repPrefix === 0xF3 && gf(ZF) === 0) break;
+          if (repPrefix === 0xF2 && gf(ZF) === 1) break;
         }
-        // Safety: prevent infinite loops in simulator
         if (count > 65536) break;
       }
       curInstr = `${repName} ${sop}${suffix}`;
       curDesc = `${repName} ${sop}${suffix}: ${count} iterations, CX=${CX}`;
     } else {
-      // Single execution (no REP)
       execStringOp(sop, wide, segOvr);
       curInstr = `${sop}${suffix}`;
       curDesc = `${sop}${suffix}: SI=${hex16(SI)} DI=${hex16(DI)}`;
-      if (sop === 'LODS') curDesc = `LODS → ${wide?hex16(AX):hex8(getAL())}`;
+      if (sop === 'LODS') curDesc = `LODS \u2192 ${wide?hex16(AX):hex8(getAL())}`;
     }
   }
   // ALU ops: ADD, OR, ADC, SBB, AND, SUB, XOR, CMP
@@ -393,7 +187,7 @@ function execOne() {
     curInstr = `${names[grp]} ${wide?'word':'byte'}`;
     curDesc = `${names[grp]}: ${hex16(dst)} op ${hex16(src)} = ${hex16(res & (wide?0xFFFF:0xFF))}`;
   }
-  // ALU imm to AL/AX (04,05,0C,0D,14,15,1C,1D,24,25,2C,2D,34,35,3C,3D)
+  // ALU imm to AL/AX
   else if ((op & 0xC6) === 0x04) {
     let grp = (op >> 3) & 7;
     wide = (op & 1);
@@ -426,14 +220,14 @@ function execOne() {
     let r = op & 7, v = getReg16(r), res = (v + 1) & 0xFFFF;
     let cf = gf(CF); setFlagsArith16(v + 1, v, 1, false); sf(CF, cf);
     setReg16(r, res);
-    curInstr = `INC ${rn16(r)}`; curDesc = `INC: ${hex16(v)}→${hex16(res)}`;
+    curInstr = `INC ${rn16(r)}`; curDesc = `INC: ${hex16(v)}\u2192${hex16(res)}`;
   }
   // DEC reg16 (48-4F)
   else if (op >= 0x48 && op <= 0x4F) {
     let r = op & 7, v = getReg16(r), res = (v - 1) & 0xFFFF;
     let cf = gf(CF); setFlagsArith16(v - 1, v, 1, true); sf(CF, cf);
     setReg16(r, res);
-    curInstr = `DEC ${rn16(r)}`; curDesc = `DEC: ${hex16(v)}→${hex16(res)}`;
+    curInstr = `DEC ${rn16(r)}`; curDesc = `DEC: ${hex16(v)}\u2192${hex16(res)}`;
   }
   // PUSH reg16 (50-57)
   else if (op >= 0x50 && op <= 0x57) {
@@ -445,7 +239,7 @@ function execOne() {
   else if (op >= 0x58 && op <= 0x5F) {
     let r = op & 7, v = popW();
     setReg16(r, v);
-    curInstr = `POP ${rn16(r)}`; curDesc = `POP → ${hex16(v)}`;
+    curInstr = `POP ${rn16(r)}`; curDesc = `POP \u2192 ${hex16(v)}`;
   }
   // PUSHA (60)
   else if (op === 0x60) {
@@ -463,7 +257,7 @@ function execOne() {
     let cc = op & 0xF, taken = testCC(cc);
     if (taken) IP = (IP + disp) & 0xFFFF;
     let ccn = ['JO','JNO','JB','JNB','JZ','JNZ','JBE','JA','JS','JNS','JP','JNP','JL','JGE','JLE','JG'][cc];
-    curInstr = ccn; curDesc = `${ccn}: ${taken ? 'TAKEN → '+hex16(IP) : 'not taken'}`;
+    curInstr = ccn; curDesc = `${ccn}: ${taken ? 'TAKEN \u2192 '+hex16(IP) : 'not taken'}`;
   }
   // MOV reg,rm / rm,reg (88-8B)
   else if (op >= 0x88 && op <= 0x8B) {
@@ -507,17 +301,17 @@ function execOne() {
   // XCHG AX,reg (91-97)
   else if (op >= 0x91 && op <= 0x97) {
     let r = op & 7, t = AX; AX = getReg16(r); setReg16(r, t);
-    curInstr = `XCHG AX,${rn16(r)}`; curDesc = `XCHG: AX↔${rn16(r)}`;
+    curInstr = `XCHG AX,${rn16(r)}`; curDesc = `XCHG: AX\u2194${rn16(r)}`;
   }
-  // CBW (98) — NEW
+  // CBW (98)
   else if (op === 0x98) {
     AX = signExt8(getAL()) & 0xFFFF;
-    curInstr = 'CBW'; curDesc = `CBW: AL=${hex8(getAL())} → AX=${hex16(AX)}`;
+    curInstr = 'CBW'; curDesc = `CBW: AL=${hex8(getAL())} \u2192 AX=${hex16(AX)}`;
   }
-  // CWD (99) — NEW
+  // CWD (99)
   else if (op === 0x99) {
     DX = (AX & 0x8000) ? 0xFFFF : 0x0000;
-    curInstr = 'CWD'; curDesc = `CWD: AX=${hex16(AX)} → DX:AX=${hex16(DX)}:${hex16(AX)}`;
+    curInstr = 'CWD'; curDesc = `CWD: AX=${hex16(AX)} \u2192 DX:AX=${hex16(DX)}:${hex16(AX)}`;
   }
   // PUSHF (9C)
   else if (op === 0x9C) {
@@ -545,7 +339,7 @@ function execOne() {
     let addr = pa(seg, off);
     let v = wide ? AX : getAL();
     wide ? ww(addr, v) : wb(addr, v);
-    curInstr = `MOV [${hex16(off)}],${wide?'AX':'AL'}`; curDesc = `MOV: ${hex16(v)}→mem[${hex16(off)}]`;
+    curInstr = `MOV [${hex16(off)}],${wide?'AX':'AL'}`; curDesc = `MOV: ${hex16(v)}\u2192mem[${hex16(off)}]`;
   }
   // TEST AL/AX, imm (A8,A9)
   else if (op === 0xA8 || op === 0xA9) {
@@ -560,18 +354,18 @@ function execOne() {
   else if (op >= 0xB0 && op <= 0xB7) {
     let r = op & 7, v = fetchByte();
     setReg8(r, v);
-    curInstr = `MOV ${rn8(r)},${hex8(v)}`; curDesc = `MOV: ${hex8(v)}→${rn8(r)}`;
+    curInstr = `MOV ${rn8(r)},${hex8(v)}`; curDesc = `MOV: ${hex8(v)}\u2192${rn8(r)}`;
   }
   // MOV reg16, imm16 (B8-BF)
   else if (op >= 0xB8 && op <= 0xBF) {
     let r = op & 7, v = fetchWord();
     setReg16(r, v);
-    curInstr = `MOV ${rn16(r)},${hex16(v)}`; curDesc = `MOV: ${hex16(v)}→${rn16(r)}`;
+    curInstr = `MOV ${rn16(r)},${hex16(v)}`; curDesc = `MOV: ${hex16(v)}\u2192${rn16(r)}`;
   }
   // RET near (C3)
   else if (op === 0xC3) {
     IP = popW();
-    curInstr = 'RET'; curDesc = `RET → ${hex16(IP)}`;
+    curInstr = 'RET'; curDesc = `RET \u2192 ${hex16(IP)}`;
   }
   // MOV rm, imm (C6/C7)
   else if (op === 0xC6 || op === 0xC7) {
@@ -580,7 +374,7 @@ function execOne() {
     if (modrm.mod !== 3) modrm._ea = calcEA(modrm.mod, modrm.rm, segOvr);
     let imm = wide ? fetchWord() : fetchByte();
     writeRM(modrm, imm, segOvr);
-    curInstr = `MOV rm,${hex16(imm)}`; curDesc = `MOV: imm ${hex16(imm)} → memory`;
+    curInstr = `MOV rm,${hex16(imm)}`; curDesc = `MOV: imm ${hex16(imm)} \u2192 memory`;
   }
   // INT imm8 (CD)
   else if (op === 0xCD) {
@@ -595,7 +389,7 @@ function execOne() {
         pushW(FLAGS); pushW(CS); pushW(IP);
         sf(IF_, 0); sf(TF, 0);
         CS = newCS; IP = newIP;
-        curDesc = `INT ${hex8(intNum)} → ${hex16(newCS)}:${hex16(newIP)}`;
+        curDesc = `INT ${hex8(intNum)} \u2192 ${hex16(newCS)}:${hex16(newIP)}`;
       } else {
         curDesc = `INT ${hex8(intNum)} (no handler)`;
       }
@@ -605,7 +399,7 @@ function execOne() {
   // IRET (CF)
   else if (op === 0xCF) {
     IP = popW(); CS = popW(); FLAGS = popW() | 0x0002;
-    curInstr = 'IRET'; curDesc = `IRET → ${hex16(CS)}:${hex16(IP)}`;
+    curInstr = 'IRET'; curDesc = `IRET \u2192 ${hex16(CS)}:${hex16(IP)}`;
   }
   // Shift/rotate group (D0-D3)
   else if (op >= 0xD0 && op <= 0xD3) {
@@ -619,28 +413,21 @@ function execOne() {
     for (let i = 0; i < cnt; i++) {
       let c;
       switch(modrm.reg) {
-        case 0: // ROL
-          c = (res >> (bits-1)) & 1; res = ((res << 1) | c) & mask; sf(CF, c); break;
-        case 1: // ROR
-          c = res & 1; res = ((res >> 1) | (c << (bits-1))) & mask; sf(CF, c); break;
-        case 2: // RCL
-          c = (res >> (bits-1)) & 1; res = ((res << 1) | gf(CF)) & mask; sf(CF, c); break;
-        case 3: // RCR
-          c = res & 1; res = ((res >> 1) | (gf(CF) << (bits-1))) & mask; sf(CF, c); break;
-        case 4: case 6: // SHL/SAL
-          c = (res >> (bits-1)) & 1; res = (res << 1) & mask; sf(CF, c);
+        case 0: c = (res >> (bits-1)) & 1; res = ((res << 1) | c) & mask; sf(CF, c); break;
+        case 1: c = res & 1; res = ((res >> 1) | (c << (bits-1))) & mask; sf(CF, c); break;
+        case 2: c = (res >> (bits-1)) & 1; res = ((res << 1) | gf(CF)) & mask; sf(CF, c); break;
+        case 3: c = res & 1; res = ((res >> 1) | (gf(CF) << (bits-1))) & mask; sf(CF, c); break;
+        case 4: case 6: c = (res >> (bits-1)) & 1; res = (res << 1) & mask; sf(CF, c);
           sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
-        case 5: // SHR
-          c = res & 1; res = (res >> 1) & mask; sf(CF, c);
+        case 5: c = res & 1; res = (res >> 1) & mask; sf(CF, c);
           sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
-        case 7: // SAR
-          c = res & 1; let sgn = res & (1 << (bits-1)); res = ((res >> 1) | sgn) & mask; sf(CF, c);
+        case 7: c = res & 1; let sgn = res & (1 << (bits-1)); res = ((res >> 1) | sgn) & mask; sf(CF, c);
           sf(ZF, res===0); sf(SF, (res>>(bits-1))&1); sf(PF, parity8(res)); break;
       }
     }
     writeRM(modrm, res, segOvr);
     let sn = ['ROL','ROR','RCL','RCR','SHL','SHR','?','SAR'][modrm.reg];
-    curInstr = `${sn} ${wide?'word':'byte'},${cnt}`; curDesc = `${sn}: ${hex16(val)}→${hex16(res)}`;
+    curInstr = `${sn} ${wide?'word':'byte'},${cnt}`; curDesc = `${sn}: ${hex16(val)}\u2192${hex16(res)}`;
   }
   // LOOP/LOOPZ/LOOPNZ/JCXZ (E0-E3)
   else if (op >= 0xE0 && op <= 0xE3) {
@@ -674,7 +461,7 @@ function execOne() {
     let port = fetchByte();
     let v = wide ? AX : getAL();
     ioWrite(port, v);
-    curInstr = `OUT ${hex8(port)},${wide?'AX':'AL'}`; curDesc = `OUT: ${hex8(v)}→port ${hex8(port)}`;
+    curInstr = `OUT ${hex8(port)},${wide?'AX':'AL'}`; curDesc = `OUT: ${hex8(v)}\u2192port ${hex8(port)}`;
   }
   // CALL rel16 (E8)
   else if (op === 0xE8) {
@@ -682,20 +469,20 @@ function execOne() {
     if (disp & 0x8000) disp -= 0x10000;
     pushW(IP);
     IP = (IP + disp) & 0xFFFF;
-    curInstr = 'CALL'; curDesc = `CALL → ${hex16(IP)}`;
+    curInstr = 'CALL'; curDesc = `CALL \u2192 ${hex16(IP)}`;
   }
   // JMP rel16 (E9)
   else if (op === 0xE9) {
     let disp = fetchWord();
     if (disp & 0x8000) disp -= 0x10000;
     IP = (IP + disp) & 0xFFFF;
-    curInstr = 'JMP near'; curDesc = `JMP → ${hex16(IP)}`;
+    curInstr = 'JMP near'; curDesc = `JMP \u2192 ${hex16(IP)}`;
   }
   // JMP rel8 (EB)
   else if (op === 0xEB) {
     let disp = signExt8(fetchByte());
     IP = (IP + disp) & 0xFFFF;
-    curInstr = 'JMP short'; curDesc = `JMP → ${hex16(IP)}`;
+    curInstr = 'JMP short'; curDesc = `JMP \u2192 ${hex16(IP)}`;
   }
   // IN AL/AX, DX (EC/ED)
   else if (op === 0xEC || op === 0xED) {
@@ -709,13 +496,13 @@ function execOne() {
     wide = op & 1;
     let v = wide ? AX : getAL();
     ioWrite(DX & 0xFF, v);
-    curInstr = `OUT DX,${wide?'AX':'AL'}`; curDesc = `OUT: ${hex8(v)}→port ${hex16(DX)}`;
+    curInstr = `OUT DX,${wide?'AX':'AL'}`; curDesc = `OUT: ${hex8(v)}\u2192port ${hex16(DX)}`;
   }
   // HLT (F4)
   else if (op === 0xF4) {
     if (gf(IF_) && (timerEnabled & 1)) {
       for (let t = 0; t < 5000 && !irqPending; t++) { timerCount++; if(timerCount>=TIMER_CYCLES_PER_TICK){timerCount=0;if(timerValue>0){timerValue--;if(timerValue===0)irqPending|=0x04;}} }
-      if (irqPending) { curInstr = 'HLT'; curDesc = 'HLT → woke by interrupt'; cy++; ic++; return; }
+      if (irqPending) { curInstr = 'HLT'; curDesc = 'HLT \u2192 woke by interrupt'; cy++; ic++; return; }
     }
     halt = true; curInstr = 'HLT'; curDesc = 'HALT'; setSt('HALTED');
   }
@@ -729,60 +516,60 @@ function execOne() {
   else if (op === 0xF5) { sf(CF, gf(CF)^1); curInstr = 'CMC'; curDesc = 'CF complemented'; }
   else if (op === 0xFC) { sf(DF, 0); curInstr = 'CLD'; curDesc = 'DF=0'; }
   else if (op === 0xFD) { sf(DF, 1); curInstr = 'STD'; curDesc = 'DF=1'; }
-  // XLAT (D7): AL = DS:[BX+AL]
+  // XLAT (D7)
   else if (op === 0xD7) {
     let addr = pa(segOvr !== null ? segOvr : DS, (BX + getAL()) & 0xFFFF);
     let v = rb(addr); setAL(v);
     curInstr = 'XLAT'; curDesc = `XLAT: AL=[BX+${hex8(getAL())}]=${hex8(v)}`;
   }
-  // LAHF (9F): AH = FLAGS low byte
+  // LAHF (9F)
   else if (op === 0x9F) {
     setAH(FLAGS & 0xFF);
     curInstr = 'LAHF'; curDesc = `LAHF: AH=${hex8(FLAGS & 0xFF)}`;
   }
-  // SAHF (9E): FLAGS low byte = AH
+  // SAHF (9E)
   else if (op === 0x9E) {
     FLAGS = (FLAGS & 0xFF00) | (getAH() & 0xD5) | 0x02;
     curInstr = 'SAHF'; curDesc = `SAHF: FLAGS=${hex16(FLAGS)}`;
   }
-  // DAA (27): Decimal adjust after addition
+  // DAA (27)
   else if (op === 0x27) {
     let al = getAL(), oldAL = al, oldCF = gf(CF);
     if ((al & 0x0F) > 9 || gf(AF)) { al += 6; sf(AF, 1); } else { sf(AF, 0); }
     if (al > 0x9F || oldCF) { al += 0x60; sf(CF, 1); } else { sf(CF, 0); }
     al &= 0xFF; setAL(al);
     sf(ZF, al === 0); sf(SF, (al >> 7) & 1); sf(PF, parity8(al));
-    curInstr = 'DAA'; curDesc = `DAA: AL ${hex8(oldAL)}→${hex8(al)}`;
+    curInstr = 'DAA'; curDesc = `DAA: AL ${hex8(oldAL)}\u2192${hex8(al)}`;
   }
-  // DAS (2F): Decimal adjust after subtraction
+  // DAS (2F)
   else if (op === 0x2F) {
     let al = getAL(), oldAL = al, oldCF = gf(CF);
     if ((al & 0x0F) > 9 || gf(AF)) { al -= 6; sf(AF, 1); } else { sf(AF, 0); }
     if (oldAL > 0x99 || oldCF) { al -= 0x60; sf(CF, 1); } else { sf(CF, 0); }
     al &= 0xFF; setAL(al);
     sf(ZF, al === 0); sf(SF, (al >> 7) & 1); sf(PF, parity8(al));
-    curInstr = 'DAS'; curDesc = `DAS: AL ${hex8(oldAL)}→${hex8(al)}`;
+    curInstr = 'DAS'; curDesc = `DAS: AL ${hex8(oldAL)}\u2192${hex8(al)}`;
   }
-  // AAA (37): ASCII adjust after addition
+  // AAA (37)
   else if (op === 0x37) {
     if ((getAL() & 0x0F) > 9 || gf(AF)) {
       setAL((getAL() + 6) & 0x0F); setAH(getAH() + 1); sf(AF, 1); sf(CF, 1);
     } else { setAL(getAL() & 0x0F); sf(AF, 0); sf(CF, 0); }
     curInstr = 'AAA'; curDesc = `AAA: AX=${hex16(AX)}`;
   }
-  // AAS (3F): ASCII adjust after subtraction
+  // AAS (3F)
   else if (op === 0x3F) {
     if ((getAL() & 0x0F) > 9 || gf(AF)) {
       setAL((getAL() - 6) & 0x0F); setAH(getAH() - 1); sf(AF, 1); sf(CF, 1);
     } else { setAL(getAL() & 0x0F); sf(AF, 0); sf(CF, 0); }
     curInstr = 'AAS'; curDesc = `AAS: AX=${hex16(AX)}`;
   }
-  // AAM (D4 0A): ASCII adjust after multiply
+  // AAM (D4 0A)
   else if (op === 0xD4) {
     let imm = fetchByte(); if (imm === 0) { halt = true; curInstr = 'AAM'; curDesc = 'AAM: divide by 0'; }
     else { setAH(Math.floor(getAL() / imm)); setAL(getAL() % imm); sf(ZF, getAL()===0); sf(SF, (getAL()>>7)&1); sf(PF, parity8(getAL())); curInstr = 'AAM'; curDesc = `AAM: AX=${hex16(AX)}`; }
   }
-  // AAD (D5 0A): ASCII adjust before division
+  // AAD (D5 0A)
   else if (op === 0xD5) {
     let imm = fetchByte();
     let res = (getAH() * imm + getAL()) & 0xFF; setAL(res); setAH(0);
@@ -795,17 +582,17 @@ function execOne() {
     let modrm = decodeModRM(fetchByte(), wide);
     let val = readRM(modrm, segOvr);
     let mask = wide ? 0xFFFF : 0xFF;
-    if (modrm.reg === 2) { // NOT
+    if (modrm.reg === 2) {
       let res = (~val) & mask;
       writeRM(modrm, res, segOvr);
-      curInstr = 'NOT'; curDesc = `NOT: ${hex16(val)}→${hex16(res)}`;
-    } else if (modrm.reg === 3) { // NEG
+      curInstr = 'NOT'; curDesc = `NOT: ${hex16(val)}\u2192${hex16(res)}`;
+    } else if (modrm.reg === 3) {
       let res = (-val) & mask;
       wide ? setFlagsArith16(-val, 0, val, true) : setFlagsArith8(-val, 0, val, true);
       sf(CF, val !== 0 ? 1 : 0);
       writeRM(modrm, res, segOvr);
-      curInstr = 'NEG'; curDesc = `NEG: ${hex16(val)}→${hex16(res)}`;
-    } else if (modrm.reg === 4) { // MUL
+      curInstr = 'NEG'; curDesc = `NEG: ${hex16(val)}\u2192${hex16(res)}`;
+    } else if (modrm.reg === 4) {
       if (wide) {
         let res = AX * val;
         AX = res & 0xFFFF; DX = (res >> 16) & 0xFFFF;
@@ -816,7 +603,7 @@ function execOne() {
         sf(CF, getAH() !== 0 ? 1 : 0); sf(OF, getAH() !== 0 ? 1 : 0);
       }
       curInstr = 'MUL'; curDesc = `MUL: result=${wide?hex16(DX)+':'+hex16(AX):hex16(AX)}`;
-    } else if (modrm.reg === 5) { // IMUL — NEW
+    } else if (modrm.reg === 5) {
       if (wide) {
         let a = (AX & 0x8000) ? AX - 0x10000 : AX;
         let b = (val & 0x8000) ? val - 0x10000 : val;
@@ -833,7 +620,7 @@ function execOne() {
         sf(CF, getAH() !== signExt ? 1 : 0); sf(OF, getAH() !== signExt ? 1 : 0);
       }
       curInstr = 'IMUL'; curDesc = `IMUL: result=${wide?hex16(DX)+':'+hex16(AX):hex16(AX)}`;
-    } else if (modrm.reg === 6) { // DIV
+    } else if (modrm.reg === 6) {
       if (val === 0) { halt = true; curInstr = 'DIV'; curDesc = 'Division by zero!'; setSt('ERROR'); return; }
       if (wide) {
         let dividend = (DX & 0xFFFF) * 0x10000 + (AX & 0xFFFF);
@@ -845,7 +632,7 @@ function execOne() {
         setAH(dividend % val);
       }
       curInstr = 'DIV'; curDesc = `DIV: quotient=${wide?hex16(AX):hex8(getAL())}, rem=${wide?hex16(DX):hex8(getAH())}`;
-    } else if (modrm.reg === 7) { // IDIV — NEW
+    } else if (modrm.reg === 7) {
       if (val === 0) { halt = true; curInstr = 'IDIV'; curDesc = 'Division by zero!'; setSt('ERROR'); return; }
       if (wide) {
         let dividend = ((DX & 0xFFFF) * 0x10000 + (AX & 0xFFFF));
@@ -863,7 +650,7 @@ function execOne() {
         setAL(quot & 0xFF); setAH(rem & 0xFF);
       }
       curInstr = 'IDIV'; curDesc = `IDIV: quotient=${wide?hex16(AX):hex8(getAL())}, rem=${wide?hex16(DX):hex8(getAH())}`;
-    } else if (modrm.reg === 0) { // TEST rm, imm
+    } else if (modrm.reg === 0) {
       let imm = wide ? fetchWord() : fetchByte();
       let r = val & imm;
       wide ? setFlagsLogic16(r) : setFlagsLogic8(r);
@@ -876,30 +663,30 @@ function execOne() {
   else if (op === 0xFE || op === 0xFF) {
     wide = op & 1;
     let modrm = decodeModRM(fetchByte(), wide);
-    if (modrm.reg === 0) { // INC
+    if (modrm.reg === 0) {
       let v = readRM(modrm, segOvr), res = (v + 1) & (wide ? 0xFFFF : 0xFF);
       let cf = gf(CF);
       wide ? setFlagsArith16(v+1, v, 1, false) : setFlagsArith8(v+1, v, 1, false);
       sf(CF, cf);
       writeRM(modrm, res, segOvr);
-      curInstr = `INC ${wide?'word':'byte'}`; curDesc = `INC: ${hex16(v)}→${hex16(res)}`;
-    } else if (modrm.reg === 1) { // DEC
+      curInstr = `INC ${wide?'word':'byte'}`; curDesc = `INC: ${hex16(v)}\u2192${hex16(res)}`;
+    } else if (modrm.reg === 1) {
       let v = readRM(modrm, segOvr), res = (v - 1) & (wide ? 0xFFFF : 0xFF);
       let cf = gf(CF);
       wide ? setFlagsArith16(v-1, v, 1, true) : setFlagsArith8(v-1, v, 1, true);
       sf(CF, cf);
       writeRM(modrm, res, segOvr);
-      curInstr = `DEC ${wide?'word':'byte'}`; curDesc = `DEC: ${hex16(v)}→${hex16(res)}`;
-    } else if (modrm.reg === 2 && wide) { // CALL rm16
+      curInstr = `DEC ${wide?'word':'byte'}`; curDesc = `DEC: ${hex16(v)}\u2192${hex16(res)}`;
+    } else if (modrm.reg === 2 && wide) {
       let target = readRM(modrm, segOvr);
       pushW(IP);
       IP = target;
-      curInstr = 'CALL rm16'; curDesc = `CALL → ${hex16(IP)}`;
-    } else if (modrm.reg === 4 && wide) { // JMP rm16
+      curInstr = 'CALL rm16'; curDesc = `CALL \u2192 ${hex16(IP)}`;
+    } else if (modrm.reg === 4 && wide) {
       let target = readRM(modrm, segOvr);
       IP = target;
-      curInstr = 'JMP rm16'; curDesc = `JMP → ${hex16(IP)}`;
-    } else if (modrm.reg === 6 && wide) { // PUSH rm16
+      curInstr = 'JMP rm16'; curDesc = `JMP \u2192 ${hex16(IP)}`;
+    } else if (modrm.reg === 6 && wide) {
       let v = readRM(modrm, segOvr);
       pushW(v);
       curInstr = 'PUSH rm16'; curDesc = `PUSH ${hex16(v)}`;
@@ -915,7 +702,7 @@ function execOne() {
     let b = readRM(modrm, segOvr);
     writeRM(modrm, a, segOvr);
     wide ? setReg16(modrm.reg, b) : setReg8(modrm.reg, b);
-    curInstr = 'XCHG'; curDesc = `XCHG: ${hex16(a)}↔${hex16(b)}`;
+    curInstr = 'XCHG'; curDesc = `XCHG: ${hex16(a)}\u2194${hex16(b)}`;
   }
   else {
     curInstr = `??? (${hex8(op)})`; curDesc = `Unknown opcode ${hex8(op)} at ${hex16(startCS)}:${hex16(startIP)}`;
@@ -925,6 +712,7 @@ function execOne() {
   cy++; ic++;
 }
 
+// === ALU HELPER ===
 function doALU(grp, a, b, wide) {
   let mask = wide ? 0xFFFF : 0xFF;
   let res;
@@ -942,6 +730,7 @@ function doALU(grp, a, b, wide) {
   return res & mask;
 }
 
+// === CONDITION CODE TESTING ===
 function testCC(cc) {
   switch(cc) {
     case 0: return gf(OF)===1;
@@ -963,59 +752,3 @@ function testCC(cc) {
   }
   return false;
 }
-
-function pushW(v) { SP = (SP - 2) & 0xFFFF; ww(pa(SS, SP), v & 0xFFFF); }
-function popW() { let v = rw(pa(SS, SP)); SP = (SP + 2) & 0xFFFF; return v; }
-
-// === HELPERS ===
-function hex8(v) { return (v & 0xFF).toString(16).toUpperCase().padStart(2, '0'); }
-function hex16(v) { return (v & 0xFFFF).toString(16).toUpperCase().padStart(4, '0'); }
-function rn16(r) { return ['AX','CX','DX','BX','SP','BP','SI','DI'][r]; }
-function rn8(r) { return ['AL','CL','DL','BL','AH','CH','DH','BH'][r]; }
-
-// === SNAPSHOT ===
-let dirtyPages = new Set();
-const PAGE_SIZE = 256;
-function markDirty(addr) { dirtyPages.add((addr >> 8) & 0xFFF); }
-const _wb = wb, _ww = ww;
-wb = function(addr, v) { markDirty(addr); _wb(addr, v); };
-ww = function(addr, v) { markDirty(addr); markDirty(addr+1); _ww(addr, v); };
-
-function captureSnap() {
-  let pages = {};
-  for (let p = 0; p < 16; p++) dirtyPages.add((0x800 >> 8) + p);
-  dirtyPages.forEach(p => {
-    let base = p * PAGE_SIZE;
-    pages[p] = new Uint8Array(mem.buffer.slice(base, base + PAGE_SIZE));
-  });
-  return {
-    pages, dirtySet: new Set(dirtyPages),
-    AX,BX,CX,DX,SI,DI,SP,BP,CS,DS,SS,ES,IP,FLAGS,
-    halt, cy, ic, curInstr, curDesc, lastDiff,
-    patDisplay, ioPorts: ioPorts.slice(),
-    ioLog: ioLog.slice(-50),
-    motorDacVal, piezoOn, diskPulses, motorAngle,
-    timerValue, timerReload, timerEnabled, timerCount, irqPending,
-    adcBusy, adcConvCount
-  };
-}
-function restoreSnap(s) {
-  for (let p in s.pages) {
-    let base = (+p) * PAGE_SIZE;
-    mem.set(s.pages[p], base);
-  }
-  dirtyPages = new Set(s.dirtySet || []);
-  AX=s.AX;BX=s.BX;CX=s.CX;DX=s.DX;SI=s.SI;DI=s.DI;SP=s.SP;BP=s.BP;
-  CS=s.CS;DS=s.DS;SS=s.SS;ES=s.ES;IP=s.IP;FLAGS=s.FLAGS;
-  halt=s.halt;cy=s.cy;ic=s.ic;curInstr=s.curInstr;curDesc=s.curDesc;lastDiff=s.lastDiff;
-  patDisplay=s.patDisplay;ioPorts.set(s.ioPorts);
-  ioLog=(s.ioLog||[]).slice();
-  motorDacVal=s.motorDacVal||0;piezoOn=!!s.piezoOn;diskPulses=s.diskPulses||0;
-  motorAngle=s.motorAngle||0;
-  timerValue=s.timerValue||0;timerReload=s.timerReload||0;
-  timerEnabled=s.timerEnabled||0;timerCount=s.timerCount||0;irqPending=s.irqPending||0;
-  adcBusy=!!s.adcBusy;adcConvCount=s.adcConvCount||0;
-  if(piezoOn)startPiezo();else stopPiezo();
-  setSt(halt?'HALTED':'READY');
-}
-

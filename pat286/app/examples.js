@@ -937,37 +937,32 @@ D2:     NOP
         INT     28H`,
 
 'Keyboard Display: NEZIH': `; Keyboard Display — "NEZIH" yazisi
-; INT 28H ile 7-segment display'e yazar
-; Fiziksel DigiAC'ta keyboard display'de gorunur
+; DigiAC2000 keyboard display'e dogrudan yazar
+; KYDBUF (0000:047D) = display buffer (system segment)
+; 7-seg encoding: a=b0 b=b1 c=b2 d=b3 e=b4 f=b5 g=b6
+;   n=54H  E=79H  Z=5BH  I=06H  H=76H
         ORG     0100H
         INCLUDE PATCALLS.INC
 
-        ; Ekrani temizle
-        MOV     AH,CLRSCR
-        INT     28H
+        ; DS'yi system segment'e ayarla (0000)
+        PUSH    DS
+        MOV     AX,0000H
+        MOV     DS,AX
 
-        ; N harfi
-        MOV     AL,'N'
-        MOV     AH,WRCHAR
-        INT     28H
-        ; E harfi
-        MOV     AL,'E'
-        MOV     AH,WRCHAR
-        INT     28H
-        ; Z harfi
-        MOV     AL,'Z'
-        MOV     AH,WRCHAR
-        INT     28H
-        ; I harfi
-        MOV     AL,'I'
-        MOV     AH,WRCHAR
-        INT     28H
-        ; H harfi
-        MOV     AL,'H'
-        MOV     AH,WRCHAR
-        INT     28H
+        ; Keyboard display buffer'a 7-seg data yaz
+        ; 8 haneli display — sola bosluk, saga NEZIH
+        MOV     BYTE PTR DS:047DH,00H
+        MOV     BYTE PTR DS:047EH,00H
+        MOV     BYTE PTR DS:047FH,00H
+        MOV     BYTE PTR DS:0480H,54H
+        MOV     BYTE PTR DS:0481H,79H
+        MOV     BYTE PTR DS:0482H,5BH
+        MOV     BYTE PTR DS:0483H,06H
+        MOV     BYTE PTR DS:0484H,76H
 
-        ; Sonsuz dongude kal (display acik kalsin)
+        POP     DS
+
+        ; Sonsuz dongu (display acik kalsin)
 STAY:   JMP     STAY`,
 
 'Display Test': `; Display Test — 7-segment display demo
@@ -1020,432 +1015,360 @@ COUNT:  MOV     AL,CL
         INT     28H`,
 
 'Zamansızdık - Manifest': `; Zamansızdık — Manifest (Ates Atilla)
-; E minor, 100 BPM — kolaynota.com notasyonundan
-; TONE: AH=21, BX=freq(Hz), CX=sure(ms)
-; NOTOFF: AH=22
+; E minor, ~100 BPM — kolaynota.com notasyonundan
+; Fiziksel DigiAC2000 uyumlu: piezo toggle + delay loop
 ;
-; Nota frekanslari:
-; Do4=262 Re4=294 Mi4=330 Fa#4=370 Sol4=392
-; La4=440 Si4=494 Do5=523 Re5=587
+; PLAY subroutine: SI=half-period loops, DI=cycle count
+; Nota delay degerleri (yaklasik, ~8MHz):
+; Do4=900 Re4=800 Mi4=710 Fa#4=635
+; Sol4=600 La4=535 Si4=475 Do5=450
         ORG     0100H
         INCLUDE PATCALLS.INC
 
-        MOV     AH,CLRSCR
-        INT     28H
+        ; Port 1 init: bit 5 = output (piezo)
+        MOV     AL,20H
+        OUT     UPORT1CTL,AL
 
         ; === VERSE 1: "Zamansızdık ilk başta" ===
-        ; Olcu 1: Fa# Mi Fa# Sol  Fa# Mi  Do
-N01:    MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,262
-        MOV     CX,600
-        MOV     AH,TONE
+        ; Fa# Mi Fa# Sol Fa# Mi Do
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,900
+        MOV     DI,157
+        CALL    PLAY
+        ; gap
+        MOV     BX,50
+        MOV     AH,WTNMS
         INT     28H
 
-        ; Olcu 2: Fa# Sol Fa# Sol Mi Si Mi Fa# Sol Fa#
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-
-        ; pause
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,150
+        ; Fa# Sol Fa# Sol Mi Si Mi Fa# Sol Fa#
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,148
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        ; gap
+        MOV     BX,100
         MOV     AH,WTNMS
         INT     28H
 
         ; === "Sandım hep iyi kalıcaz" ===
-        ; Olcu 3: Fa# Mi Fa# Sol Fa# Mi
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,600
-        MOV     AH,TONE
+        ; Fa# Mi Fa# Sol Fa# Mi
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,198
+        CALL    PLAY
+        ; gap
+        MOV     BX,50
+        MOV     AH,WTNMS
         INT     28H
 
-        ; Olcu 4: Mi Si Mi Fa# Sol Fa# Mi La Si
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,200
+        ; Mi Si Mi Fa# Sol Fa# Mi La Si
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,132
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,148
+        CALL    PLAY
+        ; gap
+        MOV     BX,100
         MOV     AH,WTNMS
         INT     28H
 
         ; === "Yetmiyordu..." ===
-        ; Olcu 5: Do La Re Do Do Re Si La Si
-        MOV     BX,262
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,294
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,262
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,262
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,294
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,200
-        MOV     AH,WTNMS
-        INT     28H
-
-        ; === NAKARAT: "La Sol La Sol La Si" ===
-        MOV     BX,440
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,494
-        MOV     CX,600
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,100
-        MOV     AH,WTNMS
-        INT     28H
-
-        ; "Sol La Sol Fa# Sol La Sol Fa# Mi"
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,440
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,600
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,200
-        MOV     AH,WTNMS
-        INT     28H
-
-        ; === "Her te ma sin da..." (Fa# Sol Fa# Mi Fa# Mi) ===
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,600
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,100
-        MOV     AH,WTNMS
-        INT     28H
-
-        ; "Her pey gi zel de..." (Fa# Fa# Mi Fa# Mi Fa# Mi)
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,600
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
-        MOV     BX,200
-        MOV     AH,WTNMS
-        INT     28H
-
-        ; === BRIDGE: "Fa# Sol Fa# Mi Re Mi Fa# Sol" ===
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,294
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,400
-        MOV     AH,TONE
-        INT     28H
-
-        MOV     AH,NOTOFF
-        INT     28H
+        ; Do La Re Do Do Re Si La Si
+        MOV     SI,900
+        MOV     DI,79
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,88
+        CALL    PLAY
+        MOV     SI,800
+        MOV     DI,59
+        CALL    PLAY
+        MOV     SI,900
+        MOV     DI,52
+        CALL    PLAY
+        MOV     SI,900
+        MOV     DI,52
+        CALL    PLAY
+        MOV     SI,800
+        MOV     DI,59
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,148
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,132
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,148
+        CALL    PLAY
+        ; gap
         MOV     BX,150
         MOV     AH,WTNMS
         INT     28H
 
-        ; "Fa# Sol Fa# Sol Fa# Sol Fa# Mi" (agla...)
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,392
-        MOV     CX,300
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,370
-        MOV     CX,200
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,330
-        MOV     CX,600
-        MOV     AH,TONE
-        INT     28H
-        MOV     BX,262
-        MOV     CX,600
-        MOV     AH,TONE
+        ; === NAKARAT ===
+        ; La Sol La Sol La Si
+        MOV     SI,535
+        MOV     DI,132
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,132
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,132
+        CALL    PLAY
+        MOV     SI,475
+        MOV     DI,296
+        CALL    PLAY
+        ; gap
+        MOV     BX,80
+        MOV     AH,WTNMS
         INT     28H
 
-        ; === END ===
-        MOV     AH,NOTOFF
+        ; Sol La Sol Fa# Sol La Sol Fa# Mi
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,88
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,535
+        MOV     DI,88
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,198
+        CALL    PLAY
+        ; gap
+        MOV     BX,100
+        MOV     AH,WTNMS
         INT     28H
+
+        ; === "Her te ma sin da..." ===
+        ; Fa# Sol Fa# Mi Fa# Mi
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,198
+        CALL    PLAY
+        ; gap
+        MOV     BX,80
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; Fa# Fa# Mi Fa# Mi Fa# Mi
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,99
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,198
+        CALL    PLAY
+        ; gap
+        MOV     BX,100
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; === BRIDGE ===
+        ; Fa# Sol Fa# Mi Re Mi Fa# Sol
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,800
+        MOV     DI,59
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,66
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,157
+        CALL    PLAY
+        ; gap
+        MOV     BX,100
+        MOV     AH,WTNMS
+        INT     28H
+
+        ; Fa# Sol Fa# Sol Fa# Mi Do
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,78
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,111
+        CALL    PLAY
+        MOV     SI,600
+        MOV     DI,118
+        CALL    PLAY
+        MOV     SI,635
+        MOV     DI,74
+        CALL    PLAY
+        MOV     SI,710
+        MOV     DI,198
+        CALL    PLAY
+        MOV     SI,900
+        MOV     DI,157
+        CALL    PLAY
+
+        ; === END ===
+        MOV     AL,00H
+        OUT     UPORT1,AL
         MOV     AH,EXIT
-        INT     28H`,
+        INT     28H
+
+; ---- PLAY subroutine ----
+; SI = half-period delay (loop count, controls frequency)
+; DI = number of full cycles (controls duration)
+PLAY:   MOV     AL,20H
+        OUT     UPORT1,AL
+        MOV     CX,SI
+PL1:    NOP
+        LOOP    PL1
+        MOV     AL,00H
+        OUT     UPORT1,AL
+        MOV     CX,SI
+PL2:    NOP
+        LOOP    PL2
+        DEC     DI
+        JNZ     PLAY
+        RET`,
 };

@@ -1,95 +1,8 @@
 // ============================================================
-// PAT-286 Main — simulation control, editor, UI, init
+// PAT-286 Main Editor — Editor setup, theme, export/import,
+// shortcuts, breakpoints, motor animation, init
 // ============================================================
-// Transpiler: see transpiler.js
-// Highlighter: see highlighter.js
-function doStep() {
-  if (!pLen) { sLog('No program assembled.', 1); return; }
-  if (halt) return;
-  let prevState = {AX,BX,CX,DX,SI,DI,SP,BP,CS,DS,SS,ES,IP,FLAGS};
-  stepPast.push(captureSnap());
-  if (stepPast.length > 500) stepPast.shift();
-  stepFuture = [];
-  execOne();
-  let diffs = [];
-  if(AX!==prevState.AX) diffs.push(`AX:${hex16(prevState.AX)}→${hex16(AX)}`);
-  if(BX!==prevState.BX) diffs.push(`BX:${hex16(prevState.BX)}→${hex16(BX)}`);
-  if(CX!==prevState.CX) diffs.push(`CX:${hex16(prevState.CX)}→${hex16(CX)}`);
-  if(DX!==prevState.DX) diffs.push(`DX:${hex16(prevState.DX)}→${hex16(DX)}`);
-  if(SP!==prevState.SP) diffs.push(`SP:${hex16(prevState.SP)}→${hex16(SP)}`);
-  if(IP!==prevState.IP) diffs.push(`IP:${hex16(prevState.IP)}→${hex16(IP)}`);
-  if(FLAGS!==prevState.FLAGS) diffs.push(`FL:${hex16(prevState.FLAGS)}→${hex16(FLAGS)}`);
-  lastDiff = diffs.length ? diffs.join(' | ') : 'No change';
-  execTrace.push({ip: prevState.IP, op: curInstr, diff: diffs.length ? diffs.join(', ') : ''});
-  if (execTrace.length > TRACE_MAX) execTrace.shift();
-  renderAll();
-  if (halt) { stopRun(); sLog(`HALT. ${ic} instructions executed.`, 0); }
-}
 
-function doStepBack() {
-  if (!stepPast.length) return;
-  stopRun();
-  stepFuture.push(captureSnap());
-  restoreSnap(stepPast.pop());
-  renderAll();
-}
-function doStepForward() {
-  if (!stepFuture.length) return;
-  stopRun();
-  stepPast.push(captureSnap());
-  restoreSnap(stepFuture.pop());
-  renderAll();
-}
-
-let spd = 20;
-function updSpd() { spd = +document.getElementById('spd').value; if(running){stopRun();startRun()} }
-function doToggleRun() { if(running) stopRun(); else startRun(); }
-function startRun() {
-  if(!pLen){sLog('No program.',1);return} if(halt)return;
-  running=true;
-  document.getElementById('runBtn').textContent='Pause';
-  document.getElementById('runBtn').className='b';
-  setSt('RUNNING');
-  let batch = spd >= 9999 ? 500 : 1;
-  let delay = spd >= 9999 ? 1 : Math.max(1, Math.floor(1000/spd));
-  tmr = setInterval(()=>{
-    if(waitUntil>0&&performance.now()<waitUntil)return;
-    waitUntil=0;
-    for(let i=0;i<batch&&!halt&&running;i++){
-      if(waitUntil>0)break;
-      if(breakpoints.size>0&&asmLines.length){
-        for(let al of asmLines){
-          if(al.addr===IP&&breakpoints.has(al.ln)){
-            stopRun();sLog('Breakpoint: line '+al.ln,0);renderAll();return;
-          }
-        }
-      }
-      execOne();
-    }
-    renderAll();
-    if(halt){stopRun();sLog(`HALT. ${ic} instr.`,0)}
-  }, delay);
-}
-function stopRun() {
-  running=false;if(tmr){clearInterval(tmr);tmr=null}
-  document.getElementById('runBtn').textContent='Run';
-  document.getElementById('runBtn').className='b bg';
-  if(!halt) setSt('READY');
-}
-function doReset() {
-  stopRun(); stopPiezo(); waitUntil = 0;
-  keyQueue = [];
-  timerValue = 0; timerReload = 0; timerCount = 0; timerEnabled = 0;
-  irqPending = 0;
-  doAssemble();
-}
-
-// === UI INTERACTIONS ===
-function potChanged() { potValue = +document.getElementById('potSlider').value; }
-function toggleObject() { objectNear = !objectNear; }
-function toggleOptical() { opticalBlocked = !opticalBlocked; }
-
-// === EDITOR ===
 const ed = document.getElementById('ed'), lns = document.getElementById('lns');
 const edHL = document.getElementById('edHL');
 
@@ -102,7 +15,7 @@ ed.addEventListener('keydown', function(e) {
 });
 
 function scrollToLine(lineNum) {
-  let lineH = 19; // line-height in px
+  let lineH = 19;
   let target = (lineNum - 1) * lineH;
   ed.scrollTop = Math.max(0, target - ed.clientHeight / 3);
   syncScroll();
@@ -219,14 +132,11 @@ function openLocalFile(input) {
   reader.onload = function(e) {
     let content = e.target.result;
     let name = file.name;
-    // Save current tab
     if (activeTabKey) {
       let cur = openTabs.find(t => t.key === activeTabKey);
       if (cur) cur.content = document.getElementById('ed').value;
     }
-    // Add to dynamic files and tree
     addDynamicFile(name, content, 'local');
-    // Add as new tab
     let existing = openTabs.find(t => t.key === name);
     if (existing) { existing.content = content; }
     else { openTabs.push({key: name, content: content}); }
@@ -239,19 +149,6 @@ function openLocalFile(input) {
   };
   reader.readAsText(file);
   input.value = '';
-}
-
-// === CLOSE ALL TABS ===
-function closeAllTabs() {
-  openTabs = [];
-  activeTabKey = null;
-  document.getElementById('ed').value = '';
-  document.getElementById('edHL').innerHTML = '';
-  document.getElementById('lns').innerHTML = '';
-  if (activeFileEl) { activeFileEl.classList.remove('active'); activeFileEl = null; }
-  renderTabs();
-  if (typeof showWelcome === 'function') showWelcome();
-  sLog('Ready.', 0);
 }
 
 // === KEYBOARD SHORTCUTS ===
@@ -298,6 +195,5 @@ applyTheme(currentTheme);
 buildRightPanel();
 enhanceMemoryView();
 buildExDropdown();
-// Welcome screen shown by editor.js init (loaded after main.js)
 renderAll();
 document.body.addEventListener('click', initAudio, {once: true});

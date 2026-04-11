@@ -1,4 +1,7 @@
-// === HIGH-LEVEL → ASM TRANSPILER ===
+// ============================================================
+// PAT-286 Transpiler Compiler — C/Python/Go/Java → ASM
+// ============================================================
+
 function compileCtoASM(code) {
   let lines = code.split('\n');
   let asm = [];
@@ -13,34 +16,28 @@ function compileCtoASM(code) {
   let inMain = false;
   let loopStack = [];
   let braceDepth = 0;
-  let indentLoop = []; // for Python indentation-based loops
+  let indentLoop = [];
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
     let trimmed = line.trim();
 
-    // Skip empty, comments, preprocessor, imports, package decl
     if (!trimmed || trimmed.startsWith('/*') || trimmed.startsWith('*') || trimmed.startsWith('*/')) continue;
     if (trimmed.startsWith('//') || trimmed.startsWith('#')) continue;
     if (/^(import|from|package)\b/.test(trimmed)) continue;
 
-    // Detect main function in any language
     if (/\bmain\s*\(/.test(trimmed) || /^def\s+main\s*\(/.test(trimmed) || /^func\s+main\s*\(/.test(trimmed)) {
       inMain = true;
       if (trimmed.includes('{')) braceDepth++;
       continue;
     }
-    // Skip class/public declarations
     if (/^(public\s+)?class\b/.test(trimmed)) continue;
     if (!inMain) continue;
 
-    // Remove trailing comments
     trimmed = trimmed.replace(/\/\/.*$/, '').replace(/#.*$/, '').replace(/\/\*.*?\*\//, '').trim();
-    // Remove trailing semicolons
     trimmed = trimmed.replace(/;$/, '').trim();
     if (!trimmed) continue;
 
-    // Handle Python indentation-based loop ends
     if (indentLoop.length > 0) {
       let curIndent = line.search(/\S/);
       while (indentLoop.length > 0 && curIndent <= indentLoop[indentLoop.length - 1].indent) {
@@ -51,7 +48,6 @@ function compileCtoASM(code) {
       }
     }
 
-    // Brace tracking
     if (trimmed === '{') { braceDepth++; continue; }
     if (trimmed === '}') {
       braceDepth--;
@@ -65,7 +61,6 @@ function compileCtoASM(code) {
       continue;
     }
 
-    // Handle inline brace
     if (trimmed.endsWith('{')) {
       trimmed = trimmed.slice(0, -1).trim();
       braceDepth++;
@@ -74,7 +69,6 @@ function compileCtoASM(code) {
     emitStatement(trimmed);
   }
 
-  // Close any remaining Python loops
   while (indentLoop.length > 0) {
     let loop = indentLoop.pop();
     if (loop.increment) emitStatement(loop.increment);
@@ -90,10 +84,9 @@ function compileCtoASM(code) {
     stmt = stmt.replace(/;$/, '').trim();
     if (!stmt) return;
 
-    // Variable declarations: all forms
     let varDecl = stmt.match(/(?:unsigned\s+)?(?:char|int|byte|uint8_t|short|long)\s+(\w+)\s*=\s*(.+)/);
-    if (!varDecl) varDecl = stmt.match(/var\s+(\w+)\s+\w+\s*=\s*(.+)/); // Go var
-    if (!varDecl) varDecl = stmt.match(/(\w+)\s*:=\s*(.+)/); // Go :=
+    if (!varDecl) varDecl = stmt.match(/var\s+(\w+)\s+\w+\s*=\s*(.+)/);
+    if (!varDecl) varDecl = stmt.match(/(\w+)\s*:=\s*(.+)/);
     if (varDecl) {
       let vname = varDecl[1];
       let val = parseVal(varDecl[2].trim());
@@ -102,7 +95,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // port_init / portInit / PortInit
     let portInit = stmt.match(/[Pp]ort_?[Ii]nit\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/);
     if (portInit) {
       asm.push('        ; port_init(' + portInit[1] + ', ' + portInit[2] + ')');
@@ -115,7 +107,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // outport / Outport
     let outport = stmt.match(/[Oo]utport\s*\(\s*(\w+)\s*,\s*(.+?)\s*\)/);
     if (outport) {
       let port = outport[1] === 'PORT1' ? 'UPORT1' : 'UPORT2';
@@ -129,7 +120,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // delay_ms / delayMs / DelayMs
     let delay = stmt.match(/[Dd]elay_?[Mm]s\s*\(\s*(\d+)\s*\)/);
     if (delay) {
       let ms = parseInt(delay[1]);
@@ -140,7 +130,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // while (1) / while (true) / while True / for { (Go infinite)
     let whileLoop = stmt.match(/while\s*\(\s*(1|true)\s*\)|while\s+True|^for\s*$/);
     if (whileLoop) {
       let startLbl = newLabel('LOOP');
@@ -156,7 +145,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // for loop with init; ; increment
     let forLoop = stmt.match(/for\s*\(\s*(?:unsigned\s+)?(?:char|int|uint8_t|byte)\s+(\w+)\s*=\s*([^;]+)\s*;\s*;\s*(\w+)\+\+\s*\)/);
     if (forLoop) {
       let vname = forLoop[1];
@@ -170,7 +158,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // ROL pattern: val = (val << 1) | (val >> 7)
     let rol = stmt.match(/(\w+)\s*=\s*\(?\s*\1\s*<<\s*1\s*\)?\s*\|\s*\(?\s*\1\s*>>\s*7\s*\)?/);
     if (rol) {
       let reg = vars[rol[1]];
@@ -178,23 +165,19 @@ function compileCtoASM(code) {
       return;
     }
 
-    // i++ / i--
     let incr = stmt.match(/^(\w+)\+\+$/);
     if (incr && vars[incr[1]]) { asm.push('        INC     ' + vars[incr[1]]); return; }
     let decr = stmt.match(/^(\w+)--$/);
     if (decr && vars[decr[1]]) { asm.push('        DEC     ' + vars[decr[1]]); return; }
 
-    // i = i + 1 / i = i - 1
     let addOne = stmt.match(/(\w+)\s*=\s*\1\s*\+\s*1$/);
     if (addOne && vars[addOne[1]]) { asm.push('        INC     ' + vars[addOne[1]]); return; }
     let subOne = stmt.match(/(\w+)\s*=\s*\1\s*-\s*1$/);
     if (subOne && vars[subOne[1]]) { asm.push('        DEC     ' + vars[subOne[1]]); return; }
 
-    // SHL pattern
     let shl = stmt.match(/(\w+)\s*=\s*\1\s*<<\s*(\d+)/);
     if (shl && vars[shl[1]]) { asm.push('        SHL     ' + vars[shl[1]] + ',' + shl[2]); return; }
 
-    // Simple assignment: val = expr
     let assign = stmt.match(/^(\w+)\s*=\s*(.+)$/);
     if (assign) {
       let vname = assign[1];
@@ -204,7 +187,6 @@ function compileCtoASM(code) {
       return;
     }
 
-    // Anything else: comment
     asm.push('        ; ' + stmt);
   }
 
@@ -225,35 +207,4 @@ function compileCtoASM(code) {
     for (let r of ['BL','DL','BH','DH','CL','CH']) { if (!used.has(r)) return r; }
     return 'BL';
   }
-}
-
-function compileIfC() {
-  if (!isHighLevelFile()) return false;
-  let cSrc = document.getElementById('ed').value;
-  let asmCode = compileCtoASM(cSrc);
-  let sourceKey = activeTabKey;
-  let baseName = (sourceKey || 'output').replace(/\.(c|cpp|py|java|go)$/, '');
-  let asmKey = baseName + '.asm';
-
-  // Save current source tab content
-  if (sourceKey) {
-    let cur = openTabs.find(t => t.key === sourceKey);
-    if (cur) cur.content = cSrc;
-  }
-
-  // Generate .asm file in tree (don't switch tabs)
-  let existing = openTabs.find(t => t.key === asmKey);
-  if (existing) { existing.content = asmCode; }
-  else { openTabs.push({key: asmKey, content: asmCode}); }
-  addDynamicFile(asmKey, asmCode, 'generated');
-
-  // Temporarily switch to .asm to assemble, then switch back
-  let savedEditor = document.getElementById('ed').value;
-  document.getElementById('ed').value = asmCode;
-  doAssemble();
-  document.getElementById('ed').value = savedEditor;
-  updLn(); updateHighlight();
-  renderTabs();
-  sLog('Translated \u2192 ' + asmKey + ' & assembled', 0);
-  return true;
 }
