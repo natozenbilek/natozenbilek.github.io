@@ -30,13 +30,11 @@ body {
   z-index: 10;
   position: relative;
 }
-.hd h1 { font-family: var(--sans); font-size: var(--fs-xl); font-weight: 500; letter-spacing: -.02em; white-space: nowrap; color: var(--text2); }
-.hd h1 b { color: var(--blu); font-weight: 700; letter-spacing: -.01em; }
+.hd h1 { font-family: var(--sans); font-size: var(--fs-lg); font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.hd h1 b { color: var(--blu); font-weight: 700; }
 .hd h1 em { display: none; }
 .sep { width: 1px; height: 20px; background: var(--brd); flex-shrink: 0; }
 .hd-r { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
-.hd-overflow-group { display: contents; }
-.hd-overflow { display: none; }
 /* Header button group styling */
 .hd-r .b { font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-4); min-height: 30px; border-radius: var(--r-md); }
 
@@ -61,7 +59,7 @@ body {
 }
 .b:hover { background: var(--bg4); color: var(--text); }
 .b:active { background: var(--bg5); }
-.b:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--blu); outline: none; }
+.b:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--blu); }
 .b:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Outlined (secondary): border visible */
@@ -184,9 +182,9 @@ body {
   transition: background var(--tr-fast);
 }
 .fb-folder-hd:hover { background: var(--bg3); }
-.fb-arrow { font-size: 12px; width: 12px; text-align: center; color: var(--text3); transition: transform .15s ease; flex-shrink: 0; line-height: 1; }
+.fb-arrow { font-size: 7px; width: 12px; text-align: center; color: var(--text3); transition: transform .15s; flex-shrink: 0; }
 .fb-arrow.open { transform: rotate(90deg); }
-.fb-folder-icon { font-size: 8px; }
+.fb-folder-icon { display: none; }
 .fb-folder-items { overflow: hidden; }
 .fb-folder-items.collapsed { display: none; }
 .fb-file {
@@ -206,7 +204,7 @@ body {
 }
 .fb-file:hover { background: rgba(255,255,255,.05); color: var(--text); }
 .fb-file.active { background: var(--blu-l); color: var(--text); border-left: 2px solid var(--blu); padding-left: 18px; }
-.fb-file-icon { font-size: 10px; }
+.fb-file-icon { display: none; }
 .fb-ext { color: var(--text3); margin-left: 0; }
 
 /* === SIM BAR === */
@@ -269,15 +267,13 @@ body {
   z-index: 999;
   background: var(--bg2);
   border: 1px solid var(--brd2);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-md);
   padding: var(--sp-2) 0;
   min-width: 160px;
   font-family: var(--sans);
   font-size: var(--fs-md);
-  animation: ctxFadeIn .1s ease-out;
 }
-@keyframes ctxFadeIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 .ctx-item {
   padding: 5px var(--sp-8);
   color: var(--text2);
@@ -306,16 +302,21 @@ body {
   color: var(--text);
 }
 
-/* === RESPONSIVE — see utilities.css for full breakpoints === */
+/* === RESPONSIVE === */
+@media (max-width: 1024px) {
+  .mn { grid-template-columns: 180px 1fr; }
+  .rp { grid-column: 1/3; border-top: 1px solid var(--brd); max-height: 50vh; }
+}
+@media (max-width: 640px) {
+  .mn { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .lp { max-height: 25vh; }
+  .ep { max-height: 35vh; }
+  .rp { grid-column: 1; max-height: none; }
+  .hd { flex-wrap: wrap; gap: var(--sp-3); }
+  .hd h1 { font-size: var(--fs-lg); }
+}
 
 /* Light theme specifics */
 :root[data-theme='light'] .lb.ls { color: #27ae60; }
 :root[data-theme='light'] .fb-file:hover { background: rgba(0,0,0,.04); }
 :root[data-theme='light'] .fb-file.active { background: var(--blu-l); }
-:root[data-theme='light'] .ctx-menu { background: var(--bg2); border-color: var(--brd); }
-:root[data-theme='light'] .ctx-item:hover { background: var(--bg4); }
-:root[data-theme='light'] .hd { box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-:root[data-theme='light'] .pill { border: 1px solid transparent; }
-:root[data-theme='light'] .fb-folder-hd:hover { background: rgba(0,0,0,.03); }
-:root[data-theme='light'] .stk-row:hover { background: rgba(0,0,0,.03); }
-:root[data-theme='light'] .ln-row:hover { background: rgba(0,0,0,.03); }

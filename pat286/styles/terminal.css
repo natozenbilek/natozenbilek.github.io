@@ -43,6 +43,7 @@
   border-top: 1px solid var(--brd);
   flex-shrink: 0;
 }
+.term-prompt { font-family: var(--mono); font-size: var(--fs-md); color: var(--text3); }
 .term-prompt { font-family: var(--mono); font-size: var(--fs-md); color: var(--grn); user-select: none; }
 .term-input {
   flex: 1;
@@ -67,6 +68,3 @@
 /* Light theme overrides */
 :root[data-theme='light'] .term-output { background: var(--bg); color: var(--text2); }
 :root[data-theme='light'] .term-input { color: var(--text); }
-:root[data-theme='light'] .term-serial-ctrls { background: var(--bg3); }
-:root[data-theme='light'] .term-input-row { background: var(--bg); }
-:root[data-theme='light'] .term-prompt { color: var(--grn); }

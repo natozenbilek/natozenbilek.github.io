@@ -217,6 +217,87 @@ function openLocalFile(input) {
   input.value = '';
 }
 
+// === UNDO / REDO ===
+let editorHistory = [], editorFuture = [], historyPaused = false;
+function pushEditorHistory() {
+  if (historyPaused) return;
+  let val = ed.value, pos = ed.selectionStart;
+  if (editorHistory.length && editorHistory[editorHistory.length - 1].val === val) return;
+  editorHistory.push({ val, pos });
+  if (editorHistory.length > 200) editorHistory.shift();
+  editorFuture = [];
+}
+function editorUndo() {
+  if (editorHistory.length < 2) return;
+  editorFuture.push(editorHistory.pop());
+  let state = editorHistory[editorHistory.length - 1];
+  historyPaused = true;
+  ed.value = state.val;
+  ed.selectionStart = ed.selectionEnd = state.pos;
+  historyPaused = false;
+  updLn(); updateHighlight();
+}
+function editorRedo() {
+  if (!editorFuture.length) return;
+  let state = editorFuture.pop();
+  editorHistory.push(state);
+  historyPaused = true;
+  ed.value = state.val;
+  ed.selectionStart = ed.selectionEnd = state.pos;
+  historyPaused = false;
+  updLn(); updateHighlight();
+}
+// Capture history on input (debounced)
+let historyTimer = null;
+ed.addEventListener('input', function() {
+  clearTimeout(historyTimer);
+  historyTimer = setTimeout(pushEditorHistory, 300);
+});
+pushEditorHistory(); // initial state
+
+// === KEYBOARD SHORTCUTS CHEAT SHEET ===
+function openShortcuts() {
+  let existing = document.getElementById('shortcutsOv');
+  if (existing) { existing.hidden = false; return; }
+  let ov = document.createElement('div');
+  ov.id = 'shortcutsOv';
+  ov.className = 'exp-ov';
+  ov.setAttribute('role', 'dialog');
+  ov.setAttribute('aria-label', 'Keyboard Shortcuts');
+  ov.innerHTML = `<div class="exp-pan" style="max-width:480px">
+    <div class="exp-hd"><h3>Keyboard Shortcuts</h3><button class="b" onclick="closeShortcuts()">Close</button></div>
+    <div class="exp-body" style="padding:0">
+      <table class="shortcuts-table">
+        <tr><th colspan="2" class="shortcut-section">Editor</th></tr>
+        <tr><td><kbd>Ctrl+Enter</kbd></td><td>Assemble &amp; Load</td></tr>
+        <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+        <tr><td><kbd>Ctrl+Y</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>Ctrl+F</kbd></td><td>Find / Replace</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Insert tab / Accept ghost</td></tr>
+        <tr><th colspan="2" class="shortcut-section">Navigation</th></tr>
+        <tr><td><kbd>Ctrl+Shift+P</kbd></td><td>Command Palette</td></tr>
+        <tr><td><kbd>F1</kbd></td><td>ISA Reference Guide</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Keyboard Shortcuts</td></tr>
+        <tr><td><kbd>Escape</kbd></td><td>Close dialog / panel</td></tr>
+        <tr><th colspan="2" class="shortcut-section">Panels</th></tr>
+        <tr><td><kbd>Alt+1</kbd></td><td>Focus File Browser</td></tr>
+        <tr><td><kbd>Alt+2</kbd></td><td>Focus Editor</td></tr>
+        <tr><td><kbd>Alt+3</kbd></td><td>Focus Debug Panel</td></tr>
+        <tr><td><kbd>↑ ↓</kbd></td><td>Navigate files / scroll panel</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Open selected file</td></tr>
+        <tr><th colspan="2" class="shortcut-section">Debug</th></tr>
+        <tr><td><kbd>Click line #</kbd></td><td>Toggle breakpoint</td></tr>
+      </table>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e) { if (e.target === ov) closeShortcuts(); });
+}
+function closeShortcuts() {
+  let ov = document.getElementById('shortcutsOv');
+  if (ov) ov.hidden = true;
+}
+
 // === KEYBOARD SHORTCUTS ===
 document.addEventListener('keydown', function(e) {
   let guideOv = document.getElementById('guideOv');
@@ -226,12 +307,21 @@ document.addEventListener('keydown', function(e) {
     if (guideOv && guideOv.hidden) openGuide(); else closeGuide();
     return;
   }
+  if (e.key === '?' && !e.ctrlKey && !e.metaKey && document.activeElement !== ed && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    openShortcuts();
+    return;
+  }
   if (e.key === 'Escape') {
+    let shortcutsOv = document.getElementById('shortcutsOv');
+    if (shortcutsOv && !shortcutsOv.hidden) { closeShortcuts(); return; }
     if (guideOv && !guideOv.hidden) { closeGuide(); return; }
     if (expOv && !expOv.hidden) { closeExport(); return; }
     let portsOv = document.getElementById('portsOv');
     if (portsOv && !portsOv.hidden) { closePorts(); return; }
   }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); editorUndo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); editorRedo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); assembleWithLoading(); }
 });
 

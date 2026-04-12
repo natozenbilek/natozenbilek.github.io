@@ -7,8 +7,8 @@ function openGuide() { document.getElementById('guideOv').hidden = false; render
 function closeGuide() { document.getElementById('guideOv').hidden = true; }
 function setGuideTab(t) { guideTab = t; renderGuide(); }
 function renderGuide() {
-  let tabs = ['overview','registers','instructions','io_ports'];
-  let labels = ['Overview','Registers','Instructions','I/O Ports'];
+  let tabs = ['overview','registers','instructions','addressing','io_ports'];
+  let labels = ['Overview','Registers','Instructions','Addressing','I/O & Peripherals'];
   let html = '<div class="guide-tabs">';
   for (let i = 0; i < tabs.length; i++) {
     html += `<button class="guide-tab${guideTab===tabs[i]?' on':''}" onclick="setGuideTab('${tabs[i]}')">${labels[i]}</button>`;
